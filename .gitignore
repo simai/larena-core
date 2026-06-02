@@ -1,0 +1,11 @@
+
+# SIMAI local working artifacts
+.env
+.env.*
+!.env.example
+source/
+output/
+*.bak
+*.bak_*
+*.bak-*
+*.codex-bak-*
