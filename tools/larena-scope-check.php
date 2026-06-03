@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Larena package-local launch scope checker.
+ *
+ * This script is copied into package repositories as:
+ *
+ *   tools/larena-scope-check.php
+ *
+ * It verifies that changed files stay within `.larena/launch-context.json`
+ * `allowed_files` and `evidence_path`, while `forbidden_files` fail closed
+ * unless an exact file path is explicitly allowed.
+ */
+
+function fail(string $message): never
+{
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+}
+
+function normalize_path(string $path): string
+{
+    $path = str_replace('\\', '/', $path);
+    $path = preg_replace('#^/+#', '', $path) ?? $path;
+    return rtrim($path, '/');
+}
+
+function matches_pattern(string $file, string $pattern): bool
+{
+    $file = normalize_path($file);
+    $pattern = normalize_path($pattern);
+
+    if ($pattern === '') {
+        return false;
+    }
+
+    if ($file === $pattern) {
+        return true;
+    }
+
+    if (str_ends_with($pattern, '/*')) {
+        $prefix = substr($pattern, 0, -1);
+        return str_starts_with($file, $prefix);
+    }
+
+    return false;
+}
+
+function run_git(array $args): string
+{
+    $command = array_merge(['git'], $args);
+    $escaped = array_map('escapeshellarg', $command);
+    $output = [];
+    $exitCode = 0;
+
+    exec(implode(' ', $escaped) . ' 2>&1', $output, $exitCode);
+
+    if ($exitCode !== 0) {
+        fail('Git command failed: ' . implode(' ', $command) . PHP_EOL . implode(PHP_EOL, $output));
+    }
+
+    return trim(implode(PHP_EOL, $output));
+}
+
+$contextPath = '.larena/launch-context.json';
+
+if (!is_file($contextPath)) {
+    fail('Missing launch context: ' . $contextPath);
+}
+
+$context = json_decode((string) file_get_contents($contextPath), true);
+
+if (!is_array($context)) {
+    fail('Invalid launch context JSON: ' . $contextPath);
+}
+
+$baseCommit = getenv('LARENA_SCOPE_BASE') ?: ($context['base_commit'] ?? '');
+$targetCommit = getenv('LARENA_SCOPE_TARGET') ?: 'HEAD';
+
+if (!is_string($baseCommit) || trim($baseCommit) === '') {
+    fail('Missing base commit. Set .larena/launch-context.json base_commit or LARENA_SCOPE_BASE.');
+}
+
+$allowedFiles = array_map('normalize_path', $context['allowed_files'] ?? []);
+$forbiddenFiles = array_map('normalize_path', $context['forbidden_files'] ?? []);
+$evidencePath = normalize_path((string) ($context['evidence_path'] ?? ''));
+
+$diffOutputs = [
+    run_git(['diff', '--name-only', $baseCommit . '..' . $targetCommit]),
+    run_git(['diff', '--name-only']),
+    run_git(['diff', '--name-only', '--cached']),
+    run_git(['ls-files', '--others', '--exclude-standard']),
+];
+
+$changedFiles = [];
+
+foreach ($diffOutputs as $diffOutput) {
+    if ($diffOutput === '') {
+        continue;
+    }
+
+    foreach (explode(PHP_EOL, $diffOutput) as $file) {
+        $file = trim($file);
+        if ($file !== '') {
+            $changedFiles[normalize_path($file)] = true;
+        }
+    }
+}
+
+$changedFiles = array_keys($changedFiles);
+sort($changedFiles);
+
+$errors = [];
+
+foreach ($changedFiles as $changedFile) {
+    $file = normalize_path($changedFile);
+    $exactlyAllowed = in_array($file, $allowedFiles, true);
+    $evidenceAllowed = $evidencePath !== '' && str_starts_with($file, $evidencePath . '/');
+
+    foreach ($forbiddenFiles as $pattern) {
+        if (matches_pattern($file, $pattern) && !$exactlyAllowed) {
+            $errors[] = $file . ' matches forbidden pattern ' . $pattern;
+            continue 2;
+        }
+    }
+
+    if (!$exactlyAllowed && !$evidenceAllowed) {
+        $errors[] = $file . ' is outside allowed_files and evidence_path';
+    }
+}
+
+if ($errors !== []) {
+    fail("Larena scope check failed:\n- " . implode("\n- ", $errors));
+}
+
+echo 'Larena scope check ok: ' . count($changedFiles) . ' changed file(s).' . PHP_EOL;

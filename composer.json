@@ -28,7 +28,16 @@
     "lint": "php scripts/lint.php",
     "analyse": "php scripts/analyse.php",
     "validate:larena": "php -r 'foreach ([\"module.yaml\", \"config/larena-core.php\", \"src/Contracts/OperationRuntime.php\", \"src/Contracts/OperationDescriptor.php\", \"src/Contracts/OperationContext.php\", \"src/Contracts/OperationResult.php\", \"src/Contracts/OperationDecision.php\", \"src/Enums/OperationExecutionMode.php\", \"src/Enums/OperationDecisionStatus.php\"] as $file) { if (!is_file($file)) { fwrite(STDERR, \"Missing {$file}\\n\"); exit(1); } } echo \"Larena core contract skeleton is valid.\\n\";'",
-    "evidence:check": "php scripts/check-evidence.php"
+    "evidence:check": "php scripts/check-evidence.php",
+    "scope:check": "php tools/larena-scope-check.php",
+    "quality:gate": [
+      "@validate:larena",
+      "@lint",
+      "@analyse",
+      "@test",
+      "@evidence:check",
+      "@scope:check"
+    ]
   },
   "config": {
     "sort-packages": true,

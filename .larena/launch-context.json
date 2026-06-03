@@ -1,29 +1,24 @@
 {
   "schema": "larena.package_launch_context.v1",
   "package": "larena/core",
-  "launch_record_ref": "specs/implementation-planning/launch-records/core-batch-2-static-analysis-quality-hardening.json",
+  "launch_record_ref": "specs/implementation-planning/launch-records/core-package-local-scope-check.json",
   "specs_repo": "simai/larena-specs",
-  "specs_commit": "10da146",
+  "specs_commit": "1d9af99",
   "selected_features": [
     "core.operation_runtime"
   ],
   "allowed_files": [
     "composer.json",
-    "composer.lock",
-    "phpstan.neon.dist",
-    "scripts/analyse.php",
-    "scripts/check-evidence.php",
     ".larena/launch-context.json",
-    "tests/Unit/OperationRuntimeContractTest.php",
-    "tests/Unit/OperationRuntimeFailsClosedTest.php",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/README.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/implementation-summary.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/tests.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/smoke.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/file-map.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/deviations.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md"
+    "tools/larena-scope-check.php",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/README.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/code-review-feedback.md"
   ],
   "forbidden_files": [
     "src/*",
@@ -31,22 +26,25 @@
     "database/*",
     "routes/*",
     "resources/*",
-    "tests/*"
+    "tests/*",
+    "module.yaml",
+    "README.md",
+    "scripts/*"
   ],
   "forbidden_behavior": [
-    "runtime_contract_changes",
-    "production_logic",
-    "laravel_service_provider",
-    "persistence",
-    "migrations",
-    "admin_ui",
-    "direct_larena_specs_update_by_package_agent"
+    "runtime_contract_change",
+    "production_behavior_change",
+    "direct_larena_specs_update_by_package_agent",
+    "migration_or_route_change",
+    "evidence_without_scope_check"
   ],
-  "evidence_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/",
-  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
-  "status": "static_analysis_quality_gate_review_passed",
+  "evidence_path": "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/graph-sync-proposal.json",
+  "status": "package_local_scope_check_pending_review",
   "coding_started": true,
-  "review_completed": true,
+  "review_completed": false,
   "review_evidence_ref": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md",
-  "next_transition": "ready_for_main_merge"
+  "next_transition": "run_package_quality_gate_then_review_and_merge",
+  "base_commit": "1f3e2a4",
+  "review_status": "pending"
 }
