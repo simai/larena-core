@@ -1,0 +1,24 @@
+name: Larena Package CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate package metadata
+        run: composer validate --strict
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Run Larena package validation
+        run: composer run validate:larena
+      - name: Run tests
+        run: composer run test
+      - name: Check evidence contract
+        run: composer run evidence:check

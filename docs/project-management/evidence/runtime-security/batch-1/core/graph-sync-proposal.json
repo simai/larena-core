@@ -1,0 +1,12 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "launch_record": "specs/implementation-planning/launch-records/core-batch-1-contract-skeletons.json",
+  "status": "not_started",
+  "proposed_changes": [],
+  "evidence_refs": [
+    "docs/project-management/evidence/runtime-security/batch-1/core/README.md"
+  ],
+  "canonical_update_allowed": false,
+  "note": "Repository enforcement baseline only. No package implementation code has started."
+}

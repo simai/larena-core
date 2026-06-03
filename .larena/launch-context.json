@@ -1,0 +1,50 @@
+{
+  "schema": "larena.package_launch_context.v1",
+  "package": "larena/core",
+  "launch_record_ref": "specs/implementation-planning/launch-records/core-batch-1-contract-skeletons.json",
+  "specs_repo": "simai/larena-specs",
+  "specs_commit": "bc958d1f4c2e69999c5c4b0484232b9ff2c33a5e",
+  "selected_features": [
+    "core.operation_runtime"
+  ],
+  "allowed_files": [
+    "composer.json",
+    "README.md",
+    "module.yaml",
+    "config/larena-core.php",
+    "src/Contracts/OperationRuntime.php",
+    "src/Contracts/OperationDescriptor.php",
+    "src/Contracts/OperationContext.php",
+    "src/Contracts/OperationResult.php",
+    "src/Contracts/OperationDecision.php",
+    "src/Enums/OperationExecutionMode.php",
+    "src/Enums/OperationDecisionStatus.php",
+    "tests/Unit/OperationRuntimeContractTest.php",
+    "tests/Unit/OperationRuntimeFailsClosedTest.php"
+  ],
+  "forbidden_files": [
+    "database/migrations/*",
+    "resources/views/*",
+    "routes/*",
+    "src/Http/*",
+    "src/Console/*",
+    "src/Providers/ProductionRuntimeServiceProvider.php"
+  ],
+  "forbidden_behavior": [
+    "persistence",
+    "migrations",
+    "admin_ui",
+    "final_access_enforcement",
+    "final_audit_storage",
+    "final_licensing_checks",
+    "final_secret_handling",
+    "queue_runners",
+    "update_server_behavior",
+    "production_operation_execution",
+    "direct_larena_specs_update_by_package_agent"
+  ],
+  "evidence_path": "docs/project-management/evidence/runtime-security/batch-1/core/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-1/core/graph-sync-proposal.json",
+  "status": "repository_prepared_pending_user_start_signal",
+  "coding_started": false
+}

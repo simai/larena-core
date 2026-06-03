@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+composer validate --strict
+composer run validate:larena
+composer run lint

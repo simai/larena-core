@@ -1,11 +1,31 @@
-
-# SIMAI local working artifacts
+# Local environment and secrets
 .env
 .env.*
 !.env.example
+
+# Local SIMAI runtime artifacts
 source/
+source/**
 output/
+
+# Composer and runtime output
+vendor/
+node_modules/
+coverage/
+.phpunit.cache/
+.pest/
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Backup noise
 *.bak
 *.bak_*
 *.bak-*
 *.codex-bak-*
+
+# Keep package evidence proposals explicit and reviewed
+graph/local-evidence/
+graph/sync-proposals/*.local.json

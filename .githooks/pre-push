@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+composer run test
+composer run evidence:check
