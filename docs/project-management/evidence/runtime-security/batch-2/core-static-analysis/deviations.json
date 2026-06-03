@@ -1,0 +1,7 @@
+{
+  "schema": "larena.evidence_deviations.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-2/core-static-analysis",
+  "deviations": []
+}
+

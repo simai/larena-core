@@ -21,7 +21,12 @@ function assertFailClosedTrue(bool $condition, string $message): void
     }
 }
 
-assertFailClosedTrue(OperationExecutionMode::tryFrom('unsafe') === null, 'Unknown execution mode must not map to an executable enum case.');
+function unknownExecutionModeValue(): string
+{
+    return 'unsafe';
+}
+
+assertFailClosedTrue(OperationExecutionMode::tryFrom(unknownExecutionModeValue()) === null, 'Unknown execution mode must not map to an executable enum case.');
 
 $invalid = OperationDecision::invalid('unknown_mode', 'Unknown operation mode.');
 $invalidResult = OperationResult::fromDecision($invalid);
@@ -29,12 +34,18 @@ $invalidResult = OperationResult::fromDecision($invalid);
 assertFailClosedTrue($invalid->status === OperationDecisionStatus::Invalid, 'Unknown mode must produce invalid decision.');
 assertFailClosedTrue($invalid->handlerMayRun === false, 'Invalid decision must not allow handler execution.');
 assertFailClosedTrue($invalidResult->successful() === false, 'Invalid result must not be successful.');
+if ($invalidResult->normalizedError === null || !array_key_exists('code', $invalidResult->normalizedError)) {
+    throw new RuntimeException('Invalid result must expose normalized error code.');
+}
 assertFailClosedTrue($invalidResult->normalizedError['code'] === 'unknown_mode', 'Invalid result must expose normalized error code.');
 
 $denied = OperationDecision::denied('access_denied');
 $deniedResult = OperationResult::fromDecision($denied);
 
 assertFailClosedTrue($denied->handlerMayRun === false, 'Denied decision must not allow handler execution.');
+if ($deniedResult->normalizedError === null || !array_key_exists('code', $deniedResult->normalizedError)) {
+    throw new RuntimeException('Denied result must expose normalized error code.');
+}
 assertFailClosedTrue($deniedResult->normalizedError['code'] === 'access_denied', 'Denied result must expose normalized error.');
 
 try {

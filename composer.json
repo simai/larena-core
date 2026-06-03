@@ -28,12 +28,15 @@
     "lint": "php scripts/lint.php",
     "analyse": "php scripts/analyse.php",
     "validate:larena": "php -r 'foreach ([\"module.yaml\", \"config/larena-core.php\", \"src/Contracts/OperationRuntime.php\", \"src/Contracts/OperationDescriptor.php\", \"src/Contracts/OperationContext.php\", \"src/Contracts/OperationResult.php\", \"src/Contracts/OperationDecision.php\", \"src/Enums/OperationExecutionMode.php\", \"src/Enums/OperationDecisionStatus.php\"] as $file) { if (!is_file($file)) { fwrite(STDERR, \"Missing {$file}\\n\"); exit(1); } } echo \"Larena core contract skeleton is valid.\\n\";'",
-    "evidence:check": "php -r '$base = \"docs/project-management/evidence/runtime-security/batch-1/core/\"; foreach ([\"implementation-summary.md\", \"tests.md\", \"smoke.md\", \"file-map.json\", \"deviations.json\", \"graph-sync-proposal.json\", \"code-review-feedback.md\"] as $file) { if (!is_file($base . $file)) { fwrite(STDERR, \"Missing evidence {$base}{$file}\\n\"); exit(1); } } $proposal = json_decode(file_get_contents($base . \"graph-sync-proposal.json\"), true, 512, JSON_THROW_ON_ERROR); if (($proposal[\"canonical_update_allowed\"] ?? null) !== false) { fwrite(STDERR, \"graph-sync-proposal must keep canonical_update_allowed=false\\n\"); exit(1); } echo \"Evidence contract is valid for the implemented contract skeleton.\\n\";'"
+    "evidence:check": "php scripts/check-evidence.php"
   },
   "config": {
     "sort-packages": true,
     "allow-plugins": {}
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "require-dev": {
+    "phpstan/phpstan": "^2.0"
+  }
 }

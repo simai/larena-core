@@ -22,7 +22,7 @@ if (!is_file($proposalPath)) {
 }
 
 if (($context['coding_started'] ?? false) === true) {
-    foreach (['implementation-summary.md', 'tests.md', 'smoke.md', 'file-map.json', 'deviations.json'] as $required) {
+    foreach (['implementation-summary.md', 'tests.md', 'smoke.md', 'file-map.json', 'deviations.json', 'graph-sync-proposal.json', 'code-review-feedback.md'] as $required) {
         if (!is_file($evidencePath . $required)) {
             $errors[] = "Coding evidence is missing: {$evidencePath}{$required}";
         }
