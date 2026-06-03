@@ -44,8 +44,9 @@
   ],
   "evidence_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/",
   "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
-  "status": "implementation_written_pending_review",
+  "status": "static_analysis_quality_gate_review_passed",
   "coding_started": true,
-  "review_completed": false,
-  "next_transition": "independent_review_before_merge"
+  "review_completed": true,
+  "review_evidence_ref": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md",
+  "next_transition": "ready_for_main_merge"
 }
