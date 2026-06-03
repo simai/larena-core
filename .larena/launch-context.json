@@ -3,7 +3,7 @@
   "package": "larena/core",
   "launch_record_ref": "specs/implementation-planning/launch-records/core-batch-1-contract-skeletons.json",
   "specs_repo": "simai/larena-specs",
-  "specs_commit": "bc958d1f4c2e69999c5c4b0484232b9ff2c33a5e",
+  "specs_commit": "826258ddd4fe5f458a26f443576aed768b3f46e9",
   "selected_features": [
     "core.operation_runtime"
   ],
@@ -45,6 +45,6 @@
   ],
   "evidence_path": "docs/project-management/evidence/runtime-security/batch-1/core/",
   "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-1/core/graph-sync-proposal.json",
-  "status": "repository_prepared_pending_user_start_signal",
-  "coding_started": false
+  "status": "implementation_written_pending_review",
+  "coding_started": true
 }

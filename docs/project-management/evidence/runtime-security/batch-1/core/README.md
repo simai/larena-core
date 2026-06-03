@@ -3,10 +3,9 @@
 This directory stores reviewed implementation evidence for the `larena/core`
 runtime-security Batch 1 launch record.
 
-Current status: repository enforcement baseline only. Package implementation
-code has not started.
+Current status: Batch 1 contract skeleton implemented.
 
-Required after the first coding batch starts:
+Required evidence:
 
 - `implementation-summary.md`
 - `tests.md`

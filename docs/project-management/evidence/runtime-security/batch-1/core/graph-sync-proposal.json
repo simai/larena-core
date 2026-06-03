@@ -2,11 +2,16 @@
   "schema": "larena.graph_sync_proposal.v1",
   "package": "larena/core",
   "launch_record": "specs/implementation-planning/launch-records/core-batch-1-contract-skeletons.json",
-  "status": "not_started",
+  "status": "implemented_no_canonical_graph_update_required",
   "proposed_changes": [],
   "evidence_refs": [
-    "docs/project-management/evidence/runtime-security/batch-1/core/README.md"
+    "docs/project-management/evidence/runtime-security/batch-1/core/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-1/core/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-1/core/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-1/core/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-1/core/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-1/core/code-review-feedback.md"
   ],
   "canonical_update_allowed": false,
-  "note": "Repository enforcement baseline only. No package implementation code has started."
+  "note": "The first core operation runtime contract skeleton batch matches current canonical specs. No graph update is requested from the package repo."
 }
