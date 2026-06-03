@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-composer run test
-composer run evidence:check
+if [[ -d "/opt/homebrew/opt/php@8.3/bin" ]]; then
+  export PATH="/opt/homebrew/opt/php@8.3/bin:$PATH"
+fi
+
+if [[ -n "${COMPOSER_BIN:-}" ]]; then
+  composer_cmd="$COMPOSER_BIN"
+elif [[ -x "/Applications/ServBay/bin/composer" ]]; then
+  composer_cmd="/Applications/ServBay/bin/composer"
+else
+  composer_cmd="composer"
+fi
+
+"$composer_cmd" run quality:gate

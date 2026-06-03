@@ -18,7 +18,9 @@
     "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/file-map.json",
     "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/deviations.json",
     "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/graph-sync-proposal.json",
-    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/code-review-feedback.md"
+    "docs/project-management/evidence/runtime-security/batch-3/core-scope-check/code-review-feedback.md",
+    ".github/workflows/larena-package-ci.yml",
+    ".githooks/pre-push"
   ],
   "forbidden_files": [
     "src/*",

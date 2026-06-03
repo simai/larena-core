@@ -16,9 +16,5 @@ jobs:
         run: composer validate --strict
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-      - name: Run Larena package validation
-        run: composer run validate:larena
-      - name: Run tests
-        run: composer run test
-      - name: Check evidence contract
-        run: composer run evidence:check
+      - name: Run Larena package quality gate
+        run: composer run quality:gate
