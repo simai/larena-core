@@ -45,6 +45,9 @@
   ],
   "evidence_path": "docs/project-management/evidence/runtime-security/batch-1/core/",
   "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-1/core/graph-sync-proposal.json",
-  "status": "implementation_written_pending_review",
-  "coding_started": true
+  "status": "contract_skeleton_review_passed",
+  "coding_started": true,
+  "review_completed": true,
+  "review_evidence_ref": "docs/project-management/evidence/runtime-security/batch-1/core/code-review-feedback.md",
+  "next_transition": "ready_for_graph_sync_review"
 }
