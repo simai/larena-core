@@ -20,6 +20,22 @@ final readonly class OperationDecision
         if (trim($this->reasonCode) === '') {
             throw new InvalidArgumentException('Operation decision reason code must not be empty.');
         }
+
+        if ($this->status === OperationDecisionStatus::Allowed && !$this->executionMode->isExecutable()) {
+            throw new InvalidArgumentException('Allowed operation decision requires an executable mode.');
+        }
+
+        if ($this->status === OperationDecisionStatus::Allowed && !$this->handlerMayRun) {
+            throw new InvalidArgumentException('Allowed operation decision must allow handler execution.');
+        }
+
+        if ($this->status !== OperationDecisionStatus::Allowed && $this->handlerMayRun) {
+            throw new InvalidArgumentException('Non-allowed operation decision must not allow handler execution.');
+        }
+
+        if ($this->status !== OperationDecisionStatus::Allowed && $this->executionMode !== OperationExecutionMode::Denied) {
+            throw new InvalidArgumentException('Non-allowed operation decision must use denied execution mode.');
+        }
     }
 
     public static function allowed(OperationExecutionMode $executionMode, string $reasonCode = 'allowed'): self

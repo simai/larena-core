@@ -25,6 +25,7 @@ Scope:
 - Represents allowed, denied, capability locked and invalid decisions.
 - Preserves access, capability, audit/correlation and runtime trace slots.
 - Fails closed for unknown or unsafe operation modes at the contract boundary.
+- Rejects contradictory operation decision states even when constructed directly.
 
 Non-goals preserved:
 

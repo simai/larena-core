@@ -45,6 +45,32 @@ try {
 }
 
 try {
+    new OperationDecision(
+        OperationDecisionStatus::Allowed,
+        OperationExecutionMode::Denied,
+        'invalid_allowed_mode',
+        'Invalid allowed decision.',
+        true,
+    );
+    throw new RuntimeException('Allowed decision accepted denied execution mode.');
+} catch (InvalidArgumentException) {
+    // Expected fail-closed contract behavior.
+}
+
+try {
+    new OperationDecision(
+        OperationDecisionStatus::Denied,
+        OperationExecutionMode::Denied,
+        'invalid_handler_flag',
+        'Invalid denied decision.',
+        true,
+    );
+    throw new RuntimeException('Denied decision accepted handler execution.');
+} catch (InvalidArgumentException) {
+    // Expected fail-closed contract behavior.
+}
+
+try {
     new OperationDescriptor('', OperationExecutionMode::Sync);
     throw new RuntimeException('Empty operation descriptor name was accepted.');
 } catch (InvalidArgumentException) {

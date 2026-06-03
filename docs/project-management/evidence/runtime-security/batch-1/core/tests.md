@@ -38,3 +38,4 @@ Acceptance covered:
 - audit correlation slot exists without owning audit;
 - sync, queued, scheduled and denied execution modes are represented;
 - unknown or unsafe operation mode fails closed at contract boundary.
+- contradictory operation decision states are rejected by constructor invariants.
