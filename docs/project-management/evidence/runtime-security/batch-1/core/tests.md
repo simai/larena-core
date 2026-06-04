@@ -10,6 +10,8 @@ Commands:
 ```bash
 PATH=/opt/homebrew/opt/php@8.3/bin:$PATH /Applications/ServBay/package/bin/composer validate --strict
 PATH=/opt/homebrew/opt/php@8.3/bin:$PATH /Applications/ServBay/package/bin/composer run quality:gate
+PATH=/opt/homebrew/opt/php@8.3/bin:$PATH /Applications/ServBay/package/bin/composer install --no-interaction --prefer-dist
+PATH=/opt/homebrew/opt/php@8.3/bin:$PATH /Applications/ServBay/package/bin/composer run quality:gate
 ```
 
 Results:
@@ -17,7 +19,7 @@ Results:
 - `composer validate --strict`: passed.
 - `composer run validate:larena`: passed.
 - `composer run lint`: passed, 16 PHP files checked across `config`, `scripts`, `src`, `tests` and `tools`.
-- `composer run analyse`: passed.
+- `composer run analyse`: passed after `composer install` installed `phpstan/phpstan` from the lock file.
 - `composer run test`: passed.
 - `composer run evidence:check`: passed.
 - `composer run scope:check`: passed, 24 changed files stayed inside launch scope or evidence path.
