@@ -1,0 +1,15 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "core-install-readiness-contract",
+  "status": "proposal_only",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "feature_relation_clarification",
+      "target": "core.install_readiness_contract",
+      "summary": "Dry-run install planning now emits a machine-checkable readiness contract while actual install remains blocked until a guarded launch record.",
+      "reason": "The entry app needs a safe transition surface before any install mutation batch."
+    }
+  ]
+}

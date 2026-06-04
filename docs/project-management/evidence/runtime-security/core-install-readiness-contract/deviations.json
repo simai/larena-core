@@ -1,0 +1,6 @@
+{
+  "schema": "larena.deviations.v1",
+  "package": "larena/core",
+  "batch": "core-install-readiness-contract",
+  "deviations": []
+}

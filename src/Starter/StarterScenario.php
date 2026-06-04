@@ -141,7 +141,18 @@ final class StarterScenario
                 'schema' => 'larena.starter_install_plan.v1',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
-                'reason' => 'actual_install_not_available_in_first_cli_starter_scenario',
+                'reason' => 'actual_install_requires_launch_record_and_guarded_transition',
+                'mutates_state' => false,
+                'actual_install_allowed' => false,
+                'transition_required' => 'install_apply_launch_record',
+                'required_before_mutation' => [
+                    'launch_record',
+                    'allowed_scope',
+                    'backup_evidence',
+                    'rollback_plan',
+                    'evidence_path',
+                    'operator_approval',
+                ],
                 'safe_command' => 'php artisan larena:install --dry-run',
             ];
 
@@ -185,6 +196,7 @@ final class StarterScenario
             $plan,
             static fn (array $step): bool => $step['status'] === 'blocked',
         ));
+        $readinessContract = InstallReadinessContract::fromDryRunPlan($doctor, $plan, $doctorOutputPath);
 
         $report = [
             'schema' => 'larena.starter_install_plan.v1',
@@ -194,7 +206,8 @@ final class StarterScenario
             'mutates_state' => false,
             'plan' => $plan,
             'blocked_steps' => $blocked,
-            'next_gate' => 'developer_acceptance_or_entry_app_reset_rebuild_plan',
+            'install_readiness_contract' => $readinessContract,
+            'next_gate' => 'install_apply_launch_record',
         ];
 
         self::writeJson($outputPath, $report);

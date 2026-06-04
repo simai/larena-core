@@ -1,0 +1,23 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "core-install-readiness-contract",
+  "files": {
+    "implementation": [
+      ".larena/launch-context.json",
+      "composer.json",
+      "module.yaml",
+      "src/Starter/InstallReadinessContract.php",
+      "src/Starter/StarterScenario.php",
+      "tests/Unit/InstallReadinessContractTest.php"
+    ],
+    "evidence": [
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/README.md",
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/implementation-summary.md",
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/tests.md",
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/file-map.json",
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/deviations.json",
+      "docs/project-management/evidence/runtime-security/core-install-readiness-contract/graph-sync-proposal.json"
+    ]
+  }
+}
