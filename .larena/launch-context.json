@@ -1,46 +1,54 @@
 {
   "schema": "larena.package_launch_context.v1",
   "package": "larena/core",
-  "launch_record_ref": "specs/implementation-planning/launch-records/core-batch-2-static-analysis-quality-hardening.json",
+  "launch_record_ref": "specs/implementation-planning/launch-records/core-batch-3-minimal-sync-runtime.json",
   "specs_repo": "simai/larena-specs",
-  "specs_commit": "db8aa9490dfb244c4defe499aa134dcbdbb6ee73",
-  "base_commit": "a7719d1c7b2ef667bdb75a160412b4b573e88b17",
+  "specs_commit": "f76e37cc5a3ba7c54e9ffab7fe1f5521ba974289",
+  "base_commit": "a39e4ead8e8a1f56db97bc8dec997bd5287408af",
   "selected_features": [
     "core.operation_runtime"
   ],
   "allowed_files": [
-    "composer.json",
-    "composer.lock",
-    "phpstan.neon.dist",
-    "scripts/analyse.php",
-    "scripts/check-evidence.php",
     ".larena/launch-context.json",
-    "tests/Unit/OperationRuntimeContractTest.php",
-    "tests/Unit/OperationRuntimeFailsClosedTest.php",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/README.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/implementation-summary.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/tests.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/smoke.md",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/file-map.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/deviations.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
-    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md"
+    "composer.json",
+    "src/Contracts/OperationAccessGate.php",
+    "src/Contracts/OperationCapabilityGate.php",
+    "src/Contracts/OperationAuditRecorder.php",
+    "src/Contracts/OperationHandler.php",
+    "src/Runtime/SyncOperationRuntime.php",
+    "tests/Unit/SyncOperationRuntimeTest.php",
+    "tests/Unit/SyncOperationRuntimeFailsClosedTest.php",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/README.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md"
   ],
   "forbidden_files": [
-    "src/*",
+    "composer.lock",
     "config/*",
     "database/*",
     "routes/*",
     "resources/*",
-    "tests/*"
+    "src/Providers/*",
+    "src/Http/*",
+    "src/Console/*"
   ],
   "forbidden_behavior": [
-    "runtime_contract_changes",
-    "production_logic",
+    "composer_dependency_change",
     "laravel_service_provider",
+    "container_binding",
     "persistence",
     "migrations",
     "admin_ui",
+    "queue_worker",
+    "secret_broker",
+    "final_access_integration",
+    "final_licensing_integration",
+    "final_audit_storage",
     "direct_larena_specs_update_by_package_agent"
   ],
   "required_evidence_files": [
@@ -53,13 +61,13 @@
     "graph-sync-proposal.json",
     "code-review-feedback.md"
   ],
-  "evidence_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/",
-  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
+  "evidence_path": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/graph-sync-proposal.json",
   "status": "contract_skeleton_review_passed",
   "coding_started": true,
   "repository_enforcement_installed": true,
   "review_completed": true,
-  "review_evidence_ref": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md",
+  "review_evidence_ref": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md",
   "next_transition": "merge_to_main",
   "local_validation": {
     "composer_validate": "passed",
@@ -75,6 +83,6 @@
     "pre_commit": "passed",
     "pre_push": "passed"
   },
-  "coding_branch": "codex/runtime-security/core/batch-2-static-analysis",
-  "previous_batch_ref": "docs/project-management/evidence/runtime-security/batch-1/core/code-review-feedback.md"
+  "coding_branch": "codex/runtime-security/core/batch-3-minimal-sync-runtime",
+  "previous_batch_ref": "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md"
 }

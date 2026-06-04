@@ -1,0 +1,32 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-3/core-minimal-sync-runtime",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "composer.json",
+    "src/Contracts/OperationAccessGate.php",
+    "src/Contracts/OperationCapabilityGate.php",
+    "src/Contracts/OperationAuditRecorder.php",
+    "src/Contracts/OperationHandler.php",
+    "src/Runtime/SyncOperationRuntime.php",
+    "tests/Unit/SyncOperationRuntimeTest.php",
+    "tests/Unit/SyncOperationRuntimeFailsClosedTest.php",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/README.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md"
+  ],
+  "runtime_contract_files_changed": [
+    "src/Contracts/OperationAccessGate.php",
+    "src/Contracts/OperationCapabilityGate.php",
+    "src/Contracts/OperationAuditRecorder.php",
+    "src/Contracts/OperationHandler.php",
+    "src/Runtime/SyncOperationRuntime.php"
+  ]
+}
+
