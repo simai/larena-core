@@ -2,13 +2,15 @@ package: larena/core
 title: Larena Core
 status: contract_skeleton
 cluster: runtime-security
-batch: batch-1-contract-skeletons
+batch: core-owned-cli-starter
 features:
   - core.operation_runtime
+  - core.starter_cli_commands
 owner_boundary:
   owns:
     - operation runtime contract boundary
     - operation descriptor/context/decision/result contracts
+    - Larena starter diagnostic command ownership
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -24,4 +26,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/runtime-security/batch-1/core/
+  path: docs/project-management/evidence/runtime-security/core-owned-cli-starter/

@@ -1,0 +1,14 @@
+{
+  "schema": "larena.deviations.v1",
+  "package": "larena/core",
+  "batch": "core-owned-cli-starter",
+  "deviations": [
+    {
+      "id": "servbay-php-ini-warning",
+      "status": "accepted_environment_warning",
+      "summary": "ServBay PHP 8.4 reports a php.ini syntax warning before CLI commands.",
+      "impact": "Commands still execute successfully. The warning should be repaired before release-quality environment certification.",
+      "owner": "ops"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "core-owned-cli-starter",
+  "status": "proposal_only",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "feature_relation_clarification",
+      "summary": "core.starter_cli_commands should be treated as package-owned starter diagnostics consumed by the entry app.",
+      "target": "core.starter_cli_commands",
+      "reason": "The entry app now delegates starter CLI behavior to larena/core service provider commands."
+    }
+  ]
+}

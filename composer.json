@@ -10,6 +10,8 @@
     }
   ],
   "require": {
+    "illuminate/console": "^13.0",
+    "illuminate/support": "^13.0",
     "php": "^8.3"
   },
   "autoload": {
@@ -22,9 +24,42 @@
       "Larena\\Core\\Tests\\": "tests/"
     }
   },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Larena\\Core\\Providers\\CoreServiceProvider"
+      ]
+    }
+  },
   "require-dev": {
+    "larena/access": "dev-main",
+    "larena/audit": "dev-main",
+    "larena/licensing": "dev-main",
     "phpstan/phpstan": "^2.0"
   },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../access",
+      "options": {
+        "symlink": true
+      }
+    },
+    {
+      "type": "path",
+      "url": "../audit",
+      "options": {
+        "symlink": true
+      }
+    },
+    {
+      "type": "path",
+      "url": "../licensing",
+      "options": {
+        "symlink": true
+      }
+    }
+  ],
   "scripts": {
     "test": "php tests/Unit/OperationRuntimeContractTest.php && php tests/Unit/OperationRuntimeFailsClosedTest.php && php tests/Unit/SyncOperationRuntimeTest.php && php tests/Unit/SyncOperationRuntimeFailsClosedTest.php && php tests/Unit/RuntimeSecurityCompositionTest.php && php tests/Unit/RuntimeSecurityCompositionFailsClosedTest.php",
     "test:unit": "php tests/Unit/OperationRuntimeContractTest.php && php tests/Unit/OperationRuntimeFailsClosedTest.php && php tests/Unit/SyncOperationRuntimeTest.php && php tests/Unit/SyncOperationRuntimeFailsClosedTest.php && php tests/Unit/RuntimeSecurityCompositionTest.php && php tests/Unit/RuntimeSecurityCompositionFailsClosedTest.php",
@@ -44,7 +79,10 @@
   },
   "config": {
     "sort-packages": true,
-    "allow-plugins": {}
+    "allow-plugins": {},
+    "platform": {
+      "php": "8.3.0"
+    }
   },
   "minimum-stability": "stable",
   "prefer-stable": true

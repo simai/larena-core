@@ -1,0 +1,26 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "core-owned-cli-starter",
+  "files": {
+    "implementation": [
+      "composer.json",
+      "composer.lock",
+      "module.yaml",
+      "src/Console/Commands/DoctorCommand.php",
+      "src/Console/Commands/InstallCommand.php",
+      "src/Console/Commands/RuntimeSecuritySmokeCommand.php",
+      "src/Diagnostics/RuntimeSecuritySmoke.php",
+      "src/Providers/CoreServiceProvider.php",
+      "src/Starter/StarterScenario.php"
+    ],
+    "evidence": [
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/README.md",
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/implementation-summary.md",
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/tests.md",
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/file-map.json",
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/deviations.json",
+      "docs/project-management/evidence/runtime-security/core-owned-cli-starter/graph-sync-proposal.json"
+    ]
+  }
+}
