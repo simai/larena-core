@@ -30,6 +30,7 @@ $specRef = is_file('.larena/spec-ref.json')
 $launchContext = is_file('.larena/launch-context.json')
     ? json_decode((string) file_get_contents('.larena/launch-context.json'), true, 512, JSON_THROW_ON_ERROR)
     : [];
+$codingStarted = ($launchContext['coding_started'] ?? false) === true;
 
 if (($specRef['canonical_update_allowed'] ?? null) !== false) {
     $errors[] = '.larena/spec-ref.json must keep canonical_update_allowed=false';
@@ -37,10 +38,6 @@ if (($specRef['canonical_update_allowed'] ?? null) !== false) {
 
 if (($launchContext['package'] ?? null) !== 'larena/core') {
     $errors[] = '.larena/launch-context.json package must be larena/core';
-}
-
-if (($launchContext['coding_started'] ?? null) !== false) {
-    $errors[] = 'coding_started must be false before a coding launch record.';
 }
 
 if (!str_starts_with((string) ($launchContext['evidence_path'] ?? ''), 'docs/project-management/evidence/')) {
@@ -52,8 +49,20 @@ if (!str_starts_with((string) ($launchContext['graph_sync_proposal_path'] ?? '')
 }
 
 foreach (['src', 'config', 'database', 'routes', 'resources', 'tests', 'lang'] as $runtimePath) {
-    if (is_dir($runtimePath)) {
+    if (is_dir($runtimePath) && !$codingStarted) {
         $errors[] = "{$runtimePath}/ is not allowed in this clean pre-codegen baseline commit.";
+    }
+}
+
+if ($codingStarted) {
+    foreach (['module.yaml', 'config/larena-core.php'] as $requiredContractFile) {
+        if (!is_file($requiredContractFile)) {
+            $errors[] = "Missing required contract launch file: {$requiredContractFile}";
+        }
+    }
+
+    if (($launchContext['status'] ?? null) !== 'coding_started') {
+        $errors[] = 'launch-context status must be coding_started when runtime files are present.';
     }
 }
 
@@ -64,4 +73,6 @@ if ($errors !== []) {
     exit(1);
 }
 
-echo "Larena Core clean pre-codegen baseline is valid.\n";
+echo $codingStarted
+    ? "Larena Core coding launch context is valid.\n"
+    : "Larena Core clean pre-codegen baseline is valid.\n";

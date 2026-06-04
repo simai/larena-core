@@ -1,15 +1,27 @@
 package: larena/core
 title: Larena Core
-status: repository_prepared
+status: contract_skeleton
 cluster: runtime-security
-batch: batch-0-clean-pre-codegen-baseline
+batch: batch-1-contract-skeletons
 features:
-  - core.assets_runtime
-  - core.cache
   - core.operation_runtime
-  - core.sitepack_standard
+owner_boundary:
+  owns:
+    - operation runtime contract boundary
+    - operation descriptor/context/decision/result contracts
+  consumes:
+    - larena/access decisions
+    - larena/licensing capability context
+    - larena/audit correlation metadata
+    - larena/queue execution mode handoff
+  must_not_own:
+    - final access enforcement
+    - final audit storage
+    - final licensing checks
+    - queue runners
+    - production operation handlers
 runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/runtime-security/batch-0/core-clean-baseline/
+  path: docs/project-management/evidence/runtime-security/batch-1/core/

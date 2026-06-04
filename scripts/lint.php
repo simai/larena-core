@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$paths = ['scripts', 'tools'];
+$paths = ['scripts', 'tools', 'src', 'tests', 'config'];
 $files = [];
 
 foreach ($paths as $path) {

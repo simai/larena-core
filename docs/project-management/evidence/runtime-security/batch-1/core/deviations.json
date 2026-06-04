@@ -1,0 +1,29 @@
+{
+  "schema": "larena.implementation_deviations.v1",
+  "package": "larena/core",
+  "batch": "runtime-security.batch-1-contract-skeletons",
+  "deviations": [
+    {
+      "id": "composer-scripts-switched-from-enforcement-placeholder",
+      "status": "accepted_within_allowed_file",
+      "reason": "The test scripts were switched from enforcement placeholder tests to the explicit Batch 1 contract tests while preserving the package quality gate."
+    },
+    {
+      "id": "coding-started-validator-state-awareness",
+      "status": "accepted_gate_hardening_within_launch_scope",
+      "reason": "scripts/validate-larena-package.php now distinguishes clean pre-codegen baseline from an approved coding_started launch context, so runtime files are allowed only after the executable process transition."
+    },
+    {
+      "id": "coding-batch-lint-coverage-widened",
+      "status": "accepted_gate_hardening_within_launch_scope",
+      "reason": "scripts/lint.php now lints config, src and tests in addition to enforcement scripts/tools, because Batch 1 introduces PHP contract files."
+    },
+    {
+      "id": "reference-branch-not-merged-directly",
+      "status": "accepted_process_reconciliation",
+      "reason": "The previous codex/runtime-security/core/batch-1-contracts branch contained pre-reset history. This clean branch was recreated from current main and imported only controlled Batch 1 scope."
+    }
+  ],
+  "forbidden_behavior_detected": [],
+  "canonical_spec_changes_required": false
+}
