@@ -1,3 +1,3 @@
 # Smoke
 
-Repository baseline smoke is package-local only. Runtime/Laravel behavior is out of scope for this reset batch.
+Repository baseline smoke is package-local only. Runtime/Laravel behavior is out of scope for this cleanup batch.
