@@ -55,14 +55,19 @@ foreach (['src', 'config', 'database', 'routes', 'resources', 'tests', 'lang'] a
 }
 
 if ($codingStarted) {
+    $allowedCodingStatuses = [
+        'coding_started',
+        'contract_skeleton_review_passed',
+    ];
+
     foreach (['module.yaml', 'config/larena-core.php'] as $requiredContractFile) {
         if (!is_file($requiredContractFile)) {
             $errors[] = "Missing required contract launch file: {$requiredContractFile}";
         }
     }
 
-    if (($launchContext['status'] ?? null) !== 'coding_started') {
-        $errors[] = 'launch-context status must be coding_started when runtime files are present.';
+    if (!in_array(($launchContext['status'] ?? null), $allowedCodingStatuses, true)) {
+        $errors[] = 'launch-context status must be an allowed coding/review state when runtime files are present.';
     }
 }
 
