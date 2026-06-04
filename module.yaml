@@ -1,14 +1,15 @@
 package: larena/core
 title: Larena Core
-status: diagnostics_contract
+status: cluster_smoke_contract
 cluster: runtime-security
-batch: package-registry-diagnostics
+batch: runtime-security-cluster-smoke
 features:
   - core.operation_runtime
   - core.starter_cli_commands
   - core.install_readiness_contract
   - core.package_registry_seed_guarded_apply
   - core.package_registry_diagnostics
+  - core.runtime_security_cluster_smoke
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -17,6 +18,7 @@ owner_boundary:
     - fail-closed installer readiness contract
     - guarded package registry seed mutation contract
     - read-only package registry diagnostics
+    - read-only runtime/security cluster smoke report
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -32,4 +34,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/runtime-security/package-registry-diagnostics/
+  path: docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/

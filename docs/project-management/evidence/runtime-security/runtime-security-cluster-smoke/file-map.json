@@ -1,0 +1,20 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "runtime-security-cluster-smoke",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "composer.json",
+    "module.yaml",
+    "src/Console/Commands/ClusterSmokeCommand.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Starter/RuntimeSecurityClusterSmoke.php",
+    "tests/Unit/RuntimeSecurityClusterSmokeTest.php",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/README.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/file-map.json",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/deviations.json",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json"
+  ]
+}

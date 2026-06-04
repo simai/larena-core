@@ -1,0 +1,14 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "runtime-security-cluster-smoke",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "feature_implementation_state",
+      "feature": "core.runtime_security_cluster_smoke",
+      "state": "implemented_in_package",
+      "evidence": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/"
+    }
+  ]
+}

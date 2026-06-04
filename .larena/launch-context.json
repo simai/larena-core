@@ -1,10 +1,10 @@
 {
   "schema": "larena.package_launch_context.v1",
   "package": "larena/core",
-  "launch_record_ref": "docs/project-management/workflows/2026-06-05-package-registry-diagnostics.md",
+  "launch_record_ref": "docs/project-management/workflows/2026-06-05-runtime-security-cluster-smoke.md",
   "specs_repo": "simai/larena-specs",
   "specs_commit": "39d6888e1b2ded77c451e2143d63eb6892b1e850",
-  "base_commit": "0575346b456a1e1b8826e6de0ad721272eb9c57f",
+  "base_commit": "1ffbf9f39a52b36fa689c0c04e110b89ee6eddd1",
   "selected_features": [
     "core.operation_runtime",
     "core.starter_cli_commands",
@@ -14,7 +14,8 @@
     "licensing.capabilities",
     "audit.events",
     "core.package_registry_seed_guarded_apply",
-    "core.package_registry_diagnostics"
+    "core.package_registry_diagnostics",
+    "core.runtime_security_cluster_smoke"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -53,7 +54,16 @@
     "docs/project-management/evidence/runtime-security/package-registry-diagnostics/tests.md",
     "docs/project-management/evidence/runtime-security/package-registry-diagnostics/file-map.json",
     "docs/project-management/evidence/runtime-security/package-registry-diagnostics/deviations.json",
-    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json"
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json",
+    "src/Console/Commands/ClusterSmokeCommand.php",
+    "src/Starter/RuntimeSecurityClusterSmoke.php",
+    "tests/Unit/RuntimeSecurityClusterSmokeTest.php",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/README.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/file-map.json",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/deviations.json",
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json"
   ],
   "forbidden_files": [
     "config/*",
@@ -83,24 +93,23 @@
     "deviations.json",
     "graph-sync-proposal.json"
   ],
-  "evidence_path": "docs/project-management/evidence/runtime-security/package-registry-diagnostics/",
-  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json",
+  "evidence_path": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json",
   "status": "coding_started",
   "coding_started": true,
   "repository_enforcement_installed": true,
-  "review_completed": false,
-  "review_evidence_ref": null,
-  "next_transition": "review_and_evidence",
+  "review_completed": true,
+  "review_evidence_ref": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
+  "next_transition": "entry_app_smoke",
   "local_validation": {
-    "composer_validate": "passed",
+    "composer_validate_strict": "passed",
     "composer_dump_autoload": "passed",
-    "validate_larena": "passed",
-    "lint": "passed",
-    "analyse": "passed",
-    "test": "passed",
+    "quality_gate": "passed",
+    "tests": "passed",
     "evidence_check": "passed",
     "scope_check": "passed",
-    "quality_gate": "passed"
+    "php_runtime": "ServBay PHP 8.4.20",
+    "validated_at": "2026-06-04T22:38:37.359Z"
   },
   "coding_branch": "main",
   "previous_batch_ref": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md"
