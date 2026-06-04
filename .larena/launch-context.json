@@ -1,10 +1,10 @@
 {
   "schema": "larena.package_launch_context.v1",
   "package": "larena/core",
-  "launch_record_ref": "docs/project-management/launch-records/package-registry-seed-guarded-apply.json",
+  "launch_record_ref": "docs/project-management/workflows/2026-06-05-package-registry-diagnostics.md",
   "specs_repo": "simai/larena-specs",
   "specs_commit": "39d6888e1b2ded77c451e2143d63eb6892b1e850",
-  "base_commit": "99545f4c6478ea0b4bffa65efa30992755a35122",
+  "base_commit": "0575346b456a1e1b8826e6de0ad721272eb9c57f",
   "selected_features": [
     "core.operation_runtime",
     "core.starter_cli_commands",
@@ -13,7 +13,8 @@
     "access.target_grant_model",
     "licensing.capabilities",
     "audit.events",
-    "core.package_registry_seed_guarded_apply"
+    "core.package_registry_seed_guarded_apply",
+    "core.package_registry_diagnostics"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -43,7 +44,16 @@
     "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/tests.md",
     "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/file-map.json",
     "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/deviations.json",
-    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/graph-sync-proposal.json"
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/graph-sync-proposal.json",
+    "src/Console/Commands/PackageRegistryCommand.php",
+    "src/Starter/PackageRegistryDiagnostics.php",
+    "tests/Unit/PackageRegistryDiagnosticsTest.php",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/README.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/tests.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/file-map.json",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/deviations.json",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json"
   ],
   "forbidden_files": [
     "config/*",
@@ -73,8 +83,8 @@
     "deviations.json",
     "graph-sync-proposal.json"
   ],
-  "evidence_path": "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/",
-  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/graph-sync-proposal.json",
+  "evidence_path": "docs/project-management/evidence/runtime-security/package-registry-diagnostics/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json",
   "status": "coding_started",
   "coding_started": true,
   "repository_enforcement_installed": true,

@@ -7,6 +7,7 @@ namespace Larena\Core\Providers;
 use Illuminate\Support\ServiceProvider;
 use Larena\Core\Console\Commands\DoctorCommand;
 use Larena\Core\Console\Commands\InstallCommand;
+use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
 
 final class CoreServiceProvider extends ServiceProvider
@@ -20,6 +21,7 @@ final class CoreServiceProvider extends ServiceProvider
         $this->commands([
             DoctorCommand::class,
             InstallCommand::class,
+            PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,
         ]);
     }

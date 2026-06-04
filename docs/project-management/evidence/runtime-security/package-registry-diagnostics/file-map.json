@@ -1,0 +1,21 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "package-registry-diagnostics",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "composer.json",
+    "module.yaml",
+    "src/Console/Commands/PackageRegistryCommand.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Starter/PackageRegistryDiagnostics.php",
+    "src/Starter/StarterScenario.php",
+    "tests/Unit/PackageRegistryDiagnosticsTest.php",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/README.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/tests.md",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/file-map.json",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/deviations.json",
+    "docs/project-management/evidence/runtime-security/package-registry-diagnostics/graph-sync-proposal.json"
+  ]
+}

@@ -97,6 +97,7 @@ final class StarterScenario
                     'bootstrap_cache' => $applicationContext['bootstrap_cache_path'],
                 ],
             ],
+            'package_registry' => self::packageRegistryDiagnostics($applicationContext),
         ];
 
         $report = [
@@ -283,6 +284,26 @@ final class StarterScenario
     }
 
     /**
+     * @param array{
+     *     base_path: string,
+     *     storage_path: string,
+     *     bootstrap_cache_path: string,
+     *     laravel_version: string,
+     *     environment: string,
+     *     app_name: string,
+     *     debug: bool,
+     *     timezone: string,
+     *     locale: string
+     * } $applicationContext
+     *
+     * @return array<string, mixed>
+     */
+    public static function packageRegistryDiagnostics(array $applicationContext): array
+    {
+        return PackageRegistryDiagnostics::inspect($applicationContext['base_path'], self::REQUIRED_PACKAGES);
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private static function installedPackages(string $basePath): array
@@ -326,7 +347,11 @@ final class StarterScenario
      */
     private static function checksPassed(array $checks): bool
     {
-        foreach ($checks as $check) {
+        foreach ($checks as $name => $check) {
+            if ($name === 'package_registry') {
+                continue;
+            }
+
             if (($check['status'] ?? null) !== 'passed') {
                 return false;
             }

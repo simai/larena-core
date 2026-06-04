@@ -1,13 +1,14 @@
 package: larena/core
 title: Larena Core
-status: guarded_apply_contract
+status: diagnostics_contract
 cluster: runtime-security
-batch: package-registry-seed-guarded-apply
+batch: package-registry-diagnostics
 features:
   - core.operation_runtime
   - core.starter_cli_commands
   - core.install_readiness_contract
   - core.package_registry_seed_guarded_apply
+  - core.package_registry_diagnostics
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -15,6 +16,7 @@ owner_boundary:
     - Larena starter diagnostic command ownership
     - fail-closed installer readiness contract
     - guarded package registry seed mutation contract
+    - read-only package registry diagnostics
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -30,4 +32,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/
+  path: docs/project-management/evidence/runtime-security/package-registry-diagnostics/
