@@ -216,6 +216,73 @@ final class StarterScenario
     }
 
     /**
+     * @param array{
+     *     base_path: string,
+     *     storage_path: string,
+     *     bootstrap_cache_path: string,
+     *     laravel_version: string,
+     *     environment: string,
+     *     app_name: string,
+     *     debug: bool,
+     *     timezone: string,
+     *     locale: string
+     * } $applicationContext
+     *
+     * @return array<string, mixed>
+     */
+    public static function applyInstallLaunchRecord(
+        string $launchRecordPath,
+        string $confirmation,
+        array $applicationContext
+    ): array {
+        if ($confirmation !== 'package_registry_seed') {
+            return [
+                'schema' => 'larena.install_apply_result.v1',
+                'status' => 'blocked',
+                'generated_at' => gmdate('c'),
+                'reason' => 'confirmation_must_equal_package_registry_seed',
+                'mutates_state' => false,
+                'safe_command' => 'php artisan larena:install --dry-run',
+            ];
+        }
+
+        $loaded = InstallApplyLaunchRecord::load($applicationContext['base_path'], $launchRecordPath);
+        if (($loaded['status'] ?? null) !== 'passed') {
+            return [
+                'schema' => 'larena.install_apply_result.v1',
+                'status' => 'blocked',
+                'generated_at' => gmdate('c'),
+                'reason' => $loaded['reason'] ?? 'launch_record_not_accepted',
+                'details' => $loaded,
+                'mutates_state' => false,
+                'safe_command' => 'php artisan larena:install --dry-run',
+            ];
+        }
+
+        $doctorOutputPath = rtrim((string) $loaded['record']['evidence_path'], '/') . '/doctor-before-apply.json';
+        $doctor = self::doctor($applicationContext['base_path'] . '/' . $doctorOutputPath, $applicationContext);
+
+        if (($doctor['status'] ?? null) !== 'passed') {
+            return [
+                'schema' => 'larena.install_apply_result.v1',
+                'status' => 'blocked',
+                'generated_at' => gmdate('c'),
+                'reason' => 'doctor_preflight_failed',
+                'doctor_evidence' => $doctorOutputPath,
+                'mutates_state' => false,
+                'safe_command' => 'php artisan larena:doctor',
+            ];
+        }
+
+        return PackageRegistrySeed::apply(
+            $applicationContext['base_path'],
+            $loaded['record'],
+            self::installedPackages($applicationContext['base_path']),
+            self::REQUIRED_PACKAGES,
+        );
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private static function installedPackages(string $basePath): array

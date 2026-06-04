@@ -1,0 +1,6 @@
+{
+  "schema": "larena.evidence_deviations.v1",
+  "package": "larena/core",
+  "batch": "package-registry-seed-guarded-apply",
+  "deviations": []
+}

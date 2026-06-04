@@ -1,0 +1,14 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "package-registry-seed-guarded-apply",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "feature_implementation_state",
+      "feature": "core.package_registry_seed_guarded_apply",
+      "state": "implemented_in_package",
+      "evidence": "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/"
+    }
+  ]
+}

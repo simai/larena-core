@@ -1,0 +1,22 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "package-registry-seed-guarded-apply",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "composer.json",
+    "module.yaml",
+    "src/Console/Commands/InstallCommand.php",
+    "src/Starter/InstallApplyLaunchRecord.php",
+    "src/Starter/PackageRegistrySeed.php",
+    "src/Starter/StarterScenario.php",
+    "tests/Unit/InstallApplyLaunchRecordTest.php",
+    "tests/Unit/PackageRegistrySeedTest.php",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/README.md",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/tests.md",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/file-map.json",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/deviations.json",
+    "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/graph-sync-proposal.json"
+  ]
+}
