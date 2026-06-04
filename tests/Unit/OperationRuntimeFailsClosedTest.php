@@ -21,7 +21,12 @@ function assertFailClosedTrue(bool $condition, string $message): void
     }
 }
 
-assertFailClosedTrue(OperationExecutionMode::tryFrom('unsafe') === null, 'Unknown execution mode must not map to an executable enum case.');
+function unknownExecutionModeValue(): string
+{
+    return 'unsafe';
+}
+
+assertFailClosedTrue(OperationExecutionMode::tryFrom(unknownExecutionModeValue()) === null, 'Unknown execution mode must not map to an executable enum case.');
 
 $invalid = OperationDecision::invalid('unknown_mode', 'Unknown operation mode.');
 $invalidResult = OperationResult::fromDecision($invalid);

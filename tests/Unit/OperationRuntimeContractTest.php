@@ -95,8 +95,16 @@ assertContractTrue($result->auditEvents[0]['correlation_id'] === 'corr-1', 'Resu
 assertContractTrue($explain['access_scope'] === 'core.operations.execute', 'Explain output must include access scope.');
 assertContractTrue($explain['required_capability'] === 'core.operation_runtime', 'Explain output must include capability.');
 
-foreach (['sync', 'queued', 'scheduled', 'denied'] as $mode) {
-    assertContractTrue(OperationExecutionMode::tryFrom($mode) instanceof OperationExecutionMode, "Execution mode {$mode} must be represented.");
-}
+$executionModeValues = array_map(
+    static fn (OperationExecutionMode $mode): string => $mode->value,
+    OperationExecutionMode::cases(),
+);
+
+sort($executionModeValues);
+
+assertContractTrue(
+    $executionModeValues === ['denied', 'queued', 'scheduled', 'sync'],
+    'All supported execution modes must be represented by explicit enum values.',
+);
 
 echo "OperationRuntimeContractTest passed.\n";

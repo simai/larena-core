@@ -1,0 +1,10 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-2/core-static-analysis",
+  "status": "no_canonical_graph_change_requested",
+  "canonical_update_allowed": false,
+  "must_not_apply_automatically": true,
+  "summary": "Static-analysis quality hardening for the already accepted core.operation_runtime contract skeletons. No package spec or graph change is requested."
+}
+

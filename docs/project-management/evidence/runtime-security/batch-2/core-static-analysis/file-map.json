@@ -1,0 +1,21 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-2/core-static-analysis",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "phpstan.neon.dist",
+    "scripts/analyse.php",
+    "scripts/check-evidence.php",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/README.md",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/batch-2/core-static-analysis/code-review-feedback.md"
+  ],
+  "runtime_contract_files_changed": []
+}
+

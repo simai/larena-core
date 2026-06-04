@@ -5,9 +5,28 @@ declare(strict_types=1);
 $context = json_decode((string) file_get_contents('.larena/launch-context.json'), true, 512, JSON_THROW_ON_ERROR);
 $evidencePath = rtrim((string) $context['evidence_path'], '/') . '/';
 $proposalPath = (string) $context['graph_sync_proposal_path'];
+$requiredEvidence = $context['required_evidence_files'] ?? [
+    'README.md',
+    'implementation-summary.md',
+    'tests.md',
+    'smoke.md',
+    'file-map.json',
+    'deviations.json',
+    'graph-sync-proposal.json',
+];
 $errors = [];
 
-foreach (['README.md', 'implementation-summary.md', 'tests.md', 'smoke.md', 'file-map.json', 'deviations.json', 'graph-sync-proposal.json'] as $required) {
+if (!is_array($requiredEvidence)) {
+    fwrite(STDERR, "Launch context required_evidence_files must be an array when present.\n");
+    exit(1);
+}
+
+foreach ($requiredEvidence as $required) {
+    if (!is_string($required) || $required === '') {
+        $errors[] = 'Launch context contains an invalid evidence file entry.';
+        continue;
+    }
+
     if (!is_file($evidencePath . $required)) {
         $errors[] = "Missing evidence file: {$evidencePath}{$required}";
     }
