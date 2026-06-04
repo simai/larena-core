@@ -124,6 +124,11 @@ foreach ($changedFiles as $changedFile) {
         continue;
     }
 
+    if ($repositoryResetPreCodegen && !file_exists($file)) {
+        // Deletion-only pre-codegen reset changes are allowed.
+        continue;
+    }
+
     foreach ($runtimeRoots as $runtimeRoot) {
         if (str_starts_with($file, $runtimeRoot) && !$codingStarted && !($repositoryResetPreCodegen && !file_exists($file))) {
             $errors[] = $file . ' changes runtime path before coding_started transition';
