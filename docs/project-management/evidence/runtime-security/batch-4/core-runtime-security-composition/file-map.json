@@ -1,0 +1,21 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-4/core-runtime-security-composition",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "composer.json",
+    "tests/Unit/RuntimeSecurityCompositionTest.php",
+    "tests/Unit/RuntimeSecurityCompositionFailsClosedTest.php",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/README.md",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/independent-review.md",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/tests.md",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/smoke.md",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/file-map.json",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/deviations.json",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/batch-4/core-runtime-security-composition/code-review-feedback.md"
+  ],
+  "runtime_files_changed": []
+}

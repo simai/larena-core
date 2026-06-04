@@ -1,0 +1,9 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "runtime-security/batch-4/core-runtime-security-composition",
+  "status": "no_canonical_graph_change_requested",
+  "canonical_update_allowed": false,
+  "must_not_apply_automatically": true,
+  "summary": "Pure PHP runtime-security composition smoke using existing core ports and local test adapters. No canonical graph change is requested."
+}
