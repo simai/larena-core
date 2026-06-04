@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-$roots = ['src', 'tests', 'config'];
+$paths = ['scripts', 'tools'];
 $files = [];
 
-foreach ($roots as $root) {
-    if (!is_dir($root)) {
+foreach ($paths as $path) {
+    if (!is_dir($path)) {
         continue;
     }
 
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
     foreach ($iterator as $file) {
         if ($file->isFile() && $file->getExtension() === 'php') {
             $files[] = $file->getPathname();
@@ -18,14 +18,13 @@ foreach ($roots as $root) {
     }
 }
 
+sort($files);
+
 foreach ($files as $file) {
-    $command = sprintf('php -l %s', escapeshellarg($file));
-    passthru($command, $status);
-    if ($status !== 0) {
-        exit($status);
+    passthru('php -l ' . escapeshellarg($file), $exitCode);
+    if ($exitCode !== 0) {
+        exit($exitCode);
     }
 }
 
-echo count($files) === 0
-    ? "No PHP source files to lint in enforcement-only baseline.\n"
-    : sprintf("Linted %d PHP file(s).\n", count($files));
+echo 'Linted ' . count($files) . " PHP file(s).\n";

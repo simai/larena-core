@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * Larena package-local launch scope checker.
- *
- * This script is copied into package repositories as:
- *
- *   tools/larena-scope-check.php
- *
- * It verifies that changed files stay within `.larena/launch-context.json`
- * `allowed_files` and `evidence_path`, while `forbidden_files` fail closed
- * unless an exact file path is explicitly allowed.
- */
-
 function fail(string $message): never
 {
     fwrite(STDERR, $message . PHP_EOL);
@@ -48,6 +36,9 @@ function matches_pattern(string $file, string $pattern): bool
     return false;
 }
 
+/**
+ * @param list<string> $args
+ */
 function run_git(array $args): string
 {
     $command = array_merge(['git'], $args);
@@ -86,6 +77,17 @@ if (!is_string($baseCommit) || trim($baseCommit) === '') {
 $allowedFiles = array_map('normalize_path', $context['allowed_files'] ?? []);
 $forbiddenFiles = array_map('normalize_path', $context['forbidden_files'] ?? []);
 $evidencePath = normalize_path((string) ($context['evidence_path'] ?? ''));
+$codingStarted = ($context['coding_started'] ?? false) === true;
+$repositoryResetPreCodegen = ($context['repository_reset_pre_codegen'] ?? false) === true;
+$runtimeRoots = [
+    'src/',
+    'config/',
+    'database/',
+    'routes/',
+    'resources/',
+    'tests/',
+    'lang/',
+];
 
 $diffOutputs = [
     run_git(['diff', '--name-only', $baseCommit . '..' . $targetCommit]),
@@ -111,13 +113,23 @@ foreach ($diffOutputs as $diffOutput) {
 
 $changedFiles = array_keys($changedFiles);
 sort($changedFiles);
-
 $errors = [];
 
 foreach ($changedFiles as $changedFile) {
     $file = normalize_path($changedFile);
     $exactlyAllowed = in_array($file, $allowedFiles, true);
     $evidenceAllowed = $evidencePath !== '' && str_starts_with($file, $evidencePath . '/');
+
+    if ($repositoryResetPreCodegen && !file_exists($file)) {
+        continue;
+    }
+
+    foreach ($runtimeRoots as $runtimeRoot) {
+        if (str_starts_with($file, $runtimeRoot) && !$codingStarted && !($repositoryResetPreCodegen && !file_exists($file))) {
+            $errors[] = $file . ' changes runtime path before coding_started transition';
+            continue 2;
+        }
+    }
 
     foreach ($forbiddenFiles as $pattern) {
         if (matches_pattern($file, $pattern) && !$exactlyAllowed) {

@@ -1,16 +1,15 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-if [[ -d "/opt/homebrew/opt/php@8.3/bin" ]]; then
-  export PATH="/opt/homebrew/opt/php@8.3/bin:$PATH"
+#!/usr/bin/env sh
+set -eu
+COMPOSER_BIN="${COMPOSER_BIN:-}"
+if [ -z "$COMPOSER_BIN" ] && [ -x /Applications/ServBay/package/bin/composer ]; then
+  COMPOSER_BIN=/Applications/ServBay/package/bin/composer
 fi
-
-if [[ -n "${COMPOSER_BIN:-}" ]]; then
-  composer_cmd="$COMPOSER_BIN"
-elif [[ -x "/Applications/ServBay/bin/composer" ]]; then
-  composer_cmd="/Applications/ServBay/bin/composer"
+if [ -z "$COMPOSER_BIN" ] && command -v composer >/dev/null 2>&1; then
+  COMPOSER_BIN="$(command -v composer)"
+fi
+if [ -n "$COMPOSER_BIN" ]; then
+  PATH="/opt/homebrew/opt/php@8.3/bin:$PATH" "$COMPOSER_BIN" run quality:gate
 else
-  composer_cmd="composer"
+  echo "composer is required for Larena package pre-push gate" >&2
+  exit 1
 fi
-
-"$composer_cmd" run quality:gate

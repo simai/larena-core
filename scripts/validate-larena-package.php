@@ -9,11 +9,15 @@ $requiredFiles = [
     '.githooks/pre-commit',
     '.githooks/pre-push',
     'composer.json',
+    'module.yaml',
+    'phpstan.neon.dist',
     '.larena/spec-ref.json',
     '.larena/launch-context.json',
+    'tools/larena-scope-check.php',
 ];
 
 $errors = [];
+
 foreach ($requiredFiles as $file) {
     if (!is_file($file)) {
         $errors[] = "Missing required enforcement file: {$file}";
@@ -35,6 +39,10 @@ if (($launchContext['package'] ?? null) !== 'larena/core') {
     $errors[] = '.larena/launch-context.json package must be larena/core';
 }
 
+if (($launchContext['coding_started'] ?? null) !== false) {
+    $errors[] = 'coding_started must be false before a coding launch record.';
+}
+
 if (!str_starts_with((string) ($launchContext['evidence_path'] ?? ''), 'docs/project-management/evidence/')) {
     $errors[] = 'launch-context evidence_path must start with docs/project-management/evidence/';
 }
@@ -43,8 +51,10 @@ if (!str_starts_with((string) ($launchContext['graph_sync_proposal_path'] ?? '')
     $errors[] = 'graph_sync_proposal_path must be inside evidence_path';
 }
 
-if (is_dir('src') || is_dir('config') || is_dir('tests')) {
-    $errors[] = 'Runtime code directories are not allowed in this enforcement-only baseline commit.';
+foreach (['src', 'config', 'database', 'routes', 'resources', 'tests', 'lang'] as $runtimePath) {
+    if (is_dir($runtimePath)) {
+        $errors[] = "{$runtimePath}/ is not allowed in this clean pre-codegen baseline commit.";
+    }
 }
 
 if ($errors !== []) {
@@ -54,4 +64,4 @@ if ($errors !== []) {
     exit(1);
 }
 
-echo "Larena package enforcement baseline is valid.\n";
+echo "Larena Core clean pre-codegen baseline is valid.\n";

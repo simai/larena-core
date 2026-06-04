@@ -1,15 +1,11 @@
 {
-  "schema": "larena.package_specs_ref.v1",
+  "schema": "larena.package_specs_reference.v1",
   "package": "larena/core",
   "specs_repo": "simai/larena-specs",
-  "specs_commit": "826258ddd4fe5f458a26f443576aed768b3f46e9",
-  "specs_ref_mode": "read_only_snapshot",
+  "specs_commit": "b5d1270ed4939908844e701b12b5a1c2dca074e7",
+  "package_spec": "specs/packages/core/package.json",
+  "package_dna": "specs/packages/core/dna.json",
+  "features_index": "specs/packages/core/features.json",
   "canonical_update_allowed": false,
-  "canonical_sources": [
-    "specs/packages/core/package.json",
-    "specs/packages/core/dna.json",
-    "specs/features/core.operation_runtime.json",
-    "specs/implementation-planning/launch-records/core-batch-1-contract-skeletons.json",
-    "specs/implementation-planning/ready-to-start/core-batch-1-contract-skeletons.json"
-  ]
+  "graph_sync_proposal_required": true
 }

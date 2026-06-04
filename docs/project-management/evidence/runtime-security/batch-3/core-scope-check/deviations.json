@@ -1,6 +1,0 @@
-{
-  "schema": "larena.package_deviations.v1",
-  "package": "larena/core",
-  "batch": "runtime-security/batch-3/core-scope-check",
-  "deviations": []
-}
