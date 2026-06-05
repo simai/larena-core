@@ -1,0 +1,15 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "native-command-ux",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "implementation_evidence",
+      "feature": "core.operation_runtime",
+      "state": "developer_command_ux_hardened",
+      "evidence": "docs/project-management/evidence/runtime-security/native-command-ux/"
+    }
+  ]
+}
+

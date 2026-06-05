@@ -6,6 +6,7 @@ namespace Larena\Core\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
+use Larena\Core\Console\Support\CommandReportPresenter;
 use Larena\Core\Starter\StarterScenario;
 
 final class InstallCommand extends Command
@@ -13,7 +14,9 @@ final class InstallCommand extends Command
     protected $signature = 'larena:install
         {--dry-run : Build the install plan without mutating application state}
         {--launch-record= : Apply a guarded install launch record}
-        {--confirm= : Explicit confirmation for the guarded mutation}';
+        {--confirm= : Explicit confirmation for the guarded mutation}
+        {--json : Print machine-readable JSON only}
+        {--full : Print human summary and full JSON}';
 
     protected $description = 'Build the Larena starter install plan.';
 
@@ -30,7 +33,7 @@ final class InstallCommand extends Command
                 StarterScenario::contextFromApplication($app),
             );
 
-            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            CommandReportPresenter::render($this, 'Larena guarded install apply', $report);
 
             return $report['status'] === 'passed' ? self::SUCCESS : self::FAILURE;
         }
@@ -40,7 +43,7 @@ final class InstallCommand extends Command
             : 'docs/project-management/evidence/starter-cli/install-blocked-output.json');
         $report = StarterScenario::installPlan($outputPath, $dryRun, StarterScenario::contextFromApplication($app));
 
-        $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        CommandReportPresenter::render($this, $dryRun ? 'Larena install dry-run' : 'Larena install guard', $report);
 
         return $report['status'] === 'passed' ? self::SUCCESS : self::FAILURE;
     }

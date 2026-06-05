@@ -9,5 +9,11 @@ if (!is_file($phpstan)) {
     exit(1);
 }
 
-passthru($phpstan . ' analyse --configuration=phpstan.neon.dist --no-progress', $exitCode);
+$command = sprintf(
+    '%s -d memory_limit=512M %s analyse --configuration=phpstan.neon.dist --no-progress --memory-limit=512M',
+    escapeshellarg(PHP_BINARY),
+    escapeshellarg($phpstan),
+);
+
+passthru($command, $exitCode);
 exit($exitCode);

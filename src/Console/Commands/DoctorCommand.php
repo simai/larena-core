@@ -6,11 +6,14 @@ namespace Larena\Core\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
+use Larena\Core\Console\Support\CommandReportPresenter;
 use Larena\Core\Starter\StarterScenario;
 
 final class DoctorCommand extends Command
 {
-    protected $signature = 'larena:doctor';
+    protected $signature = 'larena:doctor
+        {--json : Print machine-readable JSON only}
+        {--full : Print human summary and full JSON}';
 
     protected $description = 'Run Larena starter environment and package diagnostics.';
 
@@ -19,7 +22,7 @@ final class DoctorCommand extends Command
         $outputPath = $app->basePath('docs/project-management/evidence/starter-cli/doctor-output.json');
         $report = StarterScenario::doctor($outputPath, StarterScenario::contextFromApplication($app));
 
-        $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        CommandReportPresenter::render($this, 'Larena starter diagnostics', $report);
 
         return $report['status'] === 'passed' ? self::SUCCESS : self::FAILURE;
     }

@@ -1,0 +1,13 @@
+{
+  "schema": "larena.evidence_deviations.v1",
+  "package": "larena/core",
+  "batch": "native-command-ux",
+  "deviations": [
+    {
+      "type": "quality_command_hardening",
+      "status": "accepted_local_fix",
+      "summary": "PHPStan needed an explicit memory limit to make the package quality gate stable on local ServBay PHP."
+    }
+  ]
+}
+

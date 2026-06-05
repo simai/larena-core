@@ -15,7 +15,8 @@
     "audit.events",
     "core.package_registry_seed_guarded_apply",
     "core.package_registry_diagnostics",
-    "core.runtime_security_cluster_smoke"
+    "core.runtime_security_cluster_smoke",
+    "core.native_command_ux"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -63,7 +64,17 @@
     "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
     "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/file-map.json",
     "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/deviations.json",
-    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json"
+    "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json",
+    "src/Console/Support/CommandReportPresenter.php",
+    "tests/Unit/CommandReportPresenterTest.php",
+    "docs/project-management/evidence/runtime-security/native-command-ux/README.md",
+    "docs/project-management/evidence/runtime-security/native-command-ux/implementation-summary.md",
+    "docs/project-management/evidence/runtime-security/native-command-ux/tests.md",
+    "docs/project-management/evidence/runtime-security/native-command-ux/file-map.json",
+    "docs/project-management/evidence/runtime-security/native-command-ux/deviations.json",
+    "docs/project-management/evidence/runtime-security/native-command-ux/graph-sync-proposal.json",
+    "docs/project-management/evidence/runtime-security/native-command-ux/code-review-feedback.md",
+    "scripts/analyse.php"
   ],
   "forbidden_files": [
     "config/*",
@@ -91,16 +102,17 @@
     "tests.md",
     "file-map.json",
     "deviations.json",
-    "graph-sync-proposal.json"
+    "graph-sync-proposal.json",
+    "code-review-feedback.md"
   ],
-  "evidence_path": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/",
-  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/graph-sync-proposal.json",
+  "evidence_path": "docs/project-management/evidence/runtime-security/native-command-ux/",
+  "graph_sync_proposal_path": "docs/project-management/evidence/runtime-security/native-command-ux/graph-sync-proposal.json",
   "status": "coding_started",
   "coding_started": true,
   "repository_enforcement_installed": true,
   "review_completed": true,
   "review_evidence_ref": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
-  "next_transition": "entry_app_smoke",
+  "next_transition": "entry_app_native_command_ux_smoke",
   "local_validation": {
     "composer_validate_strict": "passed",
     "composer_dump_autoload": "passed",
