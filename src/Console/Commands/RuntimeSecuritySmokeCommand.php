@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
 use Larena\Core\Console\Support\CommandReportPresenter;
 use Larena\Core\Diagnostics\RuntimeSecuritySmoke;
+use Larena\Core\Starter\StarterEvidencePath;
 use Larena\Core\Starter\StarterScenario;
 
 final class RuntimeSecuritySmokeCommand extends Command
@@ -20,8 +21,9 @@ final class RuntimeSecuritySmokeCommand extends Command
 
     public function handle(Application $app): int
     {
-        $outputPath = $app->basePath('docs/project-management/evidence/runtime-security/laravel-smoke/smoke-output.json');
-        $report = RuntimeSecuritySmoke::run($outputPath, StarterScenario::contextFromApplication($app));
+        $context = StarterScenario::contextFromApplication($app);
+        $outputPath = StarterEvidencePath::path($context, 'runtime-security/laravel-smoke/smoke-output.json');
+        $report = RuntimeSecuritySmoke::run($outputPath, $context);
 
         CommandReportPresenter::render($this, 'Larena runtime/security smoke', [
             'schema' => 'larena.runtime_security_laravel_smoke.command.v1',

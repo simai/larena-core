@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
 use Larena\Core\Console\Support\CommandReportPresenter;
 use Larena\Core\Starter\RuntimeSecurityClusterSmoke;
+use Larena\Core\Starter\StarterEvidencePath;
 use Larena\Core\Starter\StarterScenario;
 
 final class ClusterSmokeCommand extends Command
@@ -20,11 +21,13 @@ final class ClusterSmokeCommand extends Command
 
     public function handle(Application $app): int
     {
-        $outputPath = $app->basePath(
-            'docs/project-management/evidence/starter-cli/runtime-security-cluster-smoke/cluster-smoke-output.json',
+        $context = StarterScenario::contextFromApplication($app);
+        $outputPath = StarterEvidencePath::path(
+            $context,
+            'starter-cli/runtime-security-cluster-smoke/cluster-smoke-output.json',
         );
 
-        $report = RuntimeSecurityClusterSmoke::run($outputPath, StarterScenario::contextFromApplication($app));
+        $report = RuntimeSecurityClusterSmoke::run($outputPath, $context);
 
         CommandReportPresenter::render($this, 'Larena runtime/security cluster smoke', $report);
 
