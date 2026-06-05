@@ -16,10 +16,10 @@
     "docs/project-management/evidence/runtime-security/native-command-ux/README.md",
     "docs/project-management/evidence/runtime-security/native-command-ux/implementation-summary.md",
     "docs/project-management/evidence/runtime-security/native-command-ux/tests.md",
+    "docs/project-management/evidence/runtime-security/native-command-ux/smoke.md",
     "docs/project-management/evidence/runtime-security/native-command-ux/file-map.json",
     "docs/project-management/evidence/runtime-security/native-command-ux/deviations.json",
     "docs/project-management/evidence/runtime-security/native-command-ux/graph-sync-proposal.json",
     "docs/project-management/evidence/runtime-security/native-command-ux/code-review-feedback.md"
   ]
 }
-

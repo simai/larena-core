@@ -74,7 +74,8 @@
     "docs/project-management/evidence/runtime-security/native-command-ux/deviations.json",
     "docs/project-management/evidence/runtime-security/native-command-ux/graph-sync-proposal.json",
     "docs/project-management/evidence/runtime-security/native-command-ux/code-review-feedback.md",
-    "scripts/analyse.php"
+    "scripts/analyse.php",
+    "docs/project-management/evidence/runtime-security/native-command-ux/smoke.md"
   ],
   "forbidden_files": [
     "config/*",
@@ -100,6 +101,7 @@
     "README.md",
     "implementation-summary.md",
     "tests.md",
+    "smoke.md",
     "file-map.json",
     "deviations.json",
     "graph-sync-proposal.json",
