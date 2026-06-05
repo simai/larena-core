@@ -1,0 +1,40 @@
+{
+  "schema": "larena.evidence_file_map.v1",
+  "package": "larena/core",
+  "batch": "foundation-developer-preview-package-set",
+  "files": [
+    {
+      "path": ".larena/launch-context.json",
+      "purpose": "Update package-local launch context for the batch-5 allowed files and evidence path."
+    },
+    {
+      "path": "composer.json",
+      "purpose": "Add the foundation package set unit test to package-local test scripts."
+    },
+    {
+      "path": "src/Starter/FoundationPackageSet.php",
+      "purpose": "Define runtime/security, data/content and foundation preview package sets in one contract."
+    },
+    {
+      "path": "src/Starter/StarterScenario.php",
+      "purpose": "Use the foundation package set for package registry seed planning and diagnostics while keeping runtime/security checks scoped."
+    },
+    {
+      "path": "src/Starter/RuntimeSecurityClusterSmoke.php",
+      "purpose": "Keep required runtime/security packages separate from expanded foundation registry diagnostics."
+    },
+    {
+      "path": "tests/Unit/FoundationPackageSetTest.php",
+      "purpose": "Verify package-set composition and separation."
+    },
+    {
+      "path": "tests/Unit/PackageRegistrySeedTest.php",
+      "purpose": "Verify guarded seed writes foundation packages and stays idempotent."
+    },
+    {
+      "path": "tests/Unit/RuntimeSecurityClusterSmokeTest.php",
+      "purpose": "Verify cluster smoke behavior with the expanded foundation package registry."
+    }
+  ]
+}
+

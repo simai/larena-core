@@ -19,6 +19,16 @@ $requiredPackages = [
     'larena/audit',
     'larena/licensing',
 ];
+$foundationPackages = [
+    ...$requiredPackages,
+    'larena/storage',
+    'larena/filesystem',
+    'larena/lang',
+    'larena/search',
+    'larena/link',
+    'larena/backup',
+    'larena/file-manager',
+];
 
 file_put_contents($basePath . '/vendor/composer/installed.json', json_encode([
     'packages' => array_map(
@@ -27,7 +37,7 @@ file_put_contents($basePath . '/vendor/composer/installed.json', json_encode([
             'version' => 'dev-main',
             'install-path' => '../../larena-workspace/packages/' . substr($package, strlen('larena/')),
         ],
-        $requiredPackages,
+        $foundationPackages,
     ),
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
@@ -41,7 +51,7 @@ file_put_contents($basePath . '/storage/app/larena/package-registry.json', json_
             'version' => 'dev-main',
             'install_path' => '../larena-workspace/packages/' . substr($package, strlen('larena/')),
         ],
-        $requiredPackages,
+        $foundationPackages,
     ),
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
@@ -67,6 +77,11 @@ if (($report['mutates_state'] ?? null) !== false) {
 
 if (($report['checks']['package_registry']['status'] ?? null) !== 'passed') {
     fwrite(STDERR, 'Cluster smoke must include passed package registry diagnostics.' . PHP_EOL);
+    exit(1);
+}
+
+if (($report['checks']['package_registry']['package_count'] ?? null) !== count($foundationPackages)) {
+    fwrite(STDERR, 'Cluster smoke package registry diagnostics must include the foundation package set.' . PHP_EOL);
     exit(1);
 }
 

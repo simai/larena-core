@@ -8,13 +8,6 @@ use Larena\Core\Diagnostics\RuntimeSecuritySmoke;
 
 final class RuntimeSecurityClusterSmoke
 {
-    private const REQUIRED_PACKAGES = [
-        'larena/core',
-        'larena/access',
-        'larena/audit',
-        'larena/licensing',
-    ];
-
     /**
      * @param array<string, mixed> $applicationContext
      *
@@ -25,7 +18,8 @@ final class RuntimeSecurityClusterSmoke
         $evidenceDirectory = dirname($outputPath);
         $runtimeSecurityOutput = $evidenceDirectory . '/runtime-security-smoke.json';
         $installedPackages = self::installedPackages((string) $applicationContext['base_path']);
-        $missingPackages = array_values(array_diff(self::REQUIRED_PACKAGES, array_keys($installedPackages)));
+        $runtimeSecurityPackages = FoundationPackageSet::runtimeSecurity();
+        $missingPackages = array_values(array_diff($runtimeSecurityPackages, array_keys($installedPackages)));
         $runtimeSecurity = $missingPackages === []
             ? RuntimeSecuritySmoke::run($runtimeSecurityOutput, $applicationContext)
             : [
@@ -35,7 +29,7 @@ final class RuntimeSecurityClusterSmoke
             ];
         $packageRegistry = PackageRegistryDiagnostics::inspect(
             (string) $applicationContext['base_path'],
-            self::REQUIRED_PACKAGES,
+            FoundationPackageSet::foundationPreview(),
         );
         $installGuard = [
             'status' => 'passed',
@@ -46,7 +40,7 @@ final class RuntimeSecurityClusterSmoke
         $checks = [
             'required_packages' => [
                 'status' => $missingPackages === [] ? 'passed' : 'failed',
-                'installed' => array_intersect_key($installedPackages, array_flip(self::REQUIRED_PACKAGES)),
+                'installed' => array_intersect_key($installedPackages, array_flip($runtimeSecurityPackages)),
                 'missing' => $missingPackages,
             ],
             'runtime_security_smoke' => [
@@ -64,7 +58,8 @@ final class RuntimeSecurityClusterSmoke
             'generated_at' => gmdate('c'),
             'mutates_state' => false,
             'cluster' => 'runtime-security',
-            'packages' => self::REQUIRED_PACKAGES,
+            'packages' => $runtimeSecurityPackages,
+            'foundation_preview_packages' => FoundationPackageSet::foundationPreview(),
             'checks' => $checks,
             'next_recommended_step' => 'developer_review_or_next_guarded_batch',
         ];

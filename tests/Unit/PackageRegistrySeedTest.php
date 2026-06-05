@@ -24,9 +24,15 @@ $installed = [
         'version' => 'dev-main',
         'install_path' => '../larena/core',
     ],
+    'larena/storage' => [
+        'version' => 'dev-main',
+        'install_path' => '../larena/storage',
+    ],
 ];
 
-$first = PackageRegistrySeed::apply($basePath, $record, $installed, ['larena/core']);
+$requiredPackages = ['larena/core', 'larena/storage'];
+
+$first = PackageRegistrySeed::apply($basePath, $record, $installed, $requiredPackages);
 
 if (($first['status'] ?? null) !== 'passed') {
     fwrite(STDERR, 'Expected first package registry seed to pass.' . PHP_EOL);
@@ -43,12 +49,20 @@ if (!is_file($basePath . '/storage/app/larena/package-registry.json')) {
     exit(1);
 }
 
+$registry = json_decode((string) file_get_contents($basePath . '/storage/app/larena/package-registry.json'), true);
+$packages = array_column($registry['packages'] ?? [], 'status', 'name');
+
+if (($packages['larena/storage'] ?? null) !== 'installed') {
+    fwrite(STDERR, 'Expected foundation package to be written to package registry.' . PHP_EOL);
+    exit(1);
+}
+
 if (!is_file($basePath . '/docs/project-management/evidence/package-registry-seed/backup/package-registry.before.json')) {
     fwrite(STDERR, 'Expected backup marker to exist.' . PHP_EOL);
     exit(1);
 }
 
-$second = PackageRegistrySeed::apply($basePath, $record, $installed, ['larena/core']);
+$second = PackageRegistrySeed::apply($basePath, $record, $installed, $requiredPackages);
 
 if (($second['status'] ?? null) !== 'passed') {
     fwrite(STDERR, 'Expected second package registry seed to pass.' . PHP_EOL);

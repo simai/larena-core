@@ -1,0 +1,13 @@
+{
+  "schema": "larena.evidence_deviations.v1",
+  "package": "larena/core",
+  "batch": "foundation-developer-preview-package-set",
+  "deviations": [
+    {
+      "type": "local_runtime_environment",
+      "status": "accepted_environment_workaround",
+      "summary": "Homebrew PHP is broken on this machine because ICU 73 is missing; checks were run with ServBay PHP 8.4.20."
+    }
+  ]
+}
+

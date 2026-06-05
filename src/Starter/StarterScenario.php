@@ -11,13 +11,6 @@ use RuntimeException;
 
 final class StarterScenario
 {
-    private const REQUIRED_PACKAGES = [
-        'larena/core',
-        'larena/access',
-        'larena/audit',
-        'larena/licensing',
-    ];
-
     /**
      * @return array<string, mixed>
      */
@@ -61,7 +54,9 @@ final class StarterScenario
     {
         $runtimeOutputPath = dirname($outputPath) . '/runtime-security-from-doctor.json';
         $installedPackages = self::installedPackages($applicationContext['base_path']);
-        $missingPackages = array_values(array_diff(self::REQUIRED_PACKAGES, array_keys($installedPackages)));
+        $runtimeSecurityPackages = FoundationPackageSet::runtimeSecurity();
+        $foundationPackages = FoundationPackageSet::foundationPreview();
+        $missingPackages = array_values(array_diff($runtimeSecurityPackages, array_keys($installedPackages)));
         $runtimeReport = $missingPackages === []
             ? RuntimeSecuritySmoke::run($runtimeOutputPath, $applicationContext)
             : [
@@ -82,7 +77,7 @@ final class StarterScenario
             ],
             'required_packages' => [
                 'status' => $missingPackages === [] ? 'passed' : 'failed',
-                'installed' => array_intersect_key($installedPackages, array_flip(self::REQUIRED_PACKAGES)),
+                'installed' => array_intersect_key($installedPackages, array_flip($runtimeSecurityPackages)),
                 'missing' => $missingPackages,
             ],
             'runtime_security_smoke' => [
@@ -98,6 +93,13 @@ final class StarterScenario
                 ],
             ],
             'package_registry' => self::packageRegistryDiagnostics($applicationContext),
+            'foundation_packages' => [
+                'status' => 'diagnostic',
+                'required_for_runtime_security' => $runtimeSecurityPackages,
+                'foundation_preview_packages' => $foundationPackages,
+                'installed' => array_values(array_intersect($foundationPackages, array_keys($installedPackages))),
+                'missing' => array_values(array_diff($foundationPackages, array_keys($installedPackages))),
+            ],
         ];
 
         $report = [
@@ -173,7 +175,7 @@ final class StarterScenario
             [
                 'step' => 'package_registry_seed',
                 'status' => 'planned',
-                'packages' => self::REQUIRED_PACKAGES,
+                'packages' => FoundationPackageSet::foundationPreview(),
                 'mutates_state' => false,
             ],
             [
@@ -184,7 +186,7 @@ final class StarterScenario
             [
                 'step' => 'admin_bootstrap',
                 'status' => 'deferred',
-                'reason' => 'admin package is outside first runtime-security CLI starter scenario',
+                'reason' => 'admin package is outside foundation developer preview package set',
             ],
             [
                 'step' => 'persistence_migrations',
@@ -279,7 +281,7 @@ final class StarterScenario
             $applicationContext['base_path'],
             $loaded['record'],
             self::installedPackages($applicationContext['base_path']),
-            self::REQUIRED_PACKAGES,
+            FoundationPackageSet::foundationPreview(),
         );
     }
 
@@ -300,7 +302,7 @@ final class StarterScenario
      */
     public static function packageRegistryDiagnostics(array $applicationContext): array
     {
-        return PackageRegistryDiagnostics::inspect($applicationContext['base_path'], self::REQUIRED_PACKAGES);
+        return PackageRegistryDiagnostics::inspect($applicationContext['base_path'], FoundationPackageSet::foundationPreview());
     }
 
     /**
@@ -349,6 +351,10 @@ final class StarterScenario
     {
         foreach ($checks as $name => $check) {
             if ($name === 'package_registry') {
+                continue;
+            }
+
+            if (($check['status'] ?? null) === 'diagnostic') {
                 continue;
             }
 

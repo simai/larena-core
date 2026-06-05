@@ -1,0 +1,27 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "batch": "foundation-developer-preview-package-set",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "type": "implementation_evidence",
+      "feature": "core.package_registry_diagnostics",
+      "state": "foundation_package_set_diagnostics_ready",
+      "evidence": "docs/project-management/evidence/foundation-developer-preview/package-set/"
+    },
+    {
+      "type": "implementation_evidence",
+      "feature": "core.package_registry_seed_guarded_apply",
+      "state": "foundation_package_set_seed_planned",
+      "evidence": "docs/project-management/evidence/foundation-developer-preview/package-set/"
+    },
+    {
+      "type": "implementation_evidence",
+      "feature": "core.runtime_security_cluster_smoke",
+      "state": "runtime_security_scope_preserved_with_foundation_registry_diagnostics",
+      "evidence": "docs/project-management/evidence/foundation-developer-preview/package-set/"
+    }
+  ]
+}
+
