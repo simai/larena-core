@@ -16,7 +16,8 @@
     "core.package_registry_seed_guarded_apply",
     "core.package_registry_diagnostics",
     "core.runtime_security_cluster_smoke",
-    "core.native_command_ux"
+    "core.native_command_ux",
+    "core.data_content_cluster_smoke"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -87,7 +88,10 @@
     "docs/project-management/evidence/foundation-developer-preview/package-set/graph-sync-proposal.json",
     "docs/project-management/evidence/foundation-developer-preview/package-set/code-review-feedback.md",
     "scripts/analyse.php",
-    "docs/project-management/evidence/runtime-security/native-command-ux/smoke.md"
+    "docs/project-management/evidence/runtime-security/native-command-ux/smoke.md",
+    "src/Console/Commands/DataContentSmokeCommand.php",
+    "src/Starter/DataContentClusterSmoke.php",
+    "tests/Unit/DataContentClusterSmokeTest.php"
   ],
   "forbidden_files": [
     "config/*",
