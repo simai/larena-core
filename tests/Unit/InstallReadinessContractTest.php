@@ -92,6 +92,11 @@ if (!in_array('installer_db_schema_apply', $contract['eligible_first_mutations_a
     exit(1);
 }
 
+if (!in_array('package_registry_db_seed', $contract['eligible_first_mutations_after_launch_record'] ?? [], true)) {
+    fwrite(STDERR, 'Install readiness contract must expose package registry DB seed as a guarded mutation.' . PHP_EOL);
+    exit(1);
+}
+
 $dbSchemaApply = null;
 foreach ($contract['eligible_guarded_mutations_after_launch_record'] ?? [] as $mutation) {
     if (is_array($mutation) && ($mutation['step'] ?? null) === 'installer_db_schema_apply') {
@@ -117,6 +122,29 @@ if (($dbSchemaApply['creates_database'] ?? null) !== false) {
 
 if (($dbSchemaApply['writes_environment'] ?? null) !== false) {
     fwrite(STDERR, 'Installer DB schema apply must not write environment files.' . PHP_EOL);
+    exit(1);
+}
+
+$packageRegistryDbSeed = null;
+foreach ($contract['eligible_guarded_mutations_after_launch_record'] ?? [] as $mutation) {
+    if (is_array($mutation) && ($mutation['step'] ?? null) === 'package_registry_db_seed') {
+        $packageRegistryDbSeed = $mutation;
+        break;
+    }
+}
+
+if (!is_array($packageRegistryDbSeed)) {
+    fwrite(STDERR, 'Install readiness contract must include package registry DB seed mutation details.' . PHP_EOL);
+    exit(1);
+}
+
+if (($packageRegistryDbSeed['requires_existing_table'] ?? null) !== 'larena_package_registry') {
+    fwrite(STDERR, 'Package registry DB seed must require the package registry table.' . PHP_EOL);
+    exit(1);
+}
+
+if (($packageRegistryDbSeed['applies_database_migrations'] ?? null) !== false) {
+    fwrite(STDERR, 'Package registry DB seed must not apply database migrations.' . PHP_EOL);
     exit(1);
 }
 

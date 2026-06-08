@@ -219,6 +219,19 @@ final class StarterScenario
                 'requires_command_confirmation' => 'installer_db_schema_apply',
             ],
             [
+                'step' => 'package_registry_db_seed',
+                'status' => self::databaseReadyForFutureInstall($doctor) ? 'planned_after_installer_db_schema_apply' : 'blocked',
+                'target' => 'larena_package_registry',
+                'mutates_state' => false,
+                'would_mutate_state_with_launch_record' => true,
+                'requires_existing_table' => 'larena_package_registry',
+                'source' => 'composer_installed_json',
+                'creates_database' => false,
+                'writes_environment' => false,
+                'requires_launch_record' => true,
+                'requires_command_confirmation' => 'package_registry_db_seed',
+            ],
+            [
                 'step' => 'database_environment',
                 'status' => self::databaseReadyForFutureInstall($doctor) ? 'ready' : 'degraded',
                 'required_for_current_preview' => false,
@@ -363,6 +376,12 @@ final class StarterScenario
                     'mutates_state' => false,
                     'safe_command' => 'php artisan larena:install --dry-run',
                 ],
+            'package_registry_db_seed' => PackageRegistryDbSeed::apply(
+                $applicationContext['base_path'],
+                $record,
+                self::installedPackages($applicationContext['base_path']),
+                FoundationPackageSet::foundationPreview(),
+            ),
             default => [
                 'schema' => 'larena.install_apply_result.v1',
                 'status' => 'blocked',

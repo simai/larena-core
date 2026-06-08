@@ -11,6 +11,7 @@ final class InstallApplyLaunchRecord
         'package_registry_seed' => 'package_registry_seed',
         'installer_persistence_foundation' => 'installer_persistence_foundation',
         'installer_db_schema_apply' => 'installer_db_schema_apply',
+        'package_registry_db_seed' => 'package_registry_db_seed',
     ];
 
     /**

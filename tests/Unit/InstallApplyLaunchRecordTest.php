@@ -102,6 +102,36 @@ if (($loadedDbSchemaApply['status'] ?? null) !== 'passed') {
 
 file_put_contents($basePath . '/' . $recordPath, json_encode([
     'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'package-registry-db-seed-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'package_registry_db_seed',
+    'allowed_scope' => ['package_registry_db_seed'],
+    'evidence_path' => 'docs/project-management/evidence/package-registry-db-seed',
+    'backup' => [
+        'target' => 'database/larena_package_registry',
+        'path' => 'docs/project-management/evidence/package-registry-db-seed/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_db_seed',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$loadedPackageRegistryDbSeed = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($loadedPackageRegistryDbSeed['status'] ?? null) !== 'passed') {
+    fwrite(STDERR, 'Expected valid package registry DB seed launch record to pass.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
     'id' => 'package-registry-seed-test',
     'status' => 'ready_to_apply',
     'transition' => 'install_apply_launch_record',
@@ -214,6 +244,36 @@ $wrongDbSchemaConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $re
 
 if (($wrongDbSchemaConfirmationPolicy['status'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Expected DB schema apply launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'package-registry-db-seed-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'package_registry_db_seed',
+    'allowed_scope' => ['package_registry_db_seed'],
+    'evidence_path' => 'docs/project-management/evidence/package-registry-db-seed',
+    'backup' => [
+        'target' => 'database/larena_package_registry',
+        'path' => 'docs/project-management/evidence/package-registry-db-seed/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_seed',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$wrongPackageRegistryDbSeedConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($wrongPackageRegistryDbSeedConfirmationPolicy['status'] ?? null) !== 'blocked') {
+    fwrite(STDERR, 'Expected package registry DB seed launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
     exit(1);
 }
 

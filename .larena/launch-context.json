@@ -19,7 +19,8 @@
     "core.native_command_ux",
     "core.data_content_cluster_smoke",
     "core.installer_persistence_foundation_guarded_apply",
-    "core.installer_db_schema_apply_guarded"
+    "core.installer_db_schema_apply_guarded",
+    "core.package_registry_db_seed_guarded"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -42,6 +43,7 @@
     "docs/project-management/evidence/runtime-security/core-install-readiness-contract/graph-sync-proposal.json",
     "src/Starter/InstallApplyLaunchRecord.php",
     "src/Starter/InstallerPersistenceFoundation.php",
+    "src/Starter/PackageRegistryDbSeed.php",
     "src/Starter/PackageRegistrySeed.php",
     "src/Starter/StarterEvidencePath.php",
     "tests/Unit/InstallApplyLaunchRecordTest.php",
