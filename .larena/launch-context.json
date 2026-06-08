@@ -17,7 +17,8 @@
     "core.package_registry_diagnostics",
     "core.runtime_security_cluster_smoke",
     "core.native_command_ux",
-    "core.data_content_cluster_smoke"
+    "core.data_content_cluster_smoke",
+    "core.installer_persistence_foundation_guarded_apply"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -39,9 +40,11 @@
     "docs/project-management/evidence/runtime-security/core-install-readiness-contract/deviations.json",
     "docs/project-management/evidence/runtime-security/core-install-readiness-contract/graph-sync-proposal.json",
     "src/Starter/InstallApplyLaunchRecord.php",
+    "src/Starter/InstallerPersistenceFoundation.php",
     "src/Starter/PackageRegistrySeed.php",
     "src/Starter/StarterEvidencePath.php",
     "tests/Unit/InstallApplyLaunchRecordTest.php",
+    "tests/Unit/InstallerPersistenceFoundationTest.php",
     "tests/Unit/PackageRegistrySeedTest.php",
     "tests/Unit/StarterEvidencePathTest.php",
     "docs/project-management/evidence/runtime-security/package-registry-seed-guarded-apply/README.md",
@@ -106,7 +109,7 @@
     "container_binding",
     "middleware_runtime",
     "routes",
-    "persistence",
+    "unscoped_persistence",
     "sibling_package_dependency_wiring",
     "production_access_adapter",
     "production_licensing_adapter",

@@ -76,6 +76,25 @@ final class InstallReadinessContract
             'blocked_steps' => $blockedSteps,
             'eligible_first_mutations_after_launch_record' => [
                 'package_registry_seed',
+                'installer_persistence_foundation',
+            ],
+            'eligible_guarded_mutations_after_launch_record' => [
+                [
+                    'step' => 'package_registry_seed',
+                    'requires_command_confirmation' => 'package_registry_seed',
+                    'mutates_state' => true,
+                    'creates_database' => false,
+                    'applies_database_migrations' => false,
+                    'writes_environment' => false,
+                ],
+                [
+                    'step' => 'installer_persistence_foundation',
+                    'requires_command_confirmation' => 'installer_persistence_foundation',
+                    'mutates_state' => true,
+                    'creates_database' => false,
+                    'applies_database_migrations' => false,
+                    'writes_environment' => false,
+                ],
             ],
             'read_only_steps' => [
                 'environment_preflight',

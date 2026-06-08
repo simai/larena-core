@@ -7,6 +7,10 @@ namespace Larena\Core\Starter;
 final class InstallApplyLaunchRecord
 {
     private const SCHEMA = 'larena.install_apply_launch_record.v1';
+    private const CONFIRMATIONS_BY_TARGET = [
+        'package_registry_seed' => 'package_registry_seed',
+        'installer_persistence_foundation' => 'installer_persistence_foundation',
+    ];
 
     /**
      * @return array<string, mixed>
@@ -80,17 +84,19 @@ final class InstallApplyLaunchRecord
             $errors[] = 'transition_must_be_install_apply_launch_record';
         }
 
-        if (($record['target_step'] ?? null) !== 'package_registry_seed') {
-            $errors[] = 'target_step_must_be_package_registry_seed';
+        $targetStep = $record['target_step'] ?? null;
+        if (!is_string($targetStep) || !array_key_exists($targetStep, self::CONFIRMATIONS_BY_TARGET)) {
+            $errors[] = 'target_step_must_be_supported_install_apply_step';
         }
 
-        if (!in_array('package_registry_seed', $record['allowed_scope'] ?? [], true)) {
-            $errors[] = 'allowed_scope_must_include_package_registry_seed';
+        if (is_string($targetStep) && !in_array($targetStep, $record['allowed_scope'] ?? [], true)) {
+            $errors[] = 'allowed_scope_must_include_target_step';
         }
 
         $limits = $record['limits'] ?? [];
-        if (!is_array($limits) || ($limits['requires_command_confirmation'] ?? null) !== 'package_registry_seed') {
-            $errors[] = 'limits_requires_command_confirmation_must_be_package_registry_seed';
+        $expectedConfirmation = is_string($targetStep) ? self::CONFIRMATIONS_BY_TARGET[$targetStep] ?? null : null;
+        if (!is_array($limits) || ($limits['requires_command_confirmation'] ?? null) !== $expectedConfirmation) {
+            $errors[] = 'limits_requires_command_confirmation_must_match_target_step';
         }
 
         $approval = $record['operator_approval'] ?? [];

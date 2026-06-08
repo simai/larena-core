@@ -1,0 +1,191 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Larena\Core\Starter;
+
+final class InstallerPersistenceFoundation
+{
+    /**
+     * @param array<string, mixed> $launchRecord
+     * @param array<string, mixed> $applicationContext
+     *
+     * @return array<string, mixed>
+     */
+    public static function apply(string $basePath, array $launchRecord, array $applicationContext): array
+    {
+        $targetPath = self::absolutePath($basePath, (string) $launchRecord['backup']['target']);
+        $backupPath = self::absolutePath($basePath, (string) $launchRecord['backup']['path']);
+        $evidencePath = self::absolutePath($basePath, (string) $launchRecord['evidence_path']);
+        $applyOutputPath = rtrim($evidencePath, '/') . '/persistence-apply-output.json';
+        $before = is_file($targetPath) ? (string) file_get_contents($targetPath) : null;
+        $backup = is_file($backupPath)
+            ? json_decode((string) file_get_contents($backupPath), true)
+            : null;
+
+        if (!is_array($backup)) {
+            $backup = [
+                'schema' => 'larena.installer_persistence_foundation_backup.v1',
+                'generated_at' => gmdate('c'),
+                'target' => self::relativePath($basePath, $targetPath),
+                'existed' => $before !== null,
+                'sha256' => $before === null ? null : hash('sha256', $before),
+                'content' => $before === null ? null : json_decode($before, true),
+            ];
+
+            self::writeJson($backupPath, $backup);
+        }
+
+        $manifest = self::manifestPayload($launchRecord, $applicationContext);
+        $manifestJson = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        $changed = $before !== $manifestJson;
+
+        self::writeString($targetPath, $manifestJson);
+
+        $result = [
+            'schema' => 'larena.installer_persistence_foundation_result.v1',
+            'status' => 'passed',
+            'generated_at' => gmdate('c'),
+            'mutation' => 'installer_persistence_foundation',
+            'state' => $changed ? 'applied' : 'already_current',
+            'idempotent' => true,
+            'mutates_state' => $changed,
+            'launch_record' => [
+                'id' => $launchRecord['id'],
+                'path' => $launchRecord['_relative_path'] ?? null,
+            ],
+            'target' => [
+                'path' => self::relativePath($basePath, $targetPath),
+                'sha256_before' => $before === null ? null : hash('sha256', $before),
+                'sha256_after' => hash('sha256', $manifestJson),
+            ],
+            'backup' => [
+                'path' => self::relativePath($basePath, $backupPath),
+                'existed' => $backup['existed'] ?? null,
+                'preserved' => true,
+            ],
+            'rollback_plan' => $launchRecord['rollback_plan'],
+            'recovery_guidance' => [
+                'status' => 'available',
+                'type' => 'restore_backup_or_delete_if_absent',
+                'target' => self::relativePath($basePath, $targetPath),
+                'backup_path' => self::relativePath($basePath, $backupPath),
+                'manual_steps' => [
+                    'If rollback is required, stop further install batches.',
+                    'Restore the backup content to the target path when the backup existed.',
+                    'Delete the target path when the backup marker says the target did not exist before apply.',
+                    'Run php artisan larena:install --dry-run --full and php artisan larena:doctor --full after recovery.',
+                ],
+            ],
+            'persistence_manifest' => $manifest,
+            'evidence_path' => self::relativePath($basePath, $applyOutputPath),
+        ];
+
+        self::writeJson($applyOutputPath, $result);
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $launchRecord
+     * @param array<string, mixed> $applicationContext
+     *
+     * @return array<string, mixed>
+     */
+    public static function manifestPayload(array $launchRecord, array $applicationContext): array
+    {
+        return [
+            'schema' => 'larena.installer_persistence_foundation.v1',
+            'source' => 'guarded_install_launch_record',
+            'launch_record' => [
+                'id' => $launchRecord['id'] ?? null,
+                'path' => $launchRecord['_relative_path'] ?? null,
+            ],
+            'status' => 'developer_testable_foundation',
+            'database' => [
+                'status' => $applicationContext['database_connection']['status'] ?? 'unknown',
+                'driver' => $applicationContext['database_connection']['driver'] ?? null,
+                'default_connection' => $applicationContext['database_connection']['default_connection'] ?? null,
+                'required_for_future_install' => true,
+                'secrets_included' => false,
+            ],
+            'planned_tables' => self::plannedTables(),
+            'allowed_changes' => [
+                'storage/app/larena/installer-persistence-foundation.json',
+            ],
+            'blocked_changes' => [
+                'database_schema_mutation',
+                'business_data_seed',
+                'admin_bootstrap',
+                'public_ui',
+                'update_server_bootstrap',
+                'env_writes',
+            ],
+            'next_required_launch_records' => [
+                'database_schema_apply',
+                'migration_rollback_proof',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function plannedTables(): array
+    {
+        return [
+            [
+                'name' => 'larena_package_registry',
+                'owner' => 'larena/core',
+                'status' => 'planned',
+                'purpose' => 'Persistent package registry projection after the file-based seed is accepted.',
+            ],
+            [
+                'name' => 'larena_install_events',
+                'owner' => 'larena/audit',
+                'status' => 'planned',
+                'purpose' => 'Installer action audit trail once database schema apply is enabled.',
+            ],
+            [
+                'name' => 'larena_install_state',
+                'owner' => 'larena/core',
+                'status' => 'planned',
+                'purpose' => 'Install-stage state, gates, versions and recovery checkpoints.',
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private static function writeJson(string $path, array $payload): void
+    {
+        self::writeString($path, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+    }
+
+    private static function writeString(string $path, string $content): void
+    {
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        file_put_contents($path, $content);
+    }
+
+    private static function absolutePath(string $basePath, string $path): string
+    {
+        return rtrim($basePath, '/') . '/' . ltrim($path, '/');
+    }
+
+    private static function relativePath(string $basePath, string $absolutePath): string
+    {
+        $basePath = rtrim($basePath, '/') . '/';
+
+        if (str_starts_with($absolutePath, $basePath)) {
+            return substr($absolutePath, strlen($basePath));
+        }
+
+        return $absolutePath;
+    }
+}

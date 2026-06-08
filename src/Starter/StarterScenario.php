@@ -186,6 +186,18 @@ final class StarterScenario
                 'mutates_state' => false,
             ],
             [
+                'step' => 'installer_persistence_foundation',
+                'status' => 'planned_after_package_registry_seed',
+                'target' => 'storage/app/larena/installer-persistence-foundation.json',
+                'mutates_state' => false,
+                'applies_database_migrations' => false,
+                'creates_database' => false,
+                'writes_environment' => false,
+                'planned_tables' => InstallerPersistenceFoundation::plannedTables(),
+                'requires_launch_record' => true,
+                'requires_command_confirmation' => 'installer_persistence_foundation',
+            ],
+            [
                 'step' => 'database_environment',
                 'status' => self::databaseReadyForFutureInstall($doctor) ? 'ready' : 'degraded',
                 'required_for_current_preview' => false,
@@ -275,7 +287,7 @@ final class StarterScenario
                 'schema' => 'larena.install_apply_result.v1',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
-                'reason' => 'confirmation_must_equal_package_registry_seed',
+                'reason' => 'confirmation_must_match_launch_record',
                 'required_confirmation' => $expectedConfirmation,
                 'provided_confirmation' => $confirmation !== '' ? $confirmation : null,
                 'launch_record' => [
@@ -302,12 +314,28 @@ final class StarterScenario
             ];
         }
 
-        return PackageRegistrySeed::apply(
-            $applicationContext['base_path'],
-            $record,
-            self::installedPackages($applicationContext['base_path']),
-            FoundationPackageSet::foundationPreview(),
-        );
+        return match ($record['target_step'] ?? null) {
+            'package_registry_seed' => PackageRegistrySeed::apply(
+                $applicationContext['base_path'],
+                $record,
+                self::installedPackages($applicationContext['base_path']),
+                FoundationPackageSet::foundationPreview(),
+            ),
+            'installer_persistence_foundation' => InstallerPersistenceFoundation::apply(
+                $applicationContext['base_path'],
+                $record,
+                $applicationContext,
+            ),
+            default => [
+                'schema' => 'larena.install_apply_result.v1',
+                'status' => 'blocked',
+                'generated_at' => gmdate('c'),
+                'reason' => 'target_step_must_be_supported_install_apply_step',
+                'target_step' => $record['target_step'] ?? null,
+                'mutates_state' => false,
+                'safe_command' => 'php artisan larena:install --dry-run',
+            ],
+        };
     }
 
     /**

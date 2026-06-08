@@ -42,6 +42,36 @@ if (($loaded['status'] ?? null) !== 'passed') {
 
 file_put_contents($basePath . '/' . $recordPath, json_encode([
     'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'installer-persistence-foundation-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'installer_persistence_foundation',
+    'allowed_scope' => ['installer_persistence_foundation'],
+    'evidence_path' => 'docs/project-management/evidence/installer-persistence-foundation',
+    'backup' => [
+        'target' => 'storage/app/larena/installer-persistence-foundation.json',
+        'path' => 'docs/project-management/evidence/installer-persistence-foundation/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'installer_persistence_foundation',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$loadedPersistence = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($loadedPersistence['status'] ?? null) !== 'passed') {
+    fwrite(STDERR, 'Expected valid installer persistence launch record to pass.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
     'id' => 'package-registry-seed-test',
     'status' => 'ready_to_apply',
     'transition' => 'install_apply_launch_record',
@@ -94,6 +124,36 @@ $missingConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPa
 
 if (($missingConfirmationPolicy['status'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Expected launch record without command confirmation policy to be blocked.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'installer-persistence-foundation-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'installer_persistence_foundation',
+    'allowed_scope' => ['installer_persistence_foundation'],
+    'evidence_path' => 'docs/project-management/evidence/installer-persistence-foundation',
+    'backup' => [
+        'target' => 'storage/app/larena/installer-persistence-foundation.json',
+        'path' => 'docs/project-management/evidence/installer-persistence-foundation/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_seed',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$wrongConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($wrongConfirmationPolicy['status'] ?? null) !== 'blocked') {
+    fwrite(STDERR, 'Expected launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
     exit(1);
 }
 
