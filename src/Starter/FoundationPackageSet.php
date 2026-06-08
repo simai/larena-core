@@ -38,11 +38,24 @@ final class FoundationPackageSet
     /**
      * @return list<string>
      */
+    public static function frontendCompositionAdmin(): array
+    {
+        return [
+            'larena/setting',
+            'larena/property',
+            'larena/admin',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
     public static function foundationPreview(): array
     {
         return [
             ...self::runtimeSecurity(),
             ...self::dataContent(),
+            ...self::frontendCompositionAdmin(),
         ];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Larena\Core\Starter\RuntimeSecurityClusterSmoke;
+use Larena\Core\Starter\FoundationPackageSet;
 
 $basePath = sys_get_temp_dir() . '/larena-core-cluster-smoke-test-' . bin2hex(random_bytes(4));
 $outputPath = $basePath . '/docs/project-management/evidence/cluster-smoke-output.json';
@@ -19,16 +20,7 @@ $requiredPackages = [
     'larena/audit',
     'larena/licensing',
 ];
-$foundationPackages = [
-    ...$requiredPackages,
-    'larena/storage',
-    'larena/filesystem',
-    'larena/lang',
-    'larena/search',
-    'larena/link',
-    'larena/backup',
-    'larena/file-manager',
-];
+$foundationPackages = FoundationPackageSet::foundationPreview();
 
 file_put_contents($basePath . '/vendor/composer/installed.json', json_encode([
     'packages' => array_map(

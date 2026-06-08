@@ -8,6 +8,7 @@ use Larena\Core\Starter\FoundationPackageSet;
 
 $runtimeSecurity = FoundationPackageSet::runtimeSecurity();
 $dataContent = FoundationPackageSet::dataContent();
+$frontendCompositionAdmin = FoundationPackageSet::frontendCompositionAdmin();
 $foundation = FoundationPackageSet::foundationPreview();
 
 foreach (['larena/core', 'larena/access', 'larena/audit', 'larena/licensing'] as $package) {
@@ -24,8 +25,15 @@ foreach (['larena/storage', 'larena/filesystem', 'larena/lang', 'larena/search',
     }
 }
 
-if ($foundation !== [...$runtimeSecurity, ...$dataContent]) {
-    fwrite(STDERR, 'Foundation package set order must preserve runtime/security before data/content.' . PHP_EOL);
+foreach (['larena/setting', 'larena/property', 'larena/admin'] as $package) {
+    if (!in_array($package, $frontendCompositionAdmin, true)) {
+        fwrite(STDERR, "Missing frontend/composition/admin package: {$package}" . PHP_EOL);
+        exit(1);
+    }
+}
+
+if ($foundation !== [...$runtimeSecurity, ...$dataContent, ...$frontendCompositionAdmin]) {
+    fwrite(STDERR, 'Foundation package set order must preserve runtime/security before data/content before frontend/composition/admin.' . PHP_EOL);
     exit(1);
 }
 
