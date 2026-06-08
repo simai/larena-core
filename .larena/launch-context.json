@@ -20,7 +20,9 @@
     "core.data_content_cluster_smoke",
     "core.installer_persistence_foundation_guarded_apply",
     "core.installer_db_schema_apply_guarded",
-    "core.package_registry_db_seed_guarded"
+    "core.package_registry_db_seed_guarded",
+    "core.install_audit_trail_apply_guarded",
+    "audit.install_event_trail"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -101,7 +103,9 @@
     "database/migrations/2026_06_08_000001_create_larena_package_registry_table.php",
     "database/migrations/2026_06_08_000002_create_larena_install_state_table.php",
     "src/Starter/InstallerDbSchemaApply.php",
-    "tests/Unit/InstallerDbSchemaApplyTest.php"
+    "tests/Unit/InstallerDbSchemaApplyTest.php",
+    "src/Starter/InstallAuditTrailApply.php",
+    "tests/Unit/InstallAuditTrailApplyTest.php"
   ],
   "forbidden_files": [
     "config/*",
@@ -140,11 +144,11 @@
   "repository_enforcement_installed": true,
   "review_completed": true,
   "review_evidence_ref": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
-  "next_transition": "entry_app_guarded_installer_db_schema_apply_review",
+  "next_transition": "entry_app_install_audit_trail_foundation_review",
   "local_validation": {
     "composer_validate_strict": "passed",
     "composer_dump_autoload": "passed",
-    "quality_gate": "pending_after_scope_update",
+    "quality_gate": "pending_after_install_audit_trail",
     "tests": "passed",
     "evidence_check": "passed",
     "scope_check": "passed",

@@ -87,13 +87,18 @@ foreach (['launch_record', 'allowed_scope', 'backup_evidence', 'rollback_plan', 
     }
 }
 
-if (!in_array('installer_db_schema_apply', $contract['eligible_first_mutations_after_launch_record'] ?? [], true)) {
+if (!in_array('installer_db_schema_apply', $contract['eligible_first_mutations_after_launch_record'], true)) {
     fwrite(STDERR, 'Install readiness contract must expose installer DB schema apply as a guarded mutation.' . PHP_EOL);
     exit(1);
 }
 
-if (!in_array('package_registry_db_seed', $contract['eligible_first_mutations_after_launch_record'] ?? [], true)) {
+if (!in_array('package_registry_db_seed', $contract['eligible_first_mutations_after_launch_record'], true)) {
     fwrite(STDERR, 'Install readiness contract must expose package registry DB seed as a guarded mutation.' . PHP_EOL);
+    exit(1);
+}
+
+if (!in_array('install_audit_trail_apply', $contract['eligible_first_mutations_after_launch_record'], true)) {
+    fwrite(STDERR, 'Install readiness contract must expose install audit trail apply as a guarded mutation.' . PHP_EOL);
     exit(1);
 }
 
@@ -145,6 +150,29 @@ if (($packageRegistryDbSeed['requires_existing_table'] ?? null) !== 'larena_pack
 
 if (($packageRegistryDbSeed['applies_database_migrations'] ?? null) !== false) {
     fwrite(STDERR, 'Package registry DB seed must not apply database migrations.' . PHP_EOL);
+    exit(1);
+}
+
+$installAuditTrailApply = null;
+foreach ($contract['eligible_guarded_mutations_after_launch_record'] ?? [] as $mutation) {
+    if (is_array($mutation) && ($mutation['step'] ?? null) === 'install_audit_trail_apply') {
+        $installAuditTrailApply = $mutation;
+        break;
+    }
+}
+
+if (!is_array($installAuditTrailApply)) {
+    fwrite(STDERR, 'Install readiness contract must include install audit trail apply mutation details.' . PHP_EOL);
+    exit(1);
+}
+
+if (($installAuditTrailApply['owner_package'] ?? null) !== 'larena/audit') {
+    fwrite(STDERR, 'Install audit trail apply must be owned by larena/audit.' . PHP_EOL);
+    exit(1);
+}
+
+if (($installAuditTrailApply['planned_tables'][0]['name'] ?? null) !== 'larena_install_events') {
+    fwrite(STDERR, 'Install audit trail apply must plan larena_install_events.' . PHP_EOL);
     exit(1);
 }
 

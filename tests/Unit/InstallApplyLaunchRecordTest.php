@@ -132,6 +132,36 @@ if (($loadedPackageRegistryDbSeed['status'] ?? null) !== 'passed') {
 
 file_put_contents($basePath . '/' . $recordPath, json_encode([
     'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'install-audit-trail-apply-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'install_audit_trail_apply',
+    'allowed_scope' => ['install_audit_trail_apply'],
+    'evidence_path' => 'docs/project-management/evidence/install-audit-trail-apply',
+    'backup' => [
+        'target' => 'storage/app/larena/install-audit-trail-state.json',
+        'path' => 'docs/project-management/evidence/install-audit-trail-apply/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'install_audit_trail_apply',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$loadedInstallAuditTrailApply = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($loadedInstallAuditTrailApply['status'] ?? null) !== 'passed') {
+    fwrite(STDERR, 'Expected valid install audit trail launch record to pass.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
     'id' => 'package-registry-seed-test',
     'status' => 'ready_to_apply',
     'transition' => 'install_apply_launch_record',
@@ -274,6 +304,36 @@ $wrongPackageRegistryDbSeedConfirmationPolicy = InstallApplyLaunchRecord::load($
 
 if (($wrongPackageRegistryDbSeedConfirmationPolicy['status'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Expected package registry DB seed launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'install-audit-trail-apply-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'install_audit_trail_apply',
+    'allowed_scope' => ['install_audit_trail_apply'],
+    'evidence_path' => 'docs/project-management/evidence/install-audit-trail-apply',
+    'backup' => [
+        'target' => 'storage/app/larena/install-audit-trail-state.json',
+        'path' => 'docs/project-management/evidence/install-audit-trail-apply/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_db_seed',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$wrongInstallAuditTrailConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($wrongInstallAuditTrailConfirmationPolicy['status'] ?? null) !== 'blocked') {
+    fwrite(STDERR, 'Expected install audit trail launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
     exit(1);
 }
 

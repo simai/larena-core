@@ -232,6 +232,20 @@ final class StarterScenario
                 'requires_command_confirmation' => 'package_registry_db_seed',
             ],
             [
+                'step' => 'install_audit_trail_apply',
+                'status' => self::databaseReadyForFutureInstall($doctor) ? 'planned_after_package_registry_db_seed' : 'blocked',
+                'target' => 'larena_install_events',
+                'owner' => 'larena/audit',
+                'mutates_state' => false,
+                'would_mutate_state_with_launch_record' => true,
+                'applies_database_migrations' => false,
+                'would_apply_database_migrations_with_launch_record' => true,
+                'creates_database' => false,
+                'writes_environment' => false,
+                'requires_launch_record' => true,
+                'requires_command_confirmation' => 'install_audit_trail_apply',
+            ],
+            [
                 'step' => 'database_environment',
                 'status' => self::databaseReadyForFutureInstall($doctor) ? 'ready' : 'degraded',
                 'required_for_current_preview' => false,
@@ -382,6 +396,21 @@ final class StarterScenario
                 self::installedPackages($applicationContext['base_path']),
                 FoundationPackageSet::foundationPreview(),
             ),
+            'install_audit_trail_apply' => $app instanceof Application
+                ? InstallAuditTrailApply::apply(
+                    $app,
+                    $applicationContext['base_path'],
+                    $record,
+                    $applicationContext,
+                )
+                : [
+                    'schema' => 'larena.install_apply_result.v1',
+                    'status' => 'blocked',
+                    'generated_at' => gmdate('c'),
+                    'reason' => 'laravel_application_required_for_install_audit_trail_apply',
+                    'mutates_state' => false,
+                    'safe_command' => 'php artisan larena:install --dry-run',
+                ],
             default => [
                 'schema' => 'larena.install_apply_result.v1',
                 'status' => 'blocked',

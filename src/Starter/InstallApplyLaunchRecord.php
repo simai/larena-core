@@ -12,6 +12,7 @@ final class InstallApplyLaunchRecord
         'installer_persistence_foundation' => 'installer_persistence_foundation',
         'installer_db_schema_apply' => 'installer_db_schema_apply',
         'package_registry_db_seed' => 'package_registry_db_seed',
+        'install_audit_trail_apply' => 'install_audit_trail_apply',
     ];
 
     /**

@@ -79,6 +79,7 @@ final class InstallReadinessContract
                 'installer_persistence_foundation',
                 'installer_db_schema_apply',
                 'package_registry_db_seed',
+                'install_audit_trail_apply',
             ],
             'eligible_guarded_mutations_after_launch_record' => [
                 [
@@ -121,6 +122,22 @@ final class InstallReadinessContract
                     'applies_database_migrations' => false,
                     'writes_environment' => false,
                     'requires_existing_table' => 'larena_package_registry',
+                ],
+                [
+                    'step' => 'install_audit_trail_apply',
+                    'requires_command_confirmation' => 'install_audit_trail_apply',
+                    'mutates_state' => true,
+                    'creates_database' => false,
+                    'applies_database_migrations' => true,
+                    'writes_environment' => false,
+                    'owner_package' => 'larena/audit',
+                    'planned_tables' => [
+                        [
+                            'name' => 'larena_install_events',
+                            'owner' => 'larena/audit',
+                            'purpose' => 'Guarded installer action audit trail.',
+                        ],
+                    ],
                 ],
             ],
             'read_only_steps' => [
