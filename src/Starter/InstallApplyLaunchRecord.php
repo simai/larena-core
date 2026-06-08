@@ -88,6 +88,11 @@ final class InstallApplyLaunchRecord
             $errors[] = 'allowed_scope_must_include_package_registry_seed';
         }
 
+        $limits = $record['limits'] ?? [];
+        if (!is_array($limits) || ($limits['requires_command_confirmation'] ?? null) !== 'package_registry_seed') {
+            $errors[] = 'limits_requires_command_confirmation_must_be_package_registry_seed';
+        }
+
         $approval = $record['operator_approval'] ?? [];
         if (!is_array($approval) || ($approval['status'] ?? null) !== 'approved') {
             $errors[] = 'operator_approval_must_be_approved';

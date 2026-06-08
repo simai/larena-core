@@ -17,6 +17,8 @@ $record = [
     ],
     'rollback_plan' => [
         'type' => 'restore_backup_or_delete_if_absent',
+        'target' => 'storage/app/larena/package-registry.json',
+        'backup_path' => 'docs/project-management/evidence/package-registry-seed/backup/package-registry.before.json',
     ],
 ];
 $installed = [
@@ -41,6 +43,16 @@ if (($first['status'] ?? null) !== 'passed') {
 
 if (($first['mutates_state'] ?? null) !== true) {
     fwrite(STDERR, 'Expected first package registry seed to mutate state.' . PHP_EOL);
+    exit(1);
+}
+
+if (($first['state'] ?? null) !== 'applied') {
+    fwrite(STDERR, 'Expected first package registry seed state to be applied.' . PHP_EOL);
+    exit(1);
+}
+
+if (($first['recovery_guidance']['status'] ?? null) !== 'available') {
+    fwrite(STDERR, 'Expected package registry seed to expose recovery guidance.' . PHP_EOL);
     exit(1);
 }
 
@@ -71,6 +83,11 @@ if (($second['status'] ?? null) !== 'passed') {
 
 if (($second['mutates_state'] ?? null) !== false) {
     fwrite(STDERR, 'Expected second package registry seed to be idempotent.' . PHP_EOL);
+    exit(1);
+}
+
+if (($second['state'] ?? null) !== 'already_current') {
+    fwrite(STDERR, 'Expected second package registry seed state to be already current.' . PHP_EOL);
     exit(1);
 }
 

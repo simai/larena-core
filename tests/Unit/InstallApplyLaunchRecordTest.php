@@ -25,6 +25,9 @@ file_put_contents($basePath . '/' . $recordPath, json_encode([
     'rollback_plan' => [
         'type' => 'restore_backup_or_delete_if_absent',
     ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_seed',
+    ],
     'operator_approval' => [
         'status' => 'approved',
     ],
@@ -52,6 +55,9 @@ file_put_contents($basePath . '/' . $recordPath, json_encode([
     'rollback_plan' => [
         'type' => 'restore_backup_or_delete_if_absent',
     ],
+    'limits' => [
+        'requires_command_confirmation' => 'package_registry_seed',
+    ],
     'operator_approval' => [
         'status' => 'approved',
     ],
@@ -61,6 +67,33 @@ $blocked = InstallApplyLaunchRecord::load($basePath, $recordPath);
 
 if (($blocked['status'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Expected unsupported target step to be blocked.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'package-registry-seed-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'package_registry_seed',
+    'allowed_scope' => ['package_registry_seed'],
+    'evidence_path' => 'docs/project-management/evidence/package-registry-seed',
+    'backup' => [
+        'target' => 'storage/app/larena/package-registry.json',
+        'path' => 'docs/project-management/evidence/package-registry-seed/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$missingConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($missingConfirmationPolicy['status'] ?? null) !== 'blocked') {
+    fwrite(STDERR, 'Expected launch record without command confirmation policy to be blocked.' . PHP_EOL);
     exit(1);
 }
 

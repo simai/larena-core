@@ -54,6 +54,17 @@ final class CommandReportPresenter
             $lines[] = 'Safe command: ' . $report['safe_command'];
         }
 
+        if (isset($report['required_confirmation']) && is_string($report['required_confirmation'])) {
+            $lines[] = 'Required confirmation: ' . $report['required_confirmation'];
+        }
+
+        if (array_key_exists('provided_confirmation', $report)) {
+            $provided = is_string($report['provided_confirmation'])
+                ? $report['provided_confirmation']
+                : 'none';
+            $lines[] = 'Provided confirmation: ' . $provided;
+        }
+
         $checkLines = self::checkLines($report);
         if ($checkLines !== []) {
             $lines[] = '';

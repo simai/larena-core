@@ -52,6 +52,7 @@ final class PackageRegistrySeed
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'mutation' => 'package_registry_seed',
+            'state' => $changed ? 'applied' : 'already_current',
             'idempotent' => true,
             'mutates_state' => $changed,
             'launch_record' => [
@@ -69,6 +70,18 @@ final class PackageRegistrySeed
                 'preserved' => true,
             ],
             'rollback_plan' => $launchRecord['rollback_plan'],
+            'recovery_guidance' => [
+                'status' => 'available',
+                'type' => 'restore_backup_or_delete_if_absent',
+                'target' => self::relativePath($basePath, $targetPath),
+                'backup_path' => self::relativePath($basePath, $backupPath),
+                'manual_steps' => [
+                    'If rollback is required, stop further install batches.',
+                    'Restore the backup content to the target path when the backup existed.',
+                    'Delete the target path when the backup marker says the target did not exist before apply.',
+                    'Run php artisan larena:packages --full and php artisan larena:doctor --full after recovery.',
+                ],
+            ],
             'packages' => $registry['packages'],
             'evidence_path' => self::relativePath($basePath, $applyOutputPath),
         ];

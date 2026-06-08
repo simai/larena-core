@@ -254,17 +254,6 @@ final class StarterScenario
         string $confirmation,
         array $applicationContext
     ): array {
-        if ($confirmation !== 'package_registry_seed') {
-            return [
-                'schema' => 'larena.install_apply_result.v1',
-                'status' => 'blocked',
-                'generated_at' => gmdate('c'),
-                'reason' => 'confirmation_must_equal_package_registry_seed',
-                'mutates_state' => false,
-                'safe_command' => 'php artisan larena:install --dry-run',
-            ];
-        }
-
         $loaded = InstallApplyLaunchRecord::load($applicationContext['base_path'], $launchRecordPath);
         if (($loaded['status'] ?? null) !== 'passed') {
             return [
@@ -278,7 +267,27 @@ final class StarterScenario
             ];
         }
 
-        $doctorOutputPath = rtrim((string) $loaded['record']['evidence_path'], '/') . '/doctor-before-apply.json';
+        $record = $loaded['record'];
+        $expectedConfirmation = (string) ($record['limits']['requires_command_confirmation'] ?? 'package_registry_seed');
+
+        if ($confirmation !== $expectedConfirmation) {
+            return [
+                'schema' => 'larena.install_apply_result.v1',
+                'status' => 'blocked',
+                'generated_at' => gmdate('c'),
+                'reason' => 'confirmation_must_equal_package_registry_seed',
+                'required_confirmation' => $expectedConfirmation,
+                'provided_confirmation' => $confirmation !== '' ? $confirmation : null,
+                'launch_record' => [
+                    'id' => $record['id'] ?? null,
+                    'path' => $record['_relative_path'] ?? null,
+                ],
+                'mutates_state' => false,
+                'safe_command' => 'php artisan larena:install --dry-run',
+            ];
+        }
+
+        $doctorOutputPath = rtrim((string) $record['evidence_path'], '/') . '/doctor-before-apply.json';
         $doctor = self::doctor($applicationContext['base_path'] . '/' . $doctorOutputPath, $applicationContext);
 
         if (($doctor['status'] ?? null) !== 'passed') {
@@ -295,7 +304,7 @@ final class StarterScenario
 
         return PackageRegistrySeed::apply(
             $applicationContext['base_path'],
-            $loaded['record'],
+            $record,
             self::installedPackages($applicationContext['base_path']),
             FoundationPackageSet::foundationPreview(),
         );
