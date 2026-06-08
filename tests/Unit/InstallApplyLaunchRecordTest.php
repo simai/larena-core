@@ -72,6 +72,36 @@ if (($loadedPersistence['status'] ?? null) !== 'passed') {
 
 file_put_contents($basePath . '/' . $recordPath, json_encode([
     'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'installer-db-schema-apply-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'installer_db_schema_apply',
+    'allowed_scope' => ['installer_db_schema_apply'],
+    'evidence_path' => 'docs/project-management/evidence/installer-db-schema-apply',
+    'backup' => [
+        'target' => 'storage/app/larena/installer-db-schema-apply.json',
+        'path' => 'docs/project-management/evidence/installer-db-schema-apply/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'installer_db_schema_apply',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$loadedDbSchemaApply = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($loadedDbSchemaApply['status'] ?? null) !== 'passed') {
+    fwrite(STDERR, 'Expected valid installer DB schema apply launch record to pass.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
     'id' => 'package-registry-seed-test',
     'status' => 'ready_to_apply',
     'transition' => 'install_apply_launch_record',
@@ -154,6 +184,36 @@ $wrongConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath
 
 if (($wrongConfirmationPolicy['status'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Expected launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
+    exit(1);
+}
+
+file_put_contents($basePath . '/' . $recordPath, json_encode([
+    'schema' => 'larena.install_apply_launch_record.v1',
+    'id' => 'installer-db-schema-apply-test',
+    'status' => 'ready_to_apply',
+    'transition' => 'install_apply_launch_record',
+    'target_step' => 'installer_db_schema_apply',
+    'allowed_scope' => ['installer_db_schema_apply'],
+    'evidence_path' => 'docs/project-management/evidence/installer-db-schema-apply',
+    'backup' => [
+        'target' => 'storage/app/larena/installer-db-schema-apply.json',
+        'path' => 'docs/project-management/evidence/installer-db-schema-apply/backup.json',
+    ],
+    'rollback_plan' => [
+        'type' => 'restore_backup_or_delete_if_absent',
+    ],
+    'limits' => [
+        'requires_command_confirmation' => 'installer_persistence_foundation',
+    ],
+    'operator_approval' => [
+        'status' => 'approved',
+    ],
+], JSON_PRETTY_PRINT) . PHP_EOL);
+
+$wrongDbSchemaConfirmationPolicy = InstallApplyLaunchRecord::load($basePath, $recordPath);
+
+if (($wrongDbSchemaConfirmationPolicy['status'] ?? null) !== 'blocked') {
+    fwrite(STDERR, 'Expected DB schema apply launch record with mismatched confirmation policy to be blocked.' . PHP_EOL);
     exit(1);
 }
 

@@ -198,6 +198,27 @@ final class StarterScenario
                 'requires_command_confirmation' => 'installer_persistence_foundation',
             ],
             [
+                'step' => 'installer_db_schema_apply',
+                'status' => self::databaseReadyForFutureInstall($doctor) ? 'planned_after_installer_persistence_foundation' : 'blocked',
+                'target' => 'storage/app/larena/installer-db-schema-apply.json',
+                'mutates_state' => false,
+                'would_mutate_state_with_launch_record' => true,
+                'applies_database_migrations' => false,
+                'would_apply_database_migrations_with_launch_record' => true,
+                'creates_database' => false,
+                'writes_environment' => false,
+                'planned_tables' => InstallerDbSchemaApply::plannedTables(),
+                'deferred_tables' => [
+                    [
+                        'name' => 'larena_install_events',
+                        'owner' => 'larena/audit',
+                        'reason' => 'audit-owned installer event persistence must not be owned by larena/core',
+                    ],
+                ],
+                'requires_launch_record' => true,
+                'requires_command_confirmation' => 'installer_db_schema_apply',
+            ],
+            [
                 'step' => 'database_environment',
                 'status' => self::databaseReadyForFutureInstall($doctor) ? 'ready' : 'degraded',
                 'required_for_current_preview' => false,
@@ -264,7 +285,8 @@ final class StarterScenario
     public static function applyInstallLaunchRecord(
         string $launchRecordPath,
         string $confirmation,
-        array $applicationContext
+        array $applicationContext,
+        ?Application $app = null
     ): array {
         $loaded = InstallApplyLaunchRecord::load($applicationContext['base_path'], $launchRecordPath);
         if (($loaded['status'] ?? null) !== 'passed') {
@@ -326,6 +348,21 @@ final class StarterScenario
                 $record,
                 $applicationContext,
             ),
+            'installer_db_schema_apply' => $app instanceof Application
+                ? InstallerDbSchemaApply::apply(
+                    $app,
+                    $applicationContext['base_path'],
+                    $record,
+                    $applicationContext,
+                )
+                : [
+                    'schema' => 'larena.install_apply_result.v1',
+                    'status' => 'blocked',
+                    'generated_at' => gmdate('c'),
+                    'reason' => 'laravel_application_required_for_schema_apply',
+                    'mutates_state' => false,
+                    'safe_command' => 'php artisan larena:install --dry-run',
+                ],
             default => [
                 'schema' => 'larena.install_apply_result.v1',
                 'status' => 'blocked',

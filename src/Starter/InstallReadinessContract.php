@@ -77,6 +77,7 @@ final class InstallReadinessContract
             'eligible_first_mutations_after_launch_record' => [
                 'package_registry_seed',
                 'installer_persistence_foundation',
+                'installer_db_schema_apply',
             ],
             'eligible_guarded_mutations_after_launch_record' => [
                 [
@@ -94,6 +95,22 @@ final class InstallReadinessContract
                     'creates_database' => false,
                     'applies_database_migrations' => false,
                     'writes_environment' => false,
+                ],
+                [
+                    'step' => 'installer_db_schema_apply',
+                    'requires_command_confirmation' => 'installer_db_schema_apply',
+                    'mutates_state' => true,
+                    'creates_database' => false,
+                    'applies_database_migrations' => true,
+                    'writes_environment' => false,
+                    'planned_tables' => InstallerDbSchemaApply::plannedTables(),
+                    'deferred_tables' => [
+                        [
+                            'name' => 'larena_install_events',
+                            'owner' => 'larena/audit',
+                            'reason' => 'audit-owned installer event persistence requires its own guarded batch',
+                        ],
+                    ],
                 ],
             ],
             'read_only_steps' => [

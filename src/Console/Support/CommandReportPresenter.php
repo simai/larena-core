@@ -71,6 +71,12 @@ final class CommandReportPresenter
             array_push($lines, ...$checkLines);
         }
 
+        $planLines = self::planLines($report);
+        if ($planLines !== []) {
+            $lines[] = '';
+            array_push($lines, ...$planLines);
+        }
+
         if (($report['transition_required'] ?? null) === 'install_apply_launch_record') {
             $lines[] = '';
             $lines[] = 'EXPECTED_GUARD: install apply requires a launch record and explicit confirmation.';
@@ -126,6 +132,39 @@ final class CommandReportPresenter
         }
 
         return $lines;
+    }
+
+    /**
+     * @param array<string, mixed> $report
+     * @return list<string>
+     */
+    private static function planLines(array $report): array
+    {
+        $plan = $report['plan'] ?? null;
+        if (!is_array($plan)) {
+            return [];
+        }
+
+        $lines = ['Plan:'];
+        foreach ($plan as $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+
+            $name = $step['step'] ?? null;
+            $status = $step['status'] ?? null;
+            if (!is_string($name) || !is_string($status)) {
+                continue;
+            }
+
+            $lines[] = sprintf('%-24s %s', self::statusLabel(['status' => $status]), $name);
+
+            if (isset($step['requires_command_confirmation']) && is_string($step['requires_command_confirmation'])) {
+                $lines[] = sprintf('%-24s confirmation: %s', '', $step['requires_command_confirmation']);
+            }
+        }
+
+        return count($lines) > 1 ? $lines : [];
     }
 
     /**

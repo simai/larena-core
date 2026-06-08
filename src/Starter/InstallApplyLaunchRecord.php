@@ -10,6 +10,7 @@ final class InstallApplyLaunchRecord
     private const CONFIRMATIONS_BY_TARGET = [
         'package_registry_seed' => 'package_registry_seed',
         'installer_persistence_foundation' => 'installer_persistence_foundation',
+        'installer_db_schema_apply' => 'installer_db_schema_apply',
     ];
 
     /**

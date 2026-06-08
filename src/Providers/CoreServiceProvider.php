@@ -20,6 +20,8 @@ final class CoreServiceProvider extends ServiceProvider
             return;
         }
 
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+
         $this->commands([
             ClusterSmokeCommand::class,
             DataContentSmokeCommand::class,

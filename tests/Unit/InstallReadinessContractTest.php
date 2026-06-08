@@ -26,6 +26,7 @@ $doctor = [
 $plan = [
     ['step' => 'environment_preflight', 'status' => 'ready'],
     ['step' => 'package_registry_seed', 'status' => 'planned'],
+    ['step' => 'installer_db_schema_apply', 'status' => 'planned_after_installer_persistence_foundation'],
     ['step' => 'runtime_security_verification', 'status' => 'ready'],
 ];
 
@@ -84,6 +85,39 @@ foreach (['launch_record', 'allowed_scope', 'backup_evidence', 'rollback_plan', 
         fwrite(STDERR, "Missing required gate: {$requiredGate}" . PHP_EOL);
         exit(1);
     }
+}
+
+if (!in_array('installer_db_schema_apply', $contract['eligible_first_mutations_after_launch_record'] ?? [], true)) {
+    fwrite(STDERR, 'Install readiness contract must expose installer DB schema apply as a guarded mutation.' . PHP_EOL);
+    exit(1);
+}
+
+$dbSchemaApply = null;
+foreach ($contract['eligible_guarded_mutations_after_launch_record'] ?? [] as $mutation) {
+    if (is_array($mutation) && ($mutation['step'] ?? null) === 'installer_db_schema_apply') {
+        $dbSchemaApply = $mutation;
+        break;
+    }
+}
+
+if (!is_array($dbSchemaApply)) {
+    fwrite(STDERR, 'Install readiness contract must include installer DB schema apply mutation details.' . PHP_EOL);
+    exit(1);
+}
+
+if (($dbSchemaApply['applies_database_migrations'] ?? null) !== true) {
+    fwrite(STDERR, 'Installer DB schema apply must be marked as database migration apply.' . PHP_EOL);
+    exit(1);
+}
+
+if (($dbSchemaApply['creates_database'] ?? null) !== false) {
+    fwrite(STDERR, 'Installer DB schema apply must not create the database.' . PHP_EOL);
+    exit(1);
+}
+
+if (($dbSchemaApply['writes_environment'] ?? null) !== false) {
+    fwrite(STDERR, 'Installer DB schema apply must not write environment files.' . PHP_EOL);
+    exit(1);
 }
 
 echo 'InstallReadinessContractTest passed.' . PHP_EOL;

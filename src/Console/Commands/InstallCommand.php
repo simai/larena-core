@@ -33,6 +33,7 @@ final class InstallCommand extends Command
                 $launchRecord,
                 is_string($confirmation) ? $confirmation : '',
                 $context,
+                $app,
             );
 
             CommandReportPresenter::render($this, 'Larena guarded install apply', $report);

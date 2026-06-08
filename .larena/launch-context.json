@@ -18,7 +18,8 @@
     "core.runtime_security_cluster_smoke",
     "core.native_command_ux",
     "core.data_content_cluster_smoke",
-    "core.installer_persistence_foundation_guarded_apply"
+    "core.installer_persistence_foundation_guarded_apply",
+    "core.installer_db_schema_apply_guarded"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
@@ -94,7 +95,11 @@
     "docs/project-management/evidence/runtime-security/native-command-ux/smoke.md",
     "src/Console/Commands/DataContentSmokeCommand.php",
     "src/Starter/DataContentClusterSmoke.php",
-    "tests/Unit/DataContentClusterSmokeTest.php"
+    "tests/Unit/DataContentClusterSmokeTest.php",
+    "database/migrations/2026_06_08_000001_create_larena_package_registry_table.php",
+    "database/migrations/2026_06_08_000002_create_larena_install_state_table.php",
+    "src/Starter/InstallerDbSchemaApply.php",
+    "tests/Unit/InstallerDbSchemaApplyTest.php"
   ],
   "forbidden_files": [
     "config/*",
@@ -133,16 +138,17 @@
   "repository_enforcement_installed": true,
   "review_completed": true,
   "review_evidence_ref": "docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/tests.md",
-  "next_transition": "entry_app_native_command_ux_smoke",
+  "next_transition": "entry_app_guarded_installer_db_schema_apply_review",
   "local_validation": {
     "composer_validate_strict": "passed",
     "composer_dump_autoload": "passed",
-    "quality_gate": "passed",
+    "quality_gate": "pending_after_scope_update",
     "tests": "passed",
     "evidence_check": "passed",
     "scope_check": "passed",
     "php_runtime": "ServBay PHP 8.4.20",
-    "validated_at": "2026-06-04T22:38:37.359Z"
+    "validated_at": "2026-06-08T09:05:00Z",
+    "latest_batch": "installer_db_schema_apply_guarded"
   },
   "coding_branch": "main",
   "previous_batch_ref": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md"
