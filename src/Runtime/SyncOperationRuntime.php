@@ -58,13 +58,37 @@ final readonly class SyncOperationRuntime implements OperationRuntime
     public function execute(OperationDescriptor $descriptor, OperationContext $context): OperationResult
     {
         $decision = $this->decide($descriptor, $context);
-        $auditEvents = [
-            $this->auditRecorder->recordDecision($descriptor, $context, $decision, 'decision'),
-        ];
+        $decisionAudit = $this->recordDecision($descriptor, $context, $decision);
+
+        if ($decisionAudit['failed'] === true) {
+            $failedDecision = OperationDecision::invalid('audit_decision_failed', (string) $decisionAudit['message']);
+
+            return OperationResult::fromDecision(
+                $failedDecision,
+                null,
+                [],
+                $this->auditFailureTrace($descriptor, $context, $failedDecision, 'decision', $decisionAudit),
+            );
+        }
+
+        $auditEvents = [$decisionAudit['event']];
 
         if (!$decision->handlerMayRun) {
             $result = OperationResult::fromDecision($decision, null, $auditEvents, $this->trace($descriptor, $context, $decision));
-            $auditEvents[] = $this->auditRecorder->recordResult($descriptor, $context, $result, 'result');
+            $resultAudit = $this->recordResult($descriptor, $context, $result);
+
+            if ($resultAudit['failed'] === true) {
+                $failedDecision = OperationDecision::invalid('audit_result_failed', (string) $resultAudit['message']);
+
+                return OperationResult::fromDecision(
+                    $failedDecision,
+                    null,
+                    $auditEvents,
+                    $this->auditFailureTrace($descriptor, $context, $failedDecision, 'result', $resultAudit),
+                );
+            }
+
+            $auditEvents[] = $resultAudit['event'];
 
             return OperationResult::fromDecision($decision, null, $auditEvents, $this->trace($descriptor, $context, $decision));
         }
@@ -77,7 +101,20 @@ final readonly class SyncOperationRuntime implements OperationRuntime
             $result = OperationResult::fromDecision($failedDecision, null, $auditEvents, $this->trace($descriptor, $context, $failedDecision));
         }
 
-        $auditEvents[] = $this->auditRecorder->recordResult($descriptor, $context, $result, 'result');
+        $resultAudit = $this->recordResult($descriptor, $context, $result);
+
+        if ($resultAudit['failed'] === true) {
+            $failedDecision = OperationDecision::invalid('audit_result_failed', (string) $resultAudit['message']);
+
+            return OperationResult::fromDecision(
+                $failedDecision,
+                null,
+                $auditEvents,
+                $this->auditFailureTrace($descriptor, $context, $failedDecision, 'result', $resultAudit),
+            );
+        }
+
+        $auditEvents[] = $resultAudit['event'];
 
         return OperationResult::fromDecision($result->decision, $result->payload, $auditEvents, $result->runtimeTrace);
     }
@@ -111,6 +148,68 @@ final readonly class SyncOperationRuntime implements OperationRuntime
             'execution_mode' => $descriptor->executionMode->value,
             'decision_status' => $decision->status->value,
             'decision_reason' => $decision->reasonCode,
+        ];
+    }
+
+    /**
+     * @return array{failed: bool, event?: array<string, mixed>, message?: string, exception_class?: string}
+     */
+    private function recordDecision(OperationDescriptor $descriptor, OperationContext $context, OperationDecision $decision): array
+    {
+        try {
+            return [
+                'failed' => false,
+                'event' => $this->auditRecorder->recordDecision($descriptor, $context, $decision, 'decision'),
+            ];
+        } catch (Throwable $throwable) {
+            return $this->auditFailure($throwable);
+        }
+    }
+
+    /**
+     * @return array{failed: bool, event?: array<string, mixed>, message?: string, exception_class?: string}
+     */
+    private function recordResult(OperationDescriptor $descriptor, OperationContext $context, OperationResult $result): array
+    {
+        try {
+            return [
+                'failed' => false,
+                'event' => $this->auditRecorder->recordResult($descriptor, $context, $result, 'result'),
+            ];
+        } catch (Throwable $throwable) {
+            return $this->auditFailure($throwable);
+        }
+    }
+
+    /**
+     * @return array{failed: true, message: string, exception_class: class-string<Throwable>}
+     */
+    private function auditFailure(Throwable $throwable): array
+    {
+        return [
+            'failed' => true,
+            'message' => 'Audit recording failed: ' . $throwable->getMessage(),
+            'exception_class' => $throwable::class,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $failure
+     *
+     * @return array<string, mixed>
+     */
+    private function auditFailureTrace(
+        OperationDescriptor $descriptor,
+        OperationContext $context,
+        OperationDecision $decision,
+        string $phase,
+        array $failure,
+    ): array {
+        return [
+            ...$this->trace($descriptor, $context, $decision),
+            'audit_failure_phase' => $phase,
+            'audit_failure_message' => $failure['message'] ?? 'Audit recording failed.',
+            'audit_failure_exception_class' => $failure['exception_class'] ?? null,
         ];
     }
 }

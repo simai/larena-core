@@ -100,4 +100,31 @@ if (!is_file(dirname($outputPath) . '/runtime-security-smoke.json')) {
     exit(1);
 }
 
+$runtimeSecuritySmoke = json_decode((string) file_get_contents(dirname($outputPath) . '/runtime-security-smoke.json'), true);
+
+if (!is_array($runtimeSecuritySmoke)) {
+    fwrite(STDERR, 'Runtime security smoke evidence must be valid JSON.' . PHP_EOL);
+    exit(1);
+}
+
+foreach ($requiredPackages as $package) {
+    $key = substr($package, strlen('larena/'));
+    $source = $runtimeSecuritySmoke['package_sources'][$key] ?? null;
+
+    if (!is_array($source)) {
+        fwrite(STDERR, 'Runtime security package source must be a structured diagnostic object.' . PHP_EOL);
+        exit(1);
+    }
+
+    if (($source['package'] ?? null) !== $package) {
+        fwrite(STDERR, 'Runtime security package source must preserve package identity.' . PHP_EOL);
+        exit(1);
+    }
+
+    if (($source['source'] ?? null) === 'hardcoded_workspace_sibling') {
+        fwrite(STDERR, 'Runtime security package source must not report hardcoded workspace sibling paths.' . PHP_EOL);
+        exit(1);
+    }
+}
+
 echo 'RuntimeSecurityClusterSmokeTest passed.' . PHP_EOL;

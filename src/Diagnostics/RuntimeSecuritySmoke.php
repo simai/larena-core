@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Larena\Core\Diagnostics;
 
+use Composer\InstalledVersions;
 use InvalidArgumentException;
 use Larena\Access\Contracts\AccessDecisionEngine;
 use Larena\Access\Runtime\GrantAwareAccessDecisionEngine;
@@ -97,12 +98,7 @@ final class RuntimeSecuritySmoke
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'laravel_version' => $applicationContext['laravel_version'],
-            'package_sources' => [
-                'core' => $applicationContext['base_path'] . '/../larena-workspace/packages/core',
-                'access' => $applicationContext['base_path'] . '/../larena-workspace/packages/access',
-                'licensing' => $applicationContext['base_path'] . '/../larena-workspace/packages/licensing',
-                'audit' => $applicationContext['base_path'] . '/../larena-workspace/packages/audit',
-            ],
+            'package_sources' => self::packageSources($applicationContext['base_path']),
             'cases' => array_map([self::class, 'summarize'], $cases),
             'audit_redaction' => [
                 'redacted_payload' => $redactedEvent->payload,
@@ -183,6 +179,103 @@ final class RuntimeSecuritySmoke
             ),
             handler: new SmokeHandler($handlerShouldFail),
         );
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private static function packageSources(string $basePath): array
+    {
+        $packages = [
+            'core' => 'larena/core',
+            'access' => 'larena/access',
+            'licensing' => 'larena/licensing',
+            'audit' => 'larena/audit',
+        ];
+
+        $sources = [];
+
+        foreach ($packages as $key => $package) {
+            $sources[$key] = self::packageSource($package, $basePath);
+        }
+
+        return $sources;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function packageSource(string $package, string $basePath): array
+    {
+        if (class_exists(InstalledVersions::class) && InstalledVersions::isInstalled($package)) {
+            $installPath = InstalledVersions::getInstallPath($package);
+
+            if (is_string($installPath) && $installPath !== '') {
+                return [
+                    'package' => $package,
+                    'status' => 'resolved',
+                    'source' => 'composer_installed_versions',
+                    'install_path' => $installPath,
+                ];
+            }
+        }
+
+        $installedJsonPath = rtrim($basePath, '/') . '/vendor/composer/installed.json';
+        $installedJsonPath = is_file($installedJsonPath) ? $installedJsonPath : null;
+        $installedJsonPath = $installedJsonPath ?? rtrim($basePath, '/') . '/vendor/composer/installed.php';
+        $installedPackage = is_file($installedJsonPath)
+            ? self::packageFromInstalledManifest($installedJsonPath, $package)
+            : null;
+
+        if ($installedPackage !== null) {
+            return $installedPackage;
+        }
+
+        return [
+            'package' => $package,
+            'status' => 'unresolved',
+            'source' => 'composer_metadata_unavailable',
+            'install_path' => null,
+            'diagnostic_note' => 'Runtime security smoke could not resolve the Composer install path for this package.',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function packageFromInstalledManifest(string $installedPath, string $package): ?array
+    {
+        $manifest = str_ends_with($installedPath, '.php')
+            ? include $installedPath
+            : json_decode((string) file_get_contents($installedPath), true);
+
+        if (!is_array($manifest)) {
+            return null;
+        }
+
+        $packages = $manifest['packages'] ?? $manifest;
+
+        if (!is_array($packages)) {
+            return null;
+        }
+
+        foreach ($packages as $installedPackage) {
+            if (!is_array($installedPackage) || ($installedPackage['name'] ?? null) !== $package) {
+                continue;
+            }
+
+            $installPath = $installedPackage['install-path'] ?? $installedPackage['install_path'] ?? null;
+
+            return [
+                'package' => $package,
+                'status' => is_string($installPath) && $installPath !== '' ? 'resolved' : 'unresolved',
+                'source' => 'vendor_composer_installed_manifest',
+                'install_path' => is_string($installPath) && $installPath !== '' ? $installPath : null,
+                'manifest_path' => $installedPath,
+            ];
+        }
+
+        return null;
     }
 
     /**
