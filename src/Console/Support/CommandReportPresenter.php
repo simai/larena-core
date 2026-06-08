@@ -104,6 +104,14 @@ final class CommandReportPresenter
             }
 
             $lines[] = rtrim($line);
+
+            if (isset($check['safe_message']) && is_string($check['safe_message'])) {
+                $lines[] = sprintf('%-24s %s', '', $check['safe_message']);
+            }
+
+            if (isset($check['action']) && is_string($check['action']) && $check['action'] !== '') {
+                $lines[] = sprintf('%-24s action: %s', '', $check['action']);
+            }
         }
 
         return $lines;

@@ -51,4 +51,31 @@ if (!in_array('EXPECTED_GUARD: install apply requires a launch record and explic
     exit(1);
 }
 
+$database = CommandReportPresenter::summaryLines('Larena doctor', [
+    'status' => 'passed',
+    'checks' => [
+        'database_connection' => [
+            'status' => 'degraded',
+            'reason' => 'database_credentials_rejected',
+            'safe_message' => 'Database credentials were rejected. Password is not printed; check local .env values.',
+            'action' => 'Check DB_CONNECTION and DB_USERNAME in .env.',
+        ],
+    ],
+]);
+
+if (!in_array('DEGRADED_ACTION_REQUIRED database_connection (database_credentials_rejected)', $database, true)) {
+    fwrite(STDERR, 'Database credentials failure must render as degraded action required.' . PHP_EOL);
+    exit(1);
+}
+
+if (!in_array('                         Database credentials were rejected. Password is not printed; check local .env values.', $database, true)) {
+    fwrite(STDERR, 'Database credentials failure must render safe message without secrets.' . PHP_EOL);
+    exit(1);
+}
+
+if (!in_array('                         action: Check DB_CONNECTION and DB_USERNAME in .env.', $database, true)) {
+    fwrite(STDERR, 'Database credentials failure must render next action.' . PHP_EOL);
+    exit(1);
+}
+
 echo 'CommandReportPresenterTest passed.' . PHP_EOL;

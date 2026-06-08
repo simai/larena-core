@@ -15,6 +15,11 @@ $doctor = [
             'evidence_path' => '/tmp/runtime-security.json',
         ],
         'write_paths' => ['status' => 'passed'],
+        'database_connection' => [
+            'status' => 'degraded',
+            'reason' => 'database_credentials_rejected',
+            'action' => 'Check DB_CONNECTION and DB_USERNAME in .env.',
+        ],
     ],
 ];
 
@@ -43,6 +48,34 @@ if (($contract['actual_install_allowed'] ?? null) !== false) {
 
 if (($contract['mutation_policy']['apply_without_launch_record'] ?? null) !== 'blocked') {
     fwrite(STDERR, 'Install readiness contract must block apply without launch record.' . PHP_EOL);
+    exit(1);
+}
+
+$databaseGate = null;
+foreach ($contract['gates'] ?? [] as $gate) {
+    if (($gate['id'] ?? null) === 'database_environment') {
+        $databaseGate = $gate;
+        break;
+    }
+}
+
+if (!is_array($databaseGate)) {
+    fwrite(STDERR, 'Install readiness contract must include database environment gate.' . PHP_EOL);
+    exit(1);
+}
+
+if (($databaseGate['status'] ?? null) !== 'degraded') {
+    fwrite(STDERR, 'Database environment gate should expose degraded future-install readiness.' . PHP_EOL);
+    exit(1);
+}
+
+if (($databaseGate['required_for_current_preview'] ?? null) !== false) {
+    fwrite(STDERR, 'Database environment gate must not block the current developer preview.' . PHP_EOL);
+    exit(1);
+}
+
+if (($databaseGate['required_for_future_install'] ?? null) !== true) {
+    fwrite(STDERR, 'Database environment gate must be required for future install.' . PHP_EOL);
     exit(1);
 }
 

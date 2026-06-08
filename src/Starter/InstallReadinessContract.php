@@ -57,6 +57,14 @@ final class InstallReadinessContract
                     'id' => 'write_paths',
                     'status' => self::doctorCheckStatus($doctor, 'write_paths'),
                 ],
+                [
+                    'id' => 'database_environment',
+                    'status' => self::doctorCheckStatus($doctor, 'database_connection'),
+                    'required_for_current_preview' => false,
+                    'required_for_future_install' => true,
+                    'reason' => self::doctorCheckValue($doctor, 'database_connection', 'reason'),
+                    'action' => self::doctorCheckValue($doctor, 'database_connection', 'action'),
+                ],
             ],
             'mutation_policy' => [
                 'default' => 'fail_closed',
