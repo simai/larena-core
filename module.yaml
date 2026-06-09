@@ -1,15 +1,21 @@
 package: larena/core
 title: Larena Core
-status: cluster_smoke_contract
+status: coding_started
 cluster: runtime-security
-batch: runtime-security-cluster-smoke
+batch: 2026-06-05-runtime-security-cluster-smoke
 features:
-  - core.operation_runtime
-  - core.starter_cli_commands
+  - core.data_content_cluster_smoke
+  - core.install_audit_trail_apply_guarded
   - core.install_readiness_contract
-  - core.package_registry_seed_guarded_apply
+  - core.installer_db_schema_apply_guarded
+  - core.installer_persistence_foundation_guarded_apply
+  - core.native_command_ux
+  - core.operation_runtime
+  - core.package_registry_db_seed_guarded
   - core.package_registry_diagnostics
+  - core.package_registry_seed_guarded_apply
   - core.runtime_security_cluster_smoke
+  - core.starter_cli_commands
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -34,4 +40,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/runtime-security/runtime-security-cluster-smoke/
+  path: docs/project-management/evidence/foundation-developer-preview/package-set/
