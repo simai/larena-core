@@ -13,7 +13,10 @@
         "php": "^8.3",
         "illuminate/console": "^13.0",
         "illuminate/database": "^13.0",
-        "illuminate/support": "^13.0"
+        "illuminate/support": "^13.0",
+        "larena/access": "dev-main",
+        "larena/audit": "dev-main",
+        "larena/licensing": "dev-main"
     },
     "autoload": {
         "psr-4": {
@@ -33,9 +36,6 @@
         }
     },
     "require-dev": {
-        "larena/access": "dev-main",
-        "larena/audit": "dev-main",
-        "larena/licensing": "dev-main",
         "phpstan/phpstan": "^2.0"
     },
     "repositories": [

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f7899ecaa198c18a7787fded853fdd6",
+    "content-hash": "6e7a7867c11dbce34f54e63955afc651",
     "packages": [
         {
             "name": "brick/math",
@@ -2977,7 +2977,7 @@
             "dist": {
                 "type": "path",
                 "url": "../access",
-                "reference": "9d37aee8ac9c510642896bae6f1a3d1ac69ccf9b"
+                "reference": "f1bc813ff80fca95a10fad8fa11c575b089ca583"
             },
             "require": {
                 "php": "^8.3"
@@ -3023,8 +3023,12 @@
                     "@lint",
                     "@analyse",
                     "@test",
+                    "@larena:metadata:check",
                     "@evidence:check",
                     "@scope:check"
+                ],
+                "larena:metadata:check": [
+                    "php scripts/check-metadata-sync.php"
                 ]
             },
             "license": [
@@ -3048,7 +3052,7 @@
             "dist": {
                 "type": "path",
                 "url": "../audit",
-                "reference": "92658ce4f924547f36e5ab9dcff99898f53a11ee"
+                "reference": "e0554043d10ca35b0a1cc5fda09f07840ccf4b21"
             },
             "require": {
                 "php": "^8.3"
@@ -3069,10 +3073,10 @@
             },
             "scripts": {
                 "test": [
-                    "php tests/Unit/AuditEventContractTest.php && php tests/Unit/AuditFailsClosedTest.php && php tests/Unit/AuditRedactorRuntimeTest.php && php tests/Unit/AuditEventPipelineTest.php && php tests/Unit/AuditEventPipelineFailsClosedTest.php"
+                    "php tests/Unit/AuditEventContractTest.php && php tests/Unit/AuditFailsClosedTest.php && php tests/Unit/AuditRedactorRuntimeTest.php && php tests/Unit/AuditEventPipelineTest.php && php tests/Unit/AuditEventPipelineFailsClosedTest.php && php tests/Unit/InstallAuditTrailTest.php"
                 ],
                 "test:unit": [
-                    "php tests/Unit/AuditEventContractTest.php && php tests/Unit/AuditFailsClosedTest.php && php tests/Unit/AuditRedactorRuntimeTest.php && php tests/Unit/AuditEventPipelineTest.php && php tests/Unit/AuditEventPipelineFailsClosedTest.php"
+                    "php tests/Unit/AuditEventContractTest.php && php tests/Unit/AuditFailsClosedTest.php && php tests/Unit/AuditRedactorRuntimeTest.php && php tests/Unit/AuditEventPipelineTest.php && php tests/Unit/AuditEventPipelineFailsClosedTest.php && php tests/Unit/InstallAuditTrailTest.php"
                 ],
                 "lint": [
                     "php scripts/lint.php"
@@ -3094,8 +3098,12 @@
                     "@lint",
                     "@analyse",
                     "@test",
+                    "@larena:metadata:check",
                     "@evidence:check",
                     "@scope:check"
+                ],
+                "larena:metadata:check": [
+                    "php scripts/check-metadata-sync.php"
                 ]
             },
             "license": [
@@ -3119,7 +3127,7 @@
             "dist": {
                 "type": "path",
                 "url": "../licensing",
-                "reference": "1243d551e52dfa7f98f033dc32dd2d46c8876555"
+                "reference": "52d1215a25369cca17d5170bbfcae82d1f6c86d2"
             },
             "require": {
                 "php": "^8.3"
@@ -3165,8 +3173,12 @@
                     "@lint",
                     "@analyse",
                     "@test",
+                    "@larena:metadata:check",
                     "@evidence:check",
                     "@scope:check"
+                ],
+                "larena:metadata:check": [
+                    "php scripts/check-metadata-sync.php"
                 ]
             },
             "license": [
