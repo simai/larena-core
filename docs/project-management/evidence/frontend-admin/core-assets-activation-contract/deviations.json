@@ -1,0 +1,11 @@
+{
+    "schema": "larena.deviations.v1",
+    "deviations": [
+        {
+            "id": "physical_asset_publication_deferred",
+            "status": "accepted_for_current_batch",
+            "reason": "Current admin smart resource pack carrier sources are not ready enough for browser-runnable asset publication.",
+            "trigger": "Resolve in the runtime smoke and read-only API binding track after package-owned carrier source and publication decisions are ready."
+        }
+    ]
+}

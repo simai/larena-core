@@ -22,7 +22,8 @@
         "core.installer_db_schema_apply_guarded",
         "core.package_registry_db_seed_guarded",
         "core.install_audit_trail_apply_guarded",
-        "audit.install_event_trail"
+        "audit.install_event_trail",
+        "core.assets.activation_contract"
     ],
     "allowed_files": [
         "scripts/check-metadata-sync.php",
@@ -108,7 +109,17 @@
         "src/Starter/InstallerDbSchemaApply.php",
         "tests/Unit/InstallerDbSchemaApplyTest.php",
         "src/Starter/InstallAuditTrailApply.php",
-        "tests/Unit/InstallAuditTrailApplyTest.php"
+        "tests/Unit/InstallAuditTrailApplyTest.php",
+        "src/Starter/CoreAssetActivationContract.php",
+        "tests/Unit/CoreAssetActivationContractTest.php",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/README.md",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/implementation-summary.md",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/tests.md",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/smoke.md",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/file-map.json",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/deviations.json",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/graph-sync-proposal.json",
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/code-review-feedback.md"
     ],
     "forbidden_files": [
         "config/*",
@@ -140,8 +151,8 @@
         "graph-sync-proposal.json",
         "code-review-feedback.md"
     ],
-    "evidence_path": "docs/project-management/evidence/foundation-developer-preview/package-set/",
-    "graph_sync_proposal_path": "docs/project-management/evidence/foundation-developer-preview/package-set/graph-sync-proposal.json",
+    "evidence_path": "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/",
+    "graph_sync_proposal_path": "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/graph-sync-proposal.json",
     "status": "coding_started",
     "coding_started": true,
     "repository_enforcement_installed": true,
@@ -157,7 +168,7 @@
         "scope_check": "passed",
         "php_runtime": "ServBay PHP 8.4.20",
         "validated_at": "2026-06-08T09:05:00Z",
-        "latest_batch": "installer_db_schema_apply_guarded"
+        "latest_batch": "core_assets_activation_contract"
     },
     "coding_branch": "main",
     "previous_batch_ref": "docs/project-management/evidence/runtime-security/batch-3/core-minimal-sync-runtime/code-review-feedback.md"

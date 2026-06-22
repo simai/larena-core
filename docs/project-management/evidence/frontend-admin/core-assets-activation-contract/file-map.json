@@ -1,0 +1,9 @@
+{
+    "schema": "larena.evidence_file_map.v1",
+    "files": {
+        ".larena/launch-context.json": "Extends launch scope to core.assets.activation_contract.",
+        "composer.json": "Adds the new unit test to package quality gate.",
+        "src/Starter/CoreAssetActivationContract.php": "Descriptor-only core.assets activation contract.",
+        "tests/Unit/CoreAssetActivationContractTest.php": "Fail-closed coverage for core.assets activation boundary."
+    }
+}

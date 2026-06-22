@@ -4,6 +4,7 @@ status: coding_started
 cluster: runtime-security
 batch: 2026-06-05-runtime-security-cluster-smoke
 features:
+  - core.assets.activation_contract
   - core.data_content_cluster_smoke
   - core.install_audit_trail_apply_guarded
   - core.install_readiness_contract
@@ -25,6 +26,7 @@ owner_boundary:
     - guarded package registry seed mutation contract
     - read-only package registry diagnostics
     - read-only runtime/security cluster smoke report
+    - descriptor-only core.assets activation contract
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -36,8 +38,9 @@ owner_boundary:
     - final licensing checks
     - queue runners
     - production operation handlers
+    - physical frontend asset publication without an explicit publish/runtime track
 runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/foundation-developer-preview/package-set/
+  path: docs/project-management/evidence/frontend-admin/core-assets-activation-contract/

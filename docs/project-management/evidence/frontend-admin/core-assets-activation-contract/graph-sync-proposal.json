@@ -1,0 +1,12 @@
+{
+    "schema": "larena.graph_sync_proposal.v1",
+    "canonical_update_allowed": false,
+    "proposals": [
+        {
+            "id": "core_assets_activation_contract",
+            "status": "proposal_only",
+            "owner": "larena/core",
+            "summary": "Register larena/core:core.assets as the descriptor-only activation owner for package-owned admin smart resource pack assets."
+        }
+    ]
+}
