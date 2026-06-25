@@ -96,6 +96,90 @@ if (($routePlan['assets'][0]['final_path'] ?? null) !== '/larena/internal/packag
     exit(1);
 }
 
+$uiAssetGraph = new class {
+    /**
+     * @var list<object>
+     */
+    public array $requirements;
+
+    public function __construct()
+    {
+        $this->requirements = [
+            new class {
+                public string $assetKey = 'admin.menu.smart';
+                public string $kind = 'module';
+                public bool $critical = true;
+                public bool $finalPathOwnedByCoreAssets = true;
+            },
+            new class {
+                public string $assetKey = 'admin.shell.read_only_route.css';
+                public string $kind = 'css';
+                public bool $critical = true;
+                public bool $finalPathOwnedByCoreAssets = true;
+            },
+        ];
+    }
+};
+
+$frontendConveyorPlan = CoreAssetActivationContract::frontendConveyorDemoActivation(
+    'admin.frontend-conveyor.resource-pack',
+    $uiAssetGraph,
+    [
+        [
+            'carrier_key' => 'admin.menu',
+            'asset_key' => 'admin.menu.smart',
+            'kind' => 'module',
+            'critical' => true,
+            'resource_path' => 'resources/simai/smart/admin-menu/admin-menu.js',
+            'final_path_owned_by_core_assets' => true,
+        ],
+        [
+            'carrier_key' => 'admin.shell',
+            'asset_key' => 'admin.shell.read_only_route.css',
+            'kind' => 'css',
+            'critical' => true,
+            'resource_path' => 'resources/simai/smart/admin-shell/read-only-route.css',
+            'final_path_owned_by_core_assets' => true,
+        ],
+    ],
+    '/larena/internal/package-owned-admin-frontend/assets',
+);
+
+if (($frontendConveyorPlan['status'] ?? null) !== CoreAssetActivationContract::FRONTEND_CONVEYOR_STATUS) {
+    fwrite(STDERR, 'Frontend conveyor core assets status mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (($frontendConveyorPlan['activation_mode'] ?? null) !== 'frontend_conveyor_demo_read_only_route') {
+    fwrite(STDERR, 'Frontend conveyor core assets activation mode mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (($frontendConveyorPlan['assets'][0]['final_path'] ?? null) !== '/larena/internal/package-owned-admin-frontend/assets/admin.menu.smart') {
+    fwrite(STDERR, 'Frontend conveyor module final path mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (($frontendConveyorPlan['assets'][1]['final_path'] ?? null) !== '/larena/internal/package-owned-admin-frontend/assets/admin.shell.read_only_route.css') {
+    fwrite(STDERR, 'Frontend conveyor CSS final path mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($frontendConveyorPlan['renderable_tags'][0] ?? '', 'type="module"')) {
+    fwrite(STDERR, 'Frontend conveyor must render module tag.' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($frontendConveyorPlan['renderable_tags'][1] ?? '', 'rel="stylesheet"')) {
+    fwrite(STDERR, 'Frontend conveyor must render stylesheet tag.' . PHP_EOL);
+    exit(1);
+}
+
+if (($frontendConveyorPlan['headers']['X-Larena-Asset-Activation-Owner'] ?? null) !== CoreAssetActivationContract::OWNER) {
+    fwrite(STDERR, 'Frontend conveyor owner header mismatch.' . PHP_EOL);
+    exit(1);
+}
+
 $failures = [
     'owner' => [
         'asset_key' => 'admin.menu.smart',
@@ -174,6 +258,92 @@ foreach ($routeFailures as $case => [$requirement, $routeBase]) {
     try {
         CoreAssetActivationContract::adminSmartResourcePackReadOnlyRoute('admin.smart.resource-pack', [$requirement], $routeBase);
         fwrite(STDERR, 'Core asset read-only route accepted unsafe case: ' . $case . PHP_EOL);
+        exit(1);
+    } catch (InvalidArgumentException) {
+        continue;
+    }
+}
+
+$frontendConveyorFailures = [
+    'unknown_asset_key' => [
+        new class {
+            public array $requirements;
+
+            public function __construct()
+            {
+                $this->requirements = [
+                    new class {
+                        public string $assetKey = 'unknown.asset';
+                        public string $kind = 'module';
+                        public bool $critical = true;
+                        public bool $finalPathOwnedByCoreAssets = true;
+                    },
+                ];
+            }
+        },
+        [
+            [
+                'carrier_key' => 'admin.menu',
+                'asset_key' => 'admin.menu.smart',
+                'kind' => 'module',
+                'resource_path' => 'resources/simai/smart/admin-menu/admin-menu.js',
+                'final_path_owned_by_core_assets' => true,
+            ],
+        ],
+        '/larena/internal/package-owned-admin-frontend/assets',
+    ],
+    'direct_bypass_route' => [
+        $uiAssetGraph,
+        [
+            [
+                'carrier_key' => 'admin.menu',
+                'asset_key' => 'admin.menu.smart',
+                'kind' => 'module',
+                'resource_path' => 'resources/simai/smart/admin-menu/admin-menu.js',
+                'final_path_owned_by_core_assets' => true,
+            ],
+            [
+                'carrier_key' => 'admin.shell',
+                'asset_key' => 'admin.shell.read_only_route.css',
+                'kind' => 'css',
+                'resource_path' => 'resources/simai/smart/admin-shell/read-only-route.css',
+                'final_path_owned_by_core_assets' => true,
+            ],
+        ],
+        'https://cdn.example.invalid/assets',
+    ],
+    'unsafe_publication_final_path' => [
+        $uiAssetGraph,
+        [
+            [
+                'carrier_key' => 'admin.menu',
+                'asset_key' => 'admin.menu.smart',
+                'kind' => 'module',
+                'resource_path' => 'resources/simai/smart/admin-menu/admin-menu.js',
+                'final_path_owned_by_core_assets' => true,
+                'final_path' => '/vendor/larena/admin-menu.js',
+            ],
+            [
+                'carrier_key' => 'admin.shell',
+                'asset_key' => 'admin.shell.read_only_route.css',
+                'kind' => 'css',
+                'resource_path' => 'resources/simai/smart/admin-shell/read-only-route.css',
+                'final_path_owned_by_core_assets' => true,
+            ],
+        ],
+        '/larena/internal/package-owned-admin-frontend/assets',
+    ],
+];
+
+foreach ($frontendConveyorFailures as $case => [$graph, $publicationAssets, $routeBase]) {
+    try {
+        CoreAssetActivationContract::frontendConveyorDemoActivation(
+            'admin.frontend-conveyor.resource-pack',
+            $graph,
+            $publicationAssets,
+            $routeBase,
+        );
+        fwrite(STDERR, 'Frontend conveyor core assets accepted unsafe case: ' . $case . PHP_EOL);
         exit(1);
     } catch (InvalidArgumentException) {
         continue;
