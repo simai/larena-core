@@ -12,6 +12,7 @@ final class CoreAssetActivationContract
     public const STATUS = 'activation_contract_ready_publish_runtime_deferred';
     public const ROUTE_PUBLICATION_STATUS = 'activation_contract_ready_read_only_route_publication';
     public const FRONTEND_CONVEYOR_STATUS = 'activation_contract_ready_frontend_conveyor_demo';
+    public const ASSET_DESCRIPTOR_STATUS = 'activation_contract_ready_package_asset_descriptor_pilot';
 
     /**
      * @param list<array<string, mixed>> $assetRequirements
@@ -245,6 +246,62 @@ final class CoreAssetActivationContract
     }
 
     /**
+     * @param object $uiAssetGraph Object-shape compatible with larena/ui UiAssetGraph.
+     * @param array<string, mixed> $assetDescriptor
+     * @return array<string, mixed>
+     */
+    public static function packageAssetDescriptorActivation(
+        string $resourcePackKey,
+        object $uiAssetGraph,
+        array $assetDescriptor,
+        string $routeBase,
+    ): array {
+        self::validateAssetDescriptorPolicy($assetDescriptor);
+
+        $publicationAssets = [];
+        foreach (self::assetDescriptorResources($assetDescriptor) as $resource) {
+            $assetKey = self::requiredString($resource, 'key');
+            $kind = self::requiredString($resource, 'kind');
+            $resourcePath = self::safeResourcePath(self::requiredString($resource, 'path'));
+
+            if (!self::stableKey($assetKey)) {
+                throw new InvalidArgumentException('core_assets_asset_key_unstable:' . $assetKey);
+            }
+
+            $publicationAssets[] = [
+                'carrier_key' => $assetKey,
+                'asset_key' => $assetKey,
+                'kind' => $kind,
+                'critical' => self::requiredString($resource, 'load') === 'critical',
+                'resource_path' => $resourcePath,
+                'source_backed_status' => 'package_asset_descriptor_pilot',
+                'final_path_owned_by_core_assets' => true,
+            ];
+        }
+
+        $activation = self::frontendConveyorDemoActivation(
+            $resourcePackKey,
+            $uiAssetGraph,
+            $publicationAssets,
+            $routeBase,
+        );
+
+        $activation['status'] = self::ASSET_DESCRIPTOR_STATUS;
+        $activation['activation_mode'] = 'package_asset_descriptor_read_only_route';
+        $activation['asset_descriptor'] = [
+            'schema' => self::requiredString($assetDescriptor, 'schema'),
+            'asset_set' => self::requiredString($assetDescriptor, 'asset_set'),
+            'owner_package' => self::requiredString($assetDescriptor, 'owner_package'),
+            'activation_owner' => self::requiredString($assetDescriptor, 'activation_owner'),
+            'context' => self::requiredString($assetDescriptor, 'context'),
+            'resource_count' => count($publicationAssets),
+            'allow_template_direct_include' => false,
+        ];
+
+        return $activation;
+    }
+
+    /**
      * @param array<string, mixed> $requirement
      */
     private static function requiredString(array $requirement, string $field): string
@@ -271,6 +328,81 @@ final class CoreAssetActivationContract
         }
 
         return $routeBase;
+    }
+
+    /**
+     * @param array<string, mixed> $assetDescriptor
+     */
+    private static function validateAssetDescriptorPolicy(array $assetDescriptor): void
+    {
+        if (self::requiredString($assetDescriptor, 'schema') !== 'larena.core_assets.set.v1') {
+            throw new InvalidArgumentException('core_assets_descriptor_schema_invalid');
+        }
+
+        if (self::requiredString($assetDescriptor, 'activation_owner') !== self::OWNER) {
+            throw new InvalidArgumentException('core_assets_descriptor_activation_owner_invalid');
+        }
+
+        if (self::requiredString($assetDescriptor, 'owner_package') === self::OWNER) {
+            throw new InvalidArgumentException('core_assets_descriptor_owner_package_invalid');
+        }
+
+        $policy = $assetDescriptor['policy'] ?? null;
+        if (!is_array($policy)) {
+            throw new InvalidArgumentException('core_assets_descriptor_policy_required');
+        }
+
+        foreach ([
+            'local_only' => true,
+            'allow_cdn' => false,
+            'allow_template_direct_include' => false,
+            'final_path_owned_by_core_assets' => true,
+        ] as $key => $expected) {
+            if (($policy[$key] ?? null) !== $expected) {
+                throw new InvalidArgumentException('core_assets_descriptor_policy_invalid:' . $key);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $assetDescriptor
+     * @return list<array<string, mixed>>
+     */
+    private static function assetDescriptorResources(array $assetDescriptor): array
+    {
+        $resources = $assetDescriptor['resources'] ?? null;
+        if (!is_array($resources) || $resources === []) {
+            throw new InvalidArgumentException('core_assets_descriptor_resources_required');
+        }
+
+        $seen = [];
+        $normalized = [];
+        foreach ($resources as $resource) {
+            if (!is_array($resource)) {
+                throw new InvalidArgumentException('core_assets_descriptor_resource_invalid');
+            }
+
+            $key = self::requiredString($resource, 'key');
+            if (isset($seen[$key])) {
+                throw new InvalidArgumentException('core_assets_descriptor_duplicate_resource:' . $key);
+            }
+            $seen[$key] = true;
+
+            $load = self::requiredString($resource, 'load');
+            if (!in_array($load, ['critical', 'deferred'], true)) {
+                throw new InvalidArgumentException('core_assets_descriptor_resource_load_invalid:' . $key);
+            }
+
+            foreach (['final_path', 'root_copy_path', 'cdn_url', 'publishable_path'] as $unsafeField) {
+                if (isset($resource[$unsafeField]) && trim((string) $resource[$unsafeField]) !== '') {
+                    throw new InvalidArgumentException('core_assets_descriptor_unsafe_resource_field:' . $key . ':' . $unsafeField);
+                }
+            }
+
+            $normalized[] = $resource;
+        }
+
+        return $normalized;
     }
 
     private static function safeResourcePath(string $resourcePath): string

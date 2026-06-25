@@ -180,6 +180,92 @@ if (($frontendConveyorPlan['headers']['X-Larena-Asset-Activation-Owner'] ?? null
     exit(1);
 }
 
+$descriptorGraph = new class {
+    /**
+     * @var list<object>
+     */
+    public array $requirements;
+
+    public function __construct()
+    {
+        $this->requirements = [
+            new class {
+                public string $assetKey = 'data.table.read_only_adapter';
+                public string $kind = 'module';
+                public bool $critical = true;
+                public bool $finalPathOwnedByCoreAssets = true;
+            },
+            new class {
+                public string $assetKey = 'admin.shell.read_only_route.css';
+                public string $kind = 'css';
+                public bool $critical = true;
+                public bool $finalPathOwnedByCoreAssets = true;
+            },
+        ];
+    }
+};
+
+$assetDescriptor = [
+    'schema' => 'larena.core_assets.set.v1',
+    'asset_set' => 'admin.read_only_shell',
+    'owner_package' => 'larena/ui',
+    'activation_owner' => CoreAssetActivationContract::OWNER,
+    'version' => '0.1.0',
+    'context' => 'admin',
+    'resources' => [
+        [
+            'key' => 'data.table.read_only_adapter',
+            'kind' => 'module',
+            'path' => 'resources/assets/smart/table/table.js',
+            'load' => 'critical',
+        ],
+        [
+            'key' => 'admin.shell.read_only_route.css',
+            'kind' => 'css',
+            'path' => 'resources/assets/admin-shell/read-only-route.css',
+            'load' => 'critical',
+        ],
+    ],
+    'policy' => [
+        'local_only' => true,
+        'allow_cdn' => false,
+        'allow_template_direct_include' => false,
+        'final_path_owned_by_core_assets' => true,
+    ],
+];
+
+$descriptorActivation = CoreAssetActivationContract::packageAssetDescriptorActivation(
+    'admin.read_only_shell',
+    $descriptorGraph,
+    $assetDescriptor,
+    '/larena/internal/package-owned-admin-frontend/assets',
+);
+
+if (($descriptorActivation['status'] ?? null) !== CoreAssetActivationContract::ASSET_DESCRIPTOR_STATUS) {
+    fwrite(STDERR, 'Asset descriptor activation status mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (($descriptorActivation['activation_mode'] ?? null) !== 'package_asset_descriptor_read_only_route') {
+    fwrite(STDERR, 'Asset descriptor activation mode mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (($descriptorActivation['asset_descriptor']['allow_template_direct_include'] ?? null) !== false) {
+    fwrite(STDERR, 'Asset descriptor must reject template direct include.' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($descriptorActivation['renderable_tags'][0] ?? '', 'data.table.read_only_adapter')) {
+    fwrite(STDERR, 'Asset descriptor module tag mismatch.' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($descriptorActivation['renderable_tags'][1] ?? '', 'admin.shell.read_only_route.css')) {
+    fwrite(STDERR, 'Asset descriptor CSS tag mismatch.' . PHP_EOL);
+    exit(1);
+}
+
 $failures = [
     'owner' => [
         'asset_key' => 'admin.menu.smart',
@@ -344,6 +430,44 @@ foreach ($frontendConveyorFailures as $case => [$graph, $publicationAssets, $rou
             $routeBase,
         );
         fwrite(STDERR, 'Frontend conveyor core assets accepted unsafe case: ' . $case . PHP_EOL);
+        exit(1);
+    } catch (InvalidArgumentException) {
+        continue;
+    }
+}
+
+$descriptorFailures = [
+    'template_direct_include' => static function (array $descriptor): array {
+        $descriptor['policy']['allow_template_direct_include'] = true;
+        return $descriptor;
+    },
+    'cdn_allowed' => static function (array $descriptor): array {
+        $descriptor['policy']['allow_cdn'] = true;
+        return $descriptor;
+    },
+    'root_copy_resource' => static function (array $descriptor): array {
+        $descriptor['resources'][0]['root_copy_path'] = 'public/larena/table.js';
+        return $descriptor;
+    },
+    'duplicate_resource' => static function (array $descriptor): array {
+        $descriptor['resources'][] = $descriptor['resources'][0];
+        return $descriptor;
+    },
+    'unsafe_resource_path' => static function (array $descriptor): array {
+        $descriptor['resources'][0]['path'] = '../table.js';
+        return $descriptor;
+    },
+];
+
+foreach ($descriptorFailures as $case => $mutate) {
+    try {
+        CoreAssetActivationContract::packageAssetDescriptorActivation(
+            'admin.read_only_shell',
+            $descriptorGraph,
+            $mutate($assetDescriptor),
+            '/larena/internal/package-owned-admin-frontend/assets',
+        );
+        fwrite(STDERR, 'Asset descriptor activation accepted unsafe case: ' . $case . PHP_EOL);
         exit(1);
     } catch (InvalidArgumentException) {
         continue;
