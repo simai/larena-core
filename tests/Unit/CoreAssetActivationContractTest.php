@@ -96,6 +96,16 @@ if (($routePlan['assets'][0]['final_path'] ?? null) !== '/larena/internal/packag
     exit(1);
 }
 
+if (!str_contains($routePlan['renderable_tags'][0] ?? '', 'data-larena-asset-owner="larena/core:core.assets"')) {
+    fwrite(STDERR, 'Core asset read-only route must expose core-owned renderable tags.' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($routePlan['renderable_tags'][1] ?? '', 'navigation.breadcrumbs.component')) {
+    fwrite(STDERR, 'Core asset read-only route renderable tag key mismatch.' . PHP_EOL);
+    exit(1);
+}
+
 $uiAssetGraph = new class {
     /**
      * @var list<object>
@@ -344,6 +354,56 @@ foreach ($routeFailures as $case => [$requirement, $routeBase]) {
     try {
         CoreAssetActivationContract::adminSmartResourcePackReadOnlyRoute('admin.smart.resource-pack', [$requirement], $routeBase);
         fwrite(STDERR, 'Core asset read-only route accepted unsafe case: ' . $case . PHP_EOL);
+        exit(1);
+    } catch (InvalidArgumentException) {
+        continue;
+    }
+}
+
+$renderTagFailures = [
+    'owner' => [
+        [
+            'asset_key' => 'admin.menu.smart',
+            'kind' => 'module',
+            'activation_owner' => 'larena/admin',
+            'physical_publication_ready' => true,
+            'final_path' => '/larena/internal/package-owned-admin-frontend/assets/admin.menu.smart',
+        ],
+    ],
+    'not_ready' => [
+        [
+            'asset_key' => 'admin.menu.smart',
+            'kind' => 'module',
+            'activation_owner' => CoreAssetActivationContract::OWNER,
+            'physical_publication_ready' => false,
+            'final_path' => '/larena/internal/package-owned-admin-frontend/assets/admin.menu.smart',
+        ],
+    ],
+    'cdn_final_path' => [
+        [
+            'asset_key' => 'admin.menu.smart',
+            'kind' => 'module',
+            'activation_owner' => CoreAssetActivationContract::OWNER,
+            'physical_publication_ready' => true,
+            'final_path' => 'https://cdn.example.invalid/admin.menu.smart',
+        ],
+    ],
+    'root_copy' => [
+        [
+            'asset_key' => 'admin.menu.smart',
+            'kind' => 'module',
+            'activation_owner' => CoreAssetActivationContract::OWNER,
+            'physical_publication_ready' => true,
+            'final_path' => '/larena/internal/package-owned-admin-frontend/assets/admin.menu.smart',
+            'root_copy_path' => 'public/vendor/larena/admin-menu.js',
+        ],
+    ],
+];
+
+foreach ($renderTagFailures as $case => $assets) {
+    try {
+        CoreAssetActivationContract::renderTags($assets);
+        fwrite(STDERR, 'Core asset render tags accepted unsafe case: ' . $case . PHP_EOL);
         exit(1);
     } catch (InvalidArgumentException) {
         continue;

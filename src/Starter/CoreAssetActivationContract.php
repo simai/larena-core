@@ -133,6 +133,7 @@ final class CoreAssetActivationContract
             'uses_hardcoded_cdn' => false,
             'asset_count' => count($assets),
             'assets' => $assets,
+            'renderable_tags' => self::renderTags($assets),
         ];
     }
 
@@ -302,6 +303,52 @@ final class CoreAssetActivationContract
     }
 
     /**
+     * @param list<array<string, mixed>> $activatedAssets
+     * @return list<string>
+     */
+    public static function renderTags(array $activatedAssets): array
+    {
+        if ($activatedAssets === []) {
+            throw new InvalidArgumentException('core_assets_render_tags_assets_required');
+        }
+
+        $tags = [];
+
+        foreach ($activatedAssets as $asset) {
+            $assetKey = self::requiredString($asset, 'asset_key');
+            if (!self::stableKey($assetKey)) {
+                throw new InvalidArgumentException('core_assets_asset_key_unstable:' . $assetKey);
+            }
+
+            $finalPath = self::safeFinalPath(self::requiredString($asset, 'final_path'));
+            $kind = self::requiredString($asset, 'kind');
+
+            if (($asset['activation_owner'] ?? null) !== self::OWNER) {
+                throw new InvalidArgumentException('core_assets_render_tag_owner_invalid:' . $assetKey);
+            }
+
+            if (($asset['physical_publication_ready'] ?? null) !== true) {
+                throw new InvalidArgumentException('core_assets_render_tag_publication_not_ready:' . $assetKey);
+            }
+
+            foreach (['root_copy_path', 'cdn_url', 'publishable_path'] as $unsafeField) {
+                if (isset($asset[$unsafeField]) && trim((string) $asset[$unsafeField]) !== '') {
+                    throw new InvalidArgumentException('core_assets_render_tag_unsafe_field:' . $assetKey . ':' . $unsafeField);
+                }
+            }
+
+            $tags[] = self::renderTag([
+                ...$asset,
+                'asset_key' => $assetKey,
+                'kind' => $kind,
+                'final_path' => $finalPath,
+            ]);
+        }
+
+        return $tags;
+    }
+
+    /**
      * @param array<string, mixed> $requirement
      */
     private static function requiredString(array $requirement, string $field): string
@@ -328,6 +375,21 @@ final class CoreAssetActivationContract
         }
 
         return $routeBase;
+    }
+
+    private static function safeFinalPath(string $finalPath): string
+    {
+        if (
+            $finalPath === ''
+            || !str_starts_with($finalPath, '/')
+            || str_contains($finalPath, '..')
+            || str_contains($finalPath, '\\')
+            || str_contains($finalPath, '://')
+        ) {
+            throw new InvalidArgumentException('core_assets_final_path_unsafe');
+        }
+
+        return $finalPath;
     }
 
     /**
