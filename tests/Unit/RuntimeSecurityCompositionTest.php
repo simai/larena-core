@@ -14,7 +14,7 @@ use Larena\Core\Enums\OperationDecisionStatus;
 use Larena\Core\Enums\OperationExecutionMode;
 use Larena\Core\Runtime\SyncOperationRuntime;
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 function assertRuntimeSecurityCompositionTrue(bool $condition, string $message): void
 {

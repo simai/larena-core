@@ -13,7 +13,7 @@ use Larena\Core\Contracts\OperationResult;
 use Larena\Core\Enums\OperationExecutionMode;
 use Larena\Core\Runtime\SyncOperationRuntime;
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 function assertRuntimeSecurityFailsClosedTrue(bool $condition, string $message): void
 {

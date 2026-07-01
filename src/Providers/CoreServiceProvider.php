@@ -11,6 +11,7 @@ use Larena\Core\Console\Commands\DoctorCommand;
 use Larena\Core\Console\Commands\InstallCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
+use Larena\Core\Console\Commands\ValidatePackagesCommand;
 
 final class CoreServiceProvider extends ServiceProvider
 {
@@ -29,6 +30,7 @@ final class CoreServiceProvider extends ServiceProvider
             InstallCommand::class,
             PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,
+            ValidatePackagesCommand::class,
         ]);
     }
 }
