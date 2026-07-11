@@ -13,6 +13,56 @@ final class CoreAssetActivationContract
     public const ROUTE_PUBLICATION_STATUS = 'activation_contract_ready_read_only_route_publication';
     public const FRONTEND_CONVEYOR_STATUS = 'activation_contract_ready_frontend_conveyor_demo';
     public const ASSET_DESCRIPTOR_STATUS = 'activation_contract_ready_package_asset_descriptor_pilot';
+    public const IMMUTABLE_BUNDLE_STATUS = 'immutable_bundle_publication_ready';
+
+    /**
+     * @param list<array{asset_key:string,kind:string,relative_path:string,critical?:bool}> $assets
+     * @return array<string, mixed>
+     */
+    public static function immutableBundle(string $bundleId, array $assets, string $publicBase): array
+    {
+        if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $bundleId)) {
+            throw new InvalidArgumentException('core_assets_bundle_id_invalid');
+        }
+        $publicBase = self::safeRouteBase($publicBase);
+        if ($assets === []) {
+            throw new InvalidArgumentException('core_assets_bundle_assets_required');
+        }
+
+        $activated = [];
+        foreach ($assets as $asset) {
+            $assetKey = self::requiredString($asset, 'asset_key');
+            $kind = self::requiredString($asset, 'kind');
+            $relativePath = self::safeResourcePath(self::requiredString($asset, 'relative_path'));
+            $activated[] = [
+                'asset_key' => $assetKey,
+                'kind' => $kind,
+                'critical' => ($asset['critical'] ?? true) === true,
+                'activation_owner' => self::OWNER,
+                'physical_publication_ready' => true,
+                'publication_mode' => 'verified_immutable_bundle',
+                'bundle_id' => $bundleId,
+                'relative_path' => $relativePath,
+                'final_path' => rtrim($publicBase, '/') . '/' . rawurlencode($bundleId) . '/' . implode('/', array_map('rawurlencode', explode('/', $relativePath))),
+            ];
+        }
+
+        return [
+            'schema' => 'larena.core_assets.activation_contract.v1',
+            'status' => self::IMMUTABLE_BUNDLE_STATUS,
+            'resource_pack_key' => 'immutable.' . $bundleId,
+            'activation_owner' => self::OWNER,
+            'activation_mode' => 'verified_immutable_bundle',
+            'physical_publication_ready' => true,
+            'writes_database' => false,
+            'copies_to_root' => false,
+            'publishes_verified_bundle_to_public_root' => true,
+            'uses_hardcoded_cdn' => false,
+            'asset_count' => count($activated),
+            'assets' => $activated,
+            'renderable_tags' => self::renderTags($activated),
+        ];
+    }
 
     /**
      * @param list<array<string, mixed>> $assetRequirements

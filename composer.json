@@ -81,7 +81,8 @@
             "@php tests/Unit/DataContentClusterSmokeTest.php",
             "@php tests/Unit/CommandReportPresenterTest.php",
             "@php tests/Unit/StarterEvidencePathTest.php",
-            "@php tests/Unit/CoreAssetActivationContractTest.php"
+            "@php tests/Unit/CoreAssetActivationContractTest.php",
+            "@php tests/Unit/VerifiedAssetBundlePublisherTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
@@ -102,7 +103,8 @@
             "@php tests/Unit/DataContentClusterSmokeTest.php",
             "@php tests/Unit/CommandReportPresenterTest.php",
             "@php tests/Unit/StarterEvidencePathTest.php",
-            "@php tests/Unit/CoreAssetActivationContractTest.php"
+            "@php tests/Unit/CoreAssetActivationContractTest.php",
+            "@php tests/Unit/VerifiedAssetBundlePublisherTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",

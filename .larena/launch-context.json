@@ -1,10 +1,10 @@
 {
     "schema": "larena.package_launch_context.v1",
     "package": "larena/core",
-    "launch_record_ref": "docs/project-management/workflows/2026-06-05-runtime-security-cluster-smoke.md",
+    "launch_record_ref": "/Users/rim/Documents/GitHub/larena/docs/project-management/launch-records/larena-sf5-runtime-first-product-slice.json",
     "specs_repo": "simai/larena-specs",
     "specs_commit": "39d6888e1b2ded77c451e2143d63eb6892b1e850",
-    "base_commit": "1ffbf9f39a52b36fa689c0c04e110b89ee6eddd1",
+    "base_commit": "879dc7cb6e2c63322fb149b548302ea07448bdb3",
     "selected_features": [
         "core.operation_runtime",
         "core.starter_cli_commands",
@@ -23,7 +23,8 @@
         "core.package_registry_db_seed_guarded",
         "core.install_audit_trail_apply_guarded",
         "audit.install_event_trail",
-        "core.assets.activation_contract"
+        "core.assets.activation_contract",
+        "core.assets.verified_immutable_distribution_publication"
     ],
     "allowed_files": [
         "scripts/check-metadata-sync.php",
@@ -123,7 +124,9 @@
         "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/file-map.json",
         "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/deviations.json",
         "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/graph-sync-proposal.json",
-        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/code-review-feedback.md"
+        "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/code-review-feedback.md",
+        "src/Assets/VerifiedAssetBundlePublisher.php",
+        "tests/Unit/VerifiedAssetBundlePublisherTest.php"
     ],
     "forbidden_files": [
         "config/*",
@@ -155,8 +158,8 @@
         "graph-sync-proposal.json",
         "code-review-feedback.md"
     ],
-    "evidence_path": "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/",
-    "graph_sync_proposal_path": "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/graph-sync-proposal.json",
+    "evidence_path": "docs/project-management/evidence/larena-sf5-runtime-first-product-slice/",
+    "graph_sync_proposal_path": "docs/project-management/evidence/larena-sf5-runtime-first-product-slice/graph-sync-proposal.json",
     "status": "coding_started",
     "coding_started": true,
     "repository_enforcement_installed": true,
