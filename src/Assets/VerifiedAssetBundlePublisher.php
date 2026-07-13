@@ -62,11 +62,25 @@ final class VerifiedAssetBundlePublisher
             $receipts = $this->validateExistingBundle($bundlePath, $bundleId, $sources);
         }
 
+        $manifestHash = hash_file('sha256', $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        if (!is_string($manifestHash)) {
+            throw new RuntimeException('core_assets_bundle_manifest_checksum_failed');
+        }
         $before = $this->readState($stateFile);
+        $sameActiveBundle = ($before['active_bundle'] ?? null) === $bundleId;
+        $trustedActive = is_string($before['active_bundle'] ?? null)
+            && is_string($before['active_bundle_manifest_sha256'] ?? null)
+            && preg_match('/^[a-f0-9]{64}$/', $before['active_bundle_manifest_sha256']) === 1;
         $state = [
-            'schema' => 'larena.core_assets.activation_state.v1',
+            'schema' => 'larena.core_assets.activation_state.v2',
             'active_bundle' => $bundleId,
-            'previous_bundle' => $before['active_bundle'] ?? null,
+            'active_bundle_manifest_sha256' => $manifestHash,
+            'previous_bundle' => $sameActiveBundle
+                ? ($before['previous_bundle'] ?? null)
+                : ($trustedActive ? $before['active_bundle'] : null),
+            'previous_bundle_manifest_sha256' => $sameActiveBundle
+                ? ($before['previous_bundle_manifest_sha256'] ?? null)
+                : ($trustedActive ? $before['active_bundle_manifest_sha256'] : null),
         ];
         $this->writeJson($stateFile, $state);
 
@@ -91,22 +105,39 @@ final class VerifiedAssetBundlePublisher
         $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
         $state = $this->readState($stateFile);
         $previous = $state['previous_bundle'] ?? null;
+        $previousManifestHash = $state['previous_bundle_manifest_sha256'] ?? null;
 
         if (!is_string($previous) || $previous === '') {
             throw new RuntimeException('core_assets_previous_bundle_unavailable');
         }
+        if (($state['schema'] ?? null) !== 'larena.core_assets.activation_state.v2'
+            || !is_string($previousManifestHash)
+            || preg_match('/^[a-f0-9]{64}$/', $previousManifestHash) !== 1
+        ) {
+            throw new RuntimeException('core_assets_previous_bundle_trust_unavailable');
+        }
         $previous = $this->stableSegment($previous, 'core_assets_previous_bundle_invalid');
         $previousPath = $destinationRoot . DIRECTORY_SEPARATOR . $previous;
-        if (!is_file($previousPath . DIRECTORY_SEPARATOR . '.larena-bundle.json')) {
+        $previousManifestPath = $previousPath . DIRECTORY_SEPARATOR . '.larena-bundle.json';
+        if (!is_file($previousManifestPath)) {
             throw new RuntimeException('core_assets_previous_bundle_missing');
+        }
+        $actualManifestHash = hash_file('sha256', $previousManifestPath);
+        if (!is_string($actualManifestHash) || !hash_equals($previousManifestHash, $actualManifestHash)) {
+            throw new RuntimeException('core_assets_previous_bundle_manifest_checksum_mismatch');
         }
         $this->validateBundleTreeFromManifest($previousPath, $previous);
 
         $rolledBackFrom = $state['active_bundle'] ?? null;
+        $rolledBackFromManifestHash = $state['active_bundle_manifest_sha256'] ?? null;
         $this->writeJson($stateFile, [
-            'schema' => 'larena.core_assets.activation_state.v1',
+            'schema' => 'larena.core_assets.activation_state.v2',
             'active_bundle' => $previous,
+            'active_bundle_manifest_sha256' => $previousManifestHash,
             'previous_bundle' => is_string($rolledBackFrom) ? $rolledBackFrom : null,
+            'previous_bundle_manifest_sha256' => is_string($rolledBackFromManifestHash)
+                ? $rolledBackFromManifestHash
+                : null,
         ]);
 
         return ['active_bundle' => $previous, 'rolled_back_from' => $rolledBackFrom];
@@ -407,12 +438,17 @@ final class VerifiedAssetBundlePublisher
                     throw new RuntimeException('core_assets_existing_bundle_source_mismatch:' . $field);
                 }
             }
-            $verification = $this->scanExtractedTree(
+            $repository = realpath($source['repository']);
+            if ($repository === false || !is_dir($repository . DIRECTORY_SEPARATOR . '.git')) {
+                throw new InvalidArgumentException('core_assets_source_repository_invalid');
+            }
+            $verification = $this->verifyExtractedSource(
+                $repository,
+                $this->fullSha($source['commit']),
+                $this->stablePath($source['tree'], 'core_assets_source_tree_invalid'),
                 $bundlePath . DIRECTORY_SEPARATOR . $this->stableSegment($source['mount'], 'core_assets_source_mount_invalid'),
-                is_string($receipt['object_format'] ?? null) ? $receipt['object_format'] : '',
             );
-            $verification['file_count'] = count($verification['entries']);
-            foreach (['file_count', 'tree_fingerprint_sha256'] as $field) {
+            foreach (['file_count', 'tree_fingerprint_sha256', 'object_format'] as $field) {
                 if (($receipt[$field] ?? null) !== $verification[$field]) {
                     throw new RuntimeException('core_assets_existing_bundle_verification_mismatch:' . $field);
                 }

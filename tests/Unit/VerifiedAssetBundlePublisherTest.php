@@ -55,6 +55,15 @@ assertTrue(
 assertTrue(glob($public . '/pair-v1/ui/*.data') === [], 'archive extractor leaked a blob-named .data file');
 assertTrue($first['sources'][0]['file_count'] === 3, 'file count mismatch');
 assertTrue($first['publication_profile'] === VerifiedAssetBundlePublisher::PUBLICATION_PROFILE, 'publication profile missing');
+$firstMarker = json_decode((string) file_get_contents($public . '/pair-v1/.larena-bundle.json'), true, 512, JSON_THROW_ON_ERROR);
+assertTrue($firstMarker['schema'] === VerifiedAssetBundlePublisher::BUNDLE_SCHEMA, 'bundle schema mismatch');
+$firstState = json_decode((string) file_get_contents($state), true, 512, JSON_THROW_ON_ERROR);
+assertTrue($firstState['schema'] === 'larena.core_assets.activation_state.v2', 'activation state schema mismatch');
+assertTrue($firstState['previous_bundle'] === null, 'untrusted legacy rollback target retained');
+assertTrue(
+    $firstState['active_bundle_manifest_sha256'] === hash_file('sha256', $public . '/pair-v1/.larena-bundle.json'),
+    'active manifest checksum not pinned outside bundle',
+);
 
 $second = $publisher->publish([$source], $public, $state, 'pair-v2');
 assertTrue($second['previous_bundle'] === 'pair-v1', 'previous bundle not retained');
@@ -63,11 +72,15 @@ assertTrue($rollback['active_bundle'] === 'pair-v1', 'rollback did not restore p
 
 $stateBeforeTamper = (string) file_get_contents($state);
 file_put_contents($public . '/pair-v2/ui/distr/runtime.js', 'runtime-v2-tampered');
+$tamperedMarkerPath = $public . '/pair-v2/.larena-bundle.json';
+$tamperedMarker = json_decode((string) file_get_contents($tamperedMarkerPath), true, 512, JSON_THROW_ON_ERROR);
+$tamperedMarker['sources'][0]['tree_fingerprint_sha256'] = str_repeat('0', 64);
+file_put_contents($tamperedMarkerPath, json_encode($tamperedMarker, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
 $existingTamperFailedClosed = false;
 try {
     $publisher->publish([$source], $public, $state, 'pair-v2');
 } catch (RuntimeException $exception) {
-    $existingTamperFailedClosed = str_contains($exception->getMessage(), 'existing_bundle_verification_mismatch');
+    $existingTamperFailedClosed = str_contains($exception->getMessage(), 'extracted_entry_content_mismatch');
 }
 assertTrue($existingTamperFailedClosed, 'tampered existing bundle did not fail closed');
 assertTrue((string) file_get_contents($state) === $stateBeforeTamper, 'tampered existing bundle changed activation state');
@@ -75,7 +88,7 @@ $tamperedRollbackFailedClosed = false;
 try {
     $publisher->rollback($public, $state);
 } catch (RuntimeException $exception) {
-    $tamperedRollbackFailedClosed = str_contains($exception->getMessage(), 'existing_bundle_tree_mismatch');
+    $tamperedRollbackFailedClosed = str_contains($exception->getMessage(), 'previous_bundle_manifest_checksum_mismatch');
 }
 assertTrue($tamperedRollbackFailedClosed, 'rollback activated a tampered previous bundle');
 assertTrue((string) file_get_contents($state) === $stateBeforeTamper, 'tampered rollback changed activation state');
