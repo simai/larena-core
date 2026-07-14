@@ -21,6 +21,7 @@ final readonly class OperationDescriptor
         public ?string $idempotencyKey = null,
         public int $timeoutSeconds = 30,
         public array $metadata = [],
+        public bool $transactional = false,
     ) {
         if (trim($this->name) === '') {
             throw new InvalidArgumentException('Operation descriptor name must not be empty.');
@@ -44,5 +45,10 @@ final readonly class OperationDescriptor
     public function requiresAuditEvent(): bool
     {
         return $this->auditEvent !== null;
+    }
+
+    public function requiresTransactionBoundary(): bool
+    {
+        return $this->transactional;
     }
 }

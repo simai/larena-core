@@ -1,8 +1,8 @@
 package: larena/core
 title: Larena Core
 status: coding_started
-cluster: runtime-security
-batch: larena-sf5-runtime-first-product-slice
+cluster: platform-api
+batch: admin-api-v1
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -13,6 +13,7 @@ features:
   - core.installer_persistence_foundation_guarded_apply
   - core.native_command_ux
   - core.operation_runtime
+  - core.operation_runtime.transaction_boundary
   - core.package_registry_db_seed_guarded
   - core.package_registry_diagnostics
   - core.package_registry_seed_guarded_apply
@@ -45,4 +46,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/larena-sf5-runtime-first-product-slice/
+  path: docs/project-management/evidence/admin-api-v1/

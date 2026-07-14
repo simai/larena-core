@@ -1,0 +1,18 @@
+{
+  "schema": "larena.package_launch_record.v1",
+  "id": "core-admin-api-v1-transaction-boundary",
+  "package": "larena/core",
+  "status": "coding_started",
+  "branch": "codex/admin-api-v1",
+  "base_commit": "72e6662d8ec1a90bcc0cc4023948bff767dfc39c",
+  "specs_commit": "66938800984dcbd1b8bbe38be440d775ac07851f",
+  "goal": "Provide a generic optional transaction boundary so decision/result Audit failure can roll back one synchronous operation lifecycle.",
+  "non_goals": [
+    "HTTP/session/CSRF policy",
+    "REST idempotency or rate limiting",
+    "production handler registration",
+    "all-operation transaction ownership"
+  ],
+  "rollback": "Revert the Admin API v1 Core commit; descriptors default to transactional=false and existing construction remains compatible.",
+  "evidence": "docs/project-management/evidence/admin-api-v1/"
+}
