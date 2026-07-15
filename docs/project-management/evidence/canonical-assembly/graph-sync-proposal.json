@@ -1,0 +1,7 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "package": "larena/core",
+  "canonical_update_allowed": false,
+  "proposals": [],
+  "reason": "Integration evidence only; no canonical graph change is proposed before acceptance."
+}

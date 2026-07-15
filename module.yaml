@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: runtime-security
-batch: larena-sf5-runtime-first-product-slice
+batch: canonical-developer-alpha-integration
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -45,4 +45,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/larena-sf5-runtime-first-product-slice/
+  path: docs/project-management/evidence/canonical-assembly/

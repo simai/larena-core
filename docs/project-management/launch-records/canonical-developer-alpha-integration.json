@@ -1,0 +1,16 @@
+{
+  "schema": "larena.package_launch_record.v1",
+  "id": "core-canonical-developer-alpha-integration",
+  "package": "larena/core",
+  "status": "coding_started",
+  "branch": "codex/canonical-developer-alpha-integration",
+  "base_commit": "2ee83f37fd46a13df51b08a85fef2bcb6defb42b",
+  "integration_input_commit": "f930a649d50b1d929ee6459398f57446280d4672",
+  "merge_base": "72e6662d8ec1a90bcc0cc4023948bff767dfc39c",
+  "specs_commit": "66938800984dcbd1b8bbe38be440d775ac07851f",
+  "root_launch_record_id": "larena.launch.canonical_assembly_integration",
+  "goal": "Preserve verified Simai Framework asset publication and integrate the accepted transactional operation runtime contract.",
+  "non_goals": ["new core services", "asset compatibility layer", "production readiness"],
+  "rollback": "Reset only this isolated integration branch to base_commit; the original worktree and application database remain untouched.",
+  "evidence": "docs/project-management/evidence/canonical-assembly/"
+}
