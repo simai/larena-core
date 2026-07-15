@@ -35,6 +35,7 @@ final class VerifiedAssetBundlePublisher
         $this->ensureDirectory($destinationRoot);
         $this->ensureDirectory(dirname($stateFile));
 
+        $bundleAction = 'reused';
         if (!is_dir($bundlePath)) {
             $stage = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId . '.stage-' . bin2hex(random_bytes(6));
             $this->ensureDirectory($stage);
@@ -54,6 +55,7 @@ final class VerifiedAssetBundlePublisher
                 if (!rename($stage, $bundlePath)) {
                     throw new RuntimeException('core_assets_bundle_activate_rename_failed');
                 }
+                $bundleAction = 'created';
             } catch (\Throwable $exception) {
                 $this->removeTree($stage);
                 throw $exception;
@@ -68,6 +70,7 @@ final class VerifiedAssetBundlePublisher
             $bundleId,
             self::PUBLICATION_PROFILE,
             $receipts,
+            $bundleAction,
         );
     }
 
@@ -194,6 +197,55 @@ final class VerifiedAssetBundlePublisher
         string $destinationRoot,
         string $stateFile,
     ): array {
+        return $this->publishArtifactDirectoryWithPolicy(
+            $expectedContract,
+            $artifactDirectory,
+            $destinationRoot,
+            $stateFile,
+            false,
+        );
+    }
+
+    /**
+     * Repair physical damage in an existing exact-identity artifact bundle.
+     *
+     * This is deliberately separate from publishArtifactDirectory(): ordinary
+     * publication must never replace an invalid immutable bundle implicitly.
+     *
+     * @param array{
+     *   schema:string,
+     *   publication_profile:string,
+     *   bundle_id:string,
+     *   sources:list<array{commit:string,tree:string,mount:string,archive_sha256:string,files:int}>
+     * } $expectedContract
+     * @return array<string, mixed>
+     */
+    public function repairArtifactDirectory(
+        array $expectedContract,
+        string $artifactDirectory,
+        string $destinationRoot,
+        string $stateFile,
+    ): array {
+        return $this->publishArtifactDirectoryWithPolicy(
+            $expectedContract,
+            $artifactDirectory,
+            $destinationRoot,
+            $stateFile,
+            true,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $expectedContract
+     * @return array<string, mixed>
+     */
+    private function publishArtifactDirectoryWithPolicy(
+        array $expectedContract,
+        string $artifactDirectory,
+        string $destinationRoot,
+        string $stateFile,
+        bool $repairPhysicalDamage,
+    ): array {
         $contract = $this->normalizeExpectedContract($expectedContract, false);
         $artifactDirectory = $this->absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
         if (!is_dir($artifactDirectory)) {
@@ -218,24 +270,51 @@ final class VerifiedAssetBundlePublisher
                 'bundle_id' => $bundleId,
                 'sources' => $artifactReceipts,
             ]);
+            $artifactReceipts = $this->validateExistingArtifactBundle(
+                $stage,
+                $contract,
+                $artifactReceipts,
+            );
 
             if (!is_dir($bundlePath)) {
+                if (file_exists($bundlePath) || is_link($bundlePath)) {
+                    throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
+                }
                 if (!rename($stage, $bundlePath)) {
                     throw new RuntimeException('core_assets_bundle_activate_rename_failed');
                 }
             } else {
-                $existingReceipts = $this->validateExistingArtifactBundle(
+                $existingReceipts = $this->validateExistingArtifactBundleIdentity(
                     $bundlePath,
                     $contract,
                     $artifactReceipts,
                 );
-                $this->removeTree($stage);
-                $artifactReceipts = $existingReceipts;
+                try {
+                    $this->validateBundleTreeFromManifest($bundlePath, $bundleId);
+                    $this->removeTree($stage);
+                    $artifactReceipts = $existingReceipts;
+                    $bundleAction = 'reused';
+                } catch (\Throwable $physicalFailure) {
+                    if (!$repairPhysicalDamage || !$this->isRepairablePhysicalBundleFailure($physicalFailure)) {
+                        throw $physicalFailure;
+                    }
+
+                    return $this->repairExistingArtifactBundle(
+                        $bundlePath,
+                        $stage,
+                        $stateFile,
+                        $contract,
+                        $artifactReceipts,
+                        $physicalFailure,
+                    );
+                }
             }
         } catch (\Throwable $exception) {
             $this->removeTree($stage);
             throw $exception;
         }
+
+        $bundleAction ??= 'created';
 
         return $this->activateBundle(
             $bundlePath,
@@ -243,6 +322,7 @@ final class VerifiedAssetBundlePublisher
             $bundleId,
             $contract['publication_profile'],
             $artifactReceipts,
+            $bundleAction,
         );
     }
 
@@ -516,7 +596,35 @@ final class VerifiedAssetBundlePublisher
         array $contract,
         array $artifactReceipts,
     ): array {
-        $manifest = $this->readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        $receipts = $this->validateExistingArtifactBundleIdentity(
+            $bundlePath,
+            $contract,
+            $artifactReceipts,
+        );
+        $this->validateBundleTreeFromManifest($bundlePath, $contract['bundle_id']);
+
+        return $receipts;
+    }
+
+    /**
+     * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
+     * @param list<array<string, string|int>> $artifactReceipts
+     * @return list<array<string, string|int>>
+     */
+    private function validateExistingArtifactBundleIdentity(
+        string $bundlePath,
+        array $contract,
+        array $artifactReceipts,
+    ): array {
+        $manifestPath = $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json';
+        if (!is_dir($bundlePath)
+            || is_link($bundlePath)
+            || !is_file($manifestPath)
+            || is_link($manifestPath)
+        ) {
+            throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
+        }
+        $manifest = $this->readJson($manifestPath);
         if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
             || ($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
@@ -536,10 +644,194 @@ final class VerifiedAssetBundlePublisher
                 }
             }
         }
-        $this->validateBundleTreeFromManifest($bundlePath, $contract['bundle_id']);
 
         /** @var list<array<string, string|int>> $receipts */
         return $receipts;
+    }
+
+    private function isRepairablePhysicalBundleFailure(\Throwable $exception): bool
+    {
+        foreach ([
+            'core_assets_existing_bundle_tree_mismatch:',
+            'core_assets_existing_bundle_mount_invalid:',
+            'core_assets_existing_bundle_root_shape_invalid',
+        ] as $prefix) {
+            if (str_starts_with($exception->getMessage(), $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
+     * @param list<array<string, string|int>> $artifactReceipts
+     * @return array<string, mixed>
+     */
+    private function repairExistingArtifactBundle(
+        string $bundlePath,
+        string $stage,
+        string $stateFile,
+        array $contract,
+        array $artifactReceipts,
+        \Throwable $physicalFailure,
+    ): array {
+        $destinationRoot = dirname($bundlePath);
+        $bundleId = $contract['bundle_id'];
+        $backup = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId
+            . '.repair-backup-' . bin2hex(random_bytes(6));
+        $quarantine = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId
+            . '.repair-failed-' . bin2hex(random_bytes(6));
+        $stateSnapshot = $this->snapshotStateFile($stateFile);
+
+        if (!rename($bundlePath, $backup)) {
+            throw new RuntimeException('core_assets_bundle_repair_backup_rename_failed');
+        }
+
+        try {
+            if (!rename($stage, $bundlePath)) {
+                throw new RuntimeException('core_assets_bundle_repair_activate_rename_failed');
+            }
+
+            $artifactReceipts = $this->validateExistingArtifactBundle(
+                $bundlePath,
+                $contract,
+                $artifactReceipts,
+            );
+            $receipt = $this->activateBundle(
+                $bundlePath,
+                $stateFile,
+                $bundleId,
+                $contract['publication_profile'],
+                $artifactReceipts,
+                'repaired',
+            );
+        } catch (\Throwable $exception) {
+            try {
+                $this->restoreReplacedArtifactBundle(
+                    $bundlePath,
+                    $backup,
+                    $quarantine,
+                    $stateFile,
+                    $stateSnapshot,
+                );
+            } catch (\Throwable $restoreFailure) {
+                throw new RuntimeException(
+                    'core_assets_bundle_repair_restore_failed:' . $restoreFailure->getMessage(),
+                    0,
+                    $exception,
+                );
+            }
+
+            throw $exception;
+        }
+
+        $cleanupComplete = $this->removeTreeSafely($backup);
+        $receipt['repair_reason'] = $physicalFailure->getMessage();
+        $receipt['repair_cleanup'] = $cleanupComplete ? 'complete' : 'pending';
+        if (!$cleanupComplete) {
+            $receipt['repair_backup_path'] = $backup;
+        }
+
+        return $receipt;
+    }
+
+    /**
+     * @return array{exists:bool,contents:?string,mode:?int}
+     */
+    private function snapshotStateFile(string $stateFile): array
+    {
+        if (is_link($stateFile)) {
+            throw new RuntimeException('core_assets_state_file_untrusted_symlink');
+        }
+        if (!file_exists($stateFile)) {
+            return ['exists' => false, 'contents' => null, 'mode' => null];
+        }
+        if (!is_file($stateFile)) {
+            throw new RuntimeException('core_assets_state_file_invalid');
+        }
+        $contents = file_get_contents($stateFile);
+        $permissions = fileperms($stateFile);
+        if (!is_string($contents) || !is_int($permissions)) {
+            throw new RuntimeException('core_assets_state_snapshot_failed');
+        }
+
+        return [
+            'exists' => true,
+            'contents' => $contents,
+            'mode' => $permissions & 0777,
+        ];
+    }
+
+    /**
+     * @param array{exists:bool,contents:?string,mode:?int} $stateSnapshot
+     */
+    private function restoreReplacedArtifactBundle(
+        string $bundlePath,
+        string $backup,
+        string $quarantine,
+        string $stateFile,
+        array $stateSnapshot,
+    ): void {
+        $replacementQuarantined = false;
+        if (is_dir($bundlePath) && !is_link($bundlePath)) {
+            if (!rename($bundlePath, $quarantine)) {
+                throw new RuntimeException('core_assets_bundle_repair_quarantine_rename_failed');
+            }
+            $replacementQuarantined = true;
+        } elseif (file_exists($bundlePath) || is_link($bundlePath)) {
+            throw new RuntimeException('core_assets_bundle_repair_replacement_unsafe');
+        }
+
+        if (!is_dir($backup) || is_link($backup) || !rename($backup, $bundlePath)) {
+            if ($replacementQuarantined && @lstat($bundlePath) === false) {
+                @rename($quarantine, $bundlePath);
+            }
+            throw new RuntimeException('core_assets_bundle_repair_backup_restore_failed');
+        }
+
+        try {
+            $this->restoreStateFile($stateFile, $stateSnapshot);
+        } catch (\Throwable $stateRestoreFailure) {
+            if ($replacementQuarantined) {
+                $this->removeTreeSafely($quarantine);
+            }
+            throw $stateRestoreFailure;
+        }
+        if ($replacementQuarantined && !$this->removeTreeSafely($quarantine)) {
+            throw new RuntimeException('core_assets_bundle_repair_quarantine_cleanup_failed:' . $quarantine);
+        }
+    }
+
+    /**
+     * @param array{exists:bool,contents:?string,mode:?int} $stateSnapshot
+     */
+    private function restoreStateFile(string $stateFile, array $stateSnapshot): void
+    {
+        if (!$stateSnapshot['exists']) {
+            if (is_link($stateFile) || is_file($stateFile)) {
+                if (!unlink($stateFile)) {
+                    throw new RuntimeException('core_assets_state_restore_remove_failed');
+                }
+            } elseif (file_exists($stateFile)) {
+                throw new RuntimeException('core_assets_state_restore_target_invalid');
+            }
+
+            return;
+        }
+
+        if (!is_string($stateSnapshot['contents']) || !is_int($stateSnapshot['mode'])) {
+            throw new RuntimeException('core_assets_state_restore_snapshot_invalid');
+        }
+        $temporary = $stateFile . '.restore-' . bin2hex(random_bytes(6));
+        if (file_put_contents($temporary, $stateSnapshot['contents'], LOCK_EX) === false
+            || !chmod($temporary, $stateSnapshot['mode'])
+            || !rename($temporary, $stateFile)
+        ) {
+            @unlink($temporary);
+            throw new RuntimeException('core_assets_state_restore_failed');
+        }
     }
 
     /**
@@ -1099,7 +1391,11 @@ final class VerifiedAssetBundlePublisher
         string $bundleId,
         string $publicationProfile,
         array $receipts,
+        string $bundleAction,
     ): array {
+        if (!in_array($bundleAction, ['created', 'reused', 'repaired'], true)) {
+            throw new InvalidArgumentException('core_assets_bundle_action_invalid');
+        }
         $manifestHash = hash_file('sha256', $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
         if (!is_string($manifestHash)) {
             throw new RuntimeException('core_assets_bundle_manifest_checksum_failed');
@@ -1130,6 +1426,7 @@ final class VerifiedAssetBundlePublisher
             'bundle_path' => $bundlePath,
             'active_bundle' => $bundleId,
             'previous_bundle' => $state['previous_bundle'],
+            'bundle_action' => $bundleAction,
             'sources' => $receipts,
             'writes_database' => false,
             'uses_cdn' => false,
@@ -1157,7 +1454,7 @@ final class VerifiedAssetBundlePublisher
     {
         $temporary = $path . '.tmp-' . bin2hex(random_bytes(4));
         $json = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
-        if (file_put_contents($temporary, $json, LOCK_EX) === false || !rename($temporary, $path)) {
+        if (@file_put_contents($temporary, $json, LOCK_EX) === false || !@rename($temporary, $path)) {
             @unlink($temporary);
             throw new RuntimeException('core_assets_state_write_failed');
         }
@@ -1208,16 +1505,41 @@ final class VerifiedAssetBundlePublisher
 
     private function removeTree(string $path): void
     {
+        $this->removeTreeSafely($path);
+    }
+
+    private function removeTreeSafely(string $path): bool
+    {
+        if (is_link($path) || is_file($path)) {
+            return @unlink($path);
+        }
+        if (!file_exists($path)) {
+            return true;
+        }
         if (!is_dir($path)) {
-            return;
+            return @unlink($path);
         }
-        $items = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($items as $item) {
-            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+
+        try {
+            $items = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            );
+            $removed = true;
+            foreach ($items as $item) {
+                $itemPath = $item->getPathname();
+                if ($item->isLink()) {
+                    $removed = @unlink($itemPath) && $removed;
+                } elseif ($item->isDir()) {
+                    $removed = @rmdir($itemPath) && $removed;
+                } else {
+                    $removed = @unlink($itemPath) && $removed;
+                }
+            }
+
+            return @rmdir($path) && $removed;
+        } catch (\Throwable) {
+            return false;
         }
-        rmdir($path);
     }
 }

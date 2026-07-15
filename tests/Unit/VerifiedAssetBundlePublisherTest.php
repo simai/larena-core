@@ -95,6 +95,7 @@ $publisher = new VerifiedAssetBundlePublisher();
 $source = ['repository' => $repo, 'commit' => $commit, 'tree' => 'distr', 'mount' => 'ui', 'sha256' => $checksum];
 $first = $publisher->publish([$source], $public, $state, 'pair-v1');
 assertTrue($first['active_bundle'] === 'pair-v1', 'pair-v1 not active');
+assertTrue($first['bundle_action'] === 'created', 'new Git bundle action mismatch');
 assertTrue(is_file($public . '/pair-v1/ui/distr/runtime.js'), 'complete tree not extracted');
 assertTrue(is_file($public . '/pair-v1/ui/distr/nested/' . $longAsset), 'long archive path not extracted');
 assertTrue(
@@ -115,6 +116,7 @@ assertTrue(
 );
 
 $second = $publisher->publish([$source], $public, $state, 'pair-v2');
+assertTrue($second['bundle_action'] === 'created', 'second Git bundle action mismatch');
 assertTrue($second['previous_bundle'] === 'pair-v1', 'previous bundle not retained');
 $rollback = $publisher->rollback($public, $state);
 assertTrue($rollback['active_bundle'] === 'pair-v1', 'rollback did not restore pair-v1');
@@ -213,6 +215,7 @@ $artifactPublication = $publisher->publishArtifactDirectory(
     $artifactState,
 );
 assertTrue($artifactPublication['active_bundle'] === 'artifact-v1', 'artifact bundle not activated');
+assertTrue($artifactPublication['bundle_action'] === 'created', 'new artifact bundle action mismatch');
 assertTrue(is_file($artifactPublic . '/artifact-v1/ui/distr/runtime.js'), 'artifact tree not published');
 $artifactMarker = json_decode(
     (string) file_get_contents($artifactPublic . '/artifact-v1/.larena-bundle.json'),
@@ -225,6 +228,13 @@ assertTrue(
     'artifact contract schema not pinned in immutable bundle',
 );
 assertTrue($artifactMarker['sources'][0]['sha256'] === $checksum, 'immutable receipt checksum mismatch');
+$reusedArtifactPublication = $publisher->publishArtifactDirectory(
+    $publicationContract,
+    $artifactDirectory,
+    $artifactPublic,
+    $artifactState,
+);
+assertTrue($reusedArtifactPublication['bundle_action'] === 'reused', 'verified artifact bundle was not reused');
 
 $inspector = new VerifiedAssetBundleInspector();
 $requestedFiles = ['ui/distr/nested/runtime.css', 'ui/distr/runtime.js'];
@@ -283,6 +293,7 @@ assertTrue(
 
 $runtimePath = $artifactPublic . '/artifact-v1/ui/distr/runtime.js';
 $runtimeOriginal = (string) file_get_contents($runtimePath);
+$artifactStateBeforeRepair = (string) file_get_contents($artifactState);
 file_put_contents($runtimePath, 'artifact-runtime-tampered');
 $tamperedInspection = $inspector->inspect(
     $publicationContract,
@@ -295,11 +306,69 @@ assertTrue(
     in_array('mount_fingerprint_mismatch:ui', $tamperedInspection['missing_or_invalid'], true),
     'tampered mount fingerprint was not identified',
 );
-file_put_contents($runtimePath, $runtimeOriginal);
+assertFailsWith(
+    static fn () => $publisher->publishArtifactDirectory(
+        $publicationContract,
+        $artifactDirectory,
+        $artifactPublic,
+        $artifactState,
+    ),
+    'existing_bundle_tree_mismatch:ui',
+    'ordinary publication repaired a damaged immutable bundle',
+);
+assertTrue((string) file_get_contents($runtimePath) === 'artifact-runtime-tampered', 'ordinary publication changed damage');
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeRepair, 'ordinary failure changed state');
+$repairedArtifactPublication = $publisher->repairArtifactDirectory(
+    $publicationContract,
+    $artifactDirectory,
+    $artifactPublic,
+    $artifactState,
+);
+assertTrue($repairedArtifactPublication['bundle_action'] === 'repaired', 'damaged artifact bundle was not repaired');
+assertTrue(
+    $repairedArtifactPublication['repair_reason'] === 'core_assets_existing_bundle_tree_mismatch:ui',
+    'repair reason mismatch',
+);
+assertTrue($repairedArtifactPublication['repair_cleanup'] === 'complete', 'successful repair cleanup incomplete');
+assertTrue((string) file_get_contents($runtimePath) === $runtimeOriginal, 'repair did not restore exact artifact bytes');
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeRepair, 'same-bundle repair changed activation history');
+assertTrue(glob($artifactPublic . '/.artifact-v1.stage-*') === [], 'successful repair leaked a stage');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-backup-*') === [], 'successful repair leaked a backup');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-failed-*') === [], 'successful repair leaked quarantine');
 assertTrue(
     $inspector->inspect($publicationContract, ['ui/distr/runtime.js'], $artifactPublic, $artifactState)['status'] === 'verified',
-    'restored bundle did not recover verification',
+    'repaired bundle did not recover verification',
 );
+
+$artifactMarkerBeforeIdentityDamage = (string) file_get_contents(
+    $artifactPublic . '/artifact-v1/.larena-bundle.json',
+);
+$identityDamagedMarker = json_decode($artifactMarkerBeforeIdentityDamage, true, 512, JSON_THROW_ON_ERROR);
+$identityDamagedMarker['sources'][0]['commit'] = str_repeat('0', 40);
+file_put_contents(
+    $artifactPublic . '/artifact-v1/.larena-bundle.json',
+    json_encode($identityDamagedMarker, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+);
+$identityDamagedMarkerBytes = (string) file_get_contents($artifactPublic . '/artifact-v1/.larena-bundle.json');
+assertFailsWith(
+    static fn () => $publisher->repairArtifactDirectory(
+        $publicationContract,
+        $artifactDirectory,
+        $artifactPublic,
+        $artifactState,
+    ),
+    'existing_bundle_source_mismatch:commit',
+    'repair replaced a bundle whose exact identity did not match',
+);
+assertTrue(
+    (string) file_get_contents($artifactPublic . '/artifact-v1/.larena-bundle.json') === $identityDamagedMarkerBytes,
+    'identity mismatch changed the existing marker',
+);
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeRepair, 'identity mismatch changed state');
+assertTrue(glob($artifactPublic . '/.artifact-v1.stage-*') === [], 'identity mismatch leaked a stage');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-backup-*') === [], 'identity mismatch leaked a backup');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-failed-*') === [], 'identity mismatch leaked quarantine');
+file_put_contents($artifactPublic . '/artifact-v1/.larena-bundle.json', $artifactMarkerBeforeIdentityDamage);
 
 unlink($runtimePath);
 symlink('nested/runtime.css', $runtimePath);
@@ -332,6 +401,18 @@ assertFailsWith(
     'tampered portable archive did not fail closed',
 );
 assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeFailure, 'failed import changed state');
+assertFailsWith(
+    static fn () => $publisher->repairArtifactDirectory(
+        $publicationContract,
+        $compressedTamperArtifact,
+        $artifactPublic,
+        $artifactState,
+    ),
+    'compressed_checksum_mismatch',
+    'repair touched the bundle before verifying the portable artifact',
+);
+assertTrue((string) file_get_contents($runtimePath) === $runtimeOriginal, 'invalid repair artifact changed bundle bytes');
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeFailure, 'invalid repair artifact changed state');
 
 $unexpectedBundleEntry = $artifactPublic . '/artifact-v1/unexpected.txt';
 file_put_contents($unexpectedBundleEntry, 'unexpected');
@@ -346,7 +427,69 @@ assertFailsWith(
     'existing immutable bundle accepted an unexpected root entry',
 );
 assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeFailure, 'invalid existing bundle changed state');
-unlink($unexpectedBundleEntry);
+$rootShapeRepair = $publisher->repairArtifactDirectory(
+    $publicationContract,
+    $artifactDirectory,
+    $artifactPublic,
+    $artifactState,
+);
+assertTrue($rootShapeRepair['bundle_action'] === 'repaired', 'invalid root shape was not explicitly repaired');
+assertTrue($rootShapeRepair['repair_cleanup'] === 'complete', 'root-shape repair cleanup incomplete');
+assertTrue(!file_exists($unexpectedBundleEntry), 'root-shape repair retained unexpected bundle entry');
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeFailure, 'root-shape repair changed activation history');
+
+$outsideRepairTree = $root . '/outside-repair-tree';
+mkdir($outsideRepairTree, 0775, true);
+file_put_contents($outsideRepairTree . '/sentinel.txt', 'must-survive');
+$unexpectedBundleLink = $artifactPublic . '/artifact-v1/unexpected-link';
+symlink($outsideRepairTree, $unexpectedBundleLink);
+$linkedRootShapeRepair = $publisher->repairArtifactDirectory(
+    $publicationContract,
+    $artifactDirectory,
+    $artifactPublic,
+    $artifactState,
+);
+assertTrue($linkedRootShapeRepair['bundle_action'] === 'repaired', 'linked root-shape damage was not repaired');
+assertTrue($linkedRootShapeRepair['repair_cleanup'] === 'complete', 'linked root-shape cleanup incomplete');
+assertTrue(is_file($outsideRepairTree . '/sentinel.txt'), 'repair cleanup followed an unexpected symlink');
+assertTrue(!file_exists($unexpectedBundleLink) && !is_link($unexpectedBundleLink), 'repair retained unexpected symlink');
+
+$mountPath = $artifactPublic . '/artifact-v1/ui';
+$damagedMountPath = $artifactPublic . '/artifact-v1/ui-damaged';
+rename($mountPath, $damagedMountPath);
+$mountRepair = $publisher->repairArtifactDirectory(
+    $publicationContract,
+    $artifactDirectory,
+    $artifactPublic,
+    $artifactState,
+);
+assertTrue($mountRepair['bundle_action'] === 'repaired', 'missing exact mount was not explicitly repaired');
+assertTrue(is_dir($mountPath) && !file_exists($damagedMountPath), 'mount repair did not restore exact root shape');
+
+file_put_contents($runtimePath, 'artifact-runtime-rollback-fixture');
+$rollbackFixtureContents = (string) file_get_contents($runtimePath);
+$failingStateFile = $root . '/state/' . str_repeat('x', 300);
+assertFailsWith(
+    static fn () => $publisher->repairArtifactDirectory(
+        $publicationContract,
+        $artifactDirectory,
+        $artifactPublic,
+        $failingStateFile,
+    ),
+    'state_write_failed',
+    'repair unexpectedly committed after activation-state write failure',
+);
+assertTrue(
+    (string) file_get_contents($runtimePath) === $rollbackFixtureContents,
+    'failed repair did not restore the original damaged bundle',
+);
+assertTrue((string) file_get_contents($artifactState) === $artifactStateBeforeFailure, 'failed repair changed trusted state');
+assertTrue(!file_exists($failingStateFile), 'failed repair leaked activation state');
+assertTrue(glob($artifactPublic . '/.artifact-v1.stage-*') === [], 'failed repair leaked a stage');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-backup-*') === [], 'failed repair leaked a backup');
+assertTrue(glob($artifactPublic . '/.artifact-v1.repair-failed-*') === [], 'failed repair leaked quarantine');
+$publisher->repairArtifactDirectory($publicationContract, $artifactDirectory, $artifactPublic, $artifactState);
+assertTrue((string) file_get_contents($runtimePath) === $runtimeOriginal, 'post-rollback repair did not recover bundle');
 
 $checksumConflict = $artifactContract;
 $checksumConflict['sources'][0]['sha256'] = str_repeat('0', 64);
