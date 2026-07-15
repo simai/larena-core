@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use Larena\Core\Assets\VerifiedAssetBundleInspector;
 use Larena\Core\Starter\CoreAssetActivationContract;
 
 $plan = CoreAssetActivationContract::adminSmartResourcePack('admin.smart.resource-pack', [
@@ -532,6 +533,136 @@ foreach ($descriptorFailures as $case => $mutate) {
     } catch (InvalidArgumentException) {
         continue;
     }
+}
+
+$immutableAssets = [
+    [
+        'asset_key' => 'framework.runtime.javascript',
+        'kind' => 'javascript',
+        'relative_path' => 'ui/distr/core/js/core.js',
+        'critical' => true,
+    ],
+    [
+        'asset_key' => 'framework.runtime.css',
+        'kind' => 'css',
+        'relative_path' => 'ui/distr/core/css/core.css',
+        'critical' => true,
+    ],
+];
+$immutableWithoutInspection = CoreAssetActivationContract::immutableBundle(
+    'framework-v1',
+    $immutableAssets,
+    '/vendor/larena/runtime',
+);
+if (($immutableWithoutInspection['status'] ?? null) !== CoreAssetActivationContract::IMMUTABLE_BUNDLE_NOT_READY_STATUS
+    || ($immutableWithoutInspection['physical_publication_ready'] ?? null) !== false
+    || ($immutableWithoutInspection['renderable_tags'] ?? null) !== []
+) {
+    fwrite(STDERR, 'Immutable bundle activated without an inspection receipt.' . PHP_EOL);
+    exit(1);
+}
+foreach ($immutableWithoutInspection['assets'] ?? [] as $asset) {
+    if (($asset['physical_publication_ready'] ?? null) !== false) {
+        fwrite(STDERR, 'Immutable asset activated without an inspection receipt.' . PHP_EOL);
+        exit(1);
+    }
+}
+
+$immutablePaths = array_column($immutableAssets, 'relative_path');
+sort($immutablePaths, SORT_STRING);
+$validInspection = [
+    'schema' => VerifiedAssetBundleInspector::INSPECTION_SCHEMA,
+    'status' => 'verified',
+    'publication_profile' => 'exact-git-tree-v2',
+    'bundle_id' => 'framework-v1',
+    'manifest_sha' => str_repeat('a', 64),
+    'required_file_set_sha256' => VerifiedAssetBundleInspector::requiredFileSetSha256($immutablePaths),
+    'verified_files' => $immutablePaths,
+    'missing_or_invalid' => [],
+    'physical_publication_ready' => true,
+];
+$immutableReady = CoreAssetActivationContract::immutableBundle(
+    'framework-v1',
+    $immutableAssets,
+    '/vendor/larena/runtime',
+    $validInspection,
+);
+if (($immutableReady['status'] ?? null) !== CoreAssetActivationContract::IMMUTABLE_BUNDLE_STATUS
+    || ($immutableReady['physical_publication_ready'] ?? null) !== true
+    || count($immutableReady['renderable_tags'] ?? []) !== 2
+) {
+    fwrite(STDERR, 'Exact immutable bundle inspection was not trusted.' . PHP_EOL);
+    exit(1);
+}
+foreach ($immutableReady['assets'] ?? [] as $asset) {
+    if (($asset['physical_publication_ready'] ?? null) !== true
+        || !str_starts_with((string) ($asset['final_path'] ?? ''), '/vendor/larena/runtime/framework-v1/')
+    ) {
+        fwrite(STDERR, 'Verified immutable asset activation is invalid.' . PHP_EOL);
+        exit(1);
+    }
+}
+
+$untrustedInspections = [
+    'wrong_schema' => [...$validInspection, 'schema' => 'larena.core_assets.bundle_inspection.v0'],
+    'wrong_bundle' => [...$validInspection, 'bundle_id' => 'framework-v2'],
+    'wrong_manifest_sha' => [...$validInspection, 'manifest_sha' => 'invalid'],
+    'wrong_file_set' => [...$validInspection, 'required_file_set_sha256' => str_repeat('b', 64)],
+    'missing_verified_file' => [...$validInspection, 'verified_files' => [$immutablePaths[0]]],
+    'extra_verified_file' => [...$validInspection, 'verified_files' => [...$immutablePaths, 'ui/distr/extra.js']],
+    'reported_problem' => [...$validInspection, 'missing_or_invalid' => ['mount_fingerprint_mismatch:ui']],
+    'physical_false' => [...$validInspection, 'physical_publication_ready' => false],
+];
+foreach ($untrustedInspections as $case => $untrustedInspection) {
+    $rejected = CoreAssetActivationContract::immutableBundle(
+        'framework-v1',
+        $immutableAssets,
+        '/vendor/larena/runtime',
+        $untrustedInspection,
+    );
+    if (($rejected['physical_publication_ready'] ?? null) !== false
+        || ($rejected['renderable_tags'] ?? null) !== []
+    ) {
+        fwrite(STDERR, 'Immutable bundle trusted invalid inspection: ' . $case . PHP_EOL);
+        exit(1);
+    }
+}
+
+$partialAssets = [$immutableAssets[0]];
+$partialPaths = [$immutableAssets[0]['relative_path']];
+$partialInspection = [
+    ...$validInspection,
+    'required_file_set_sha256' => VerifiedAssetBundleInspector::requiredFileSetSha256($partialPaths),
+    'verified_files' => $partialPaths,
+];
+$partialReady = CoreAssetActivationContract::immutableBundle(
+    'framework-v1',
+    $partialAssets,
+    '/vendor/larena/runtime',
+    $partialInspection,
+);
+if (($partialReady['physical_publication_ready'] ?? null) !== true
+    || count($partialReady['renderable_tags'] ?? []) !== 1
+) {
+    fwrite(STDERR, 'Immutable bundle readiness was not scoped to the requested graph.' . PHP_EOL);
+    exit(1);
+}
+
+try {
+    CoreAssetActivationContract::immutableBundle(
+        'framework-v1',
+        [[
+            'asset_key' => 'unsafe.asset',
+            'kind' => 'javascript',
+            'relative_path' => '../outside.js',
+        ]],
+        '/vendor/larena/runtime',
+        $validInspection,
+    );
+    fwrite(STDERR, 'Immutable bundle accepted an unsafe asset path.' . PHP_EOL);
+    exit(1);
+} catch (InvalidArgumentException) {
+    // Expected fail-closed path validation.
 }
 
 echo 'CoreAssetActivationContractTest passed.' . PHP_EOL;

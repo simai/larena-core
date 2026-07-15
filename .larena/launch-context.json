@@ -126,6 +126,7 @@
         "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/graph-sync-proposal.json",
         "docs/project-management/evidence/frontend-admin/core-assets-activation-contract/code-review-feedback.md",
         "src/Assets/VerifiedAssetBundlePublisher.php",
+        "src/Assets/VerifiedAssetBundleInspector.php",
         "tests/Unit/VerifiedAssetBundlePublisherTest.php"
     ],
     "forbidden_files": [

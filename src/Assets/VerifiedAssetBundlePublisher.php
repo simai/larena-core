@@ -62,39 +62,509 @@ final class VerifiedAssetBundlePublisher
             $receipts = $this->validateExistingBundle($bundlePath, $bundleId, $sources);
         }
 
-        $manifestHash = hash_file('sha256', $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
-        if (!is_string($manifestHash)) {
-            throw new RuntimeException('core_assets_bundle_manifest_checksum_failed');
+        return $this->activateBundle(
+            $bundlePath,
+            $stateFile,
+            $bundleId,
+            self::PUBLICATION_PROFILE,
+            $receipts,
+        );
+    }
+
+    /**
+     * Build a portable artifact directory from exact Git sources.
+     *
+     * @param array{
+     *   schema:string,
+     *   publication_profile:string,
+     *   bundle_id:string,
+     *   sources:list<array{repository:string,commit:string,tree:string,mount:string,archive_sha256:string,files:int}>
+     * } $expectedContract
+     * @return array<string, mixed>
+     */
+    public function buildArtifactDirectory(array $expectedContract, string $artifactDirectory): array
+    {
+        $contract = $this->normalizeExpectedContract($expectedContract, true);
+        $artifactDirectory = $this->absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
+        $parent = dirname($artifactDirectory);
+        $this->ensureDirectory($parent);
+
+        if (file_exists($artifactDirectory) && !is_dir($artifactDirectory)) {
+            throw new RuntimeException('core_assets_artifact_directory_not_directory');
         }
-        $before = $this->readState($stateFile);
-        $sameActiveBundle = ($before['active_bundle'] ?? null) === $bundleId;
-        $trustedActive = is_string($before['active_bundle'] ?? null)
-            && is_string($before['active_bundle_manifest_sha256'] ?? null)
-            && preg_match('/^[a-f0-9]{64}$/', $before['active_bundle_manifest_sha256']) === 1;
-        $state = [
-            'schema' => 'larena.core_assets.activation_state.v2',
-            'active_bundle' => $bundleId,
-            'active_bundle_manifest_sha256' => $manifestHash,
-            'previous_bundle' => $sameActiveBundle
-                ? ($before['previous_bundle'] ?? null)
-                : ($trustedActive ? $before['active_bundle'] : null),
-            'previous_bundle_manifest_sha256' => $sameActiveBundle
-                ? ($before['previous_bundle_manifest_sha256'] ?? null)
-                : ($trustedActive ? $before['active_bundle_manifest_sha256'] : null),
-        ];
-        $this->writeJson($stateFile, $state);
+        if (is_dir($artifactDirectory)) {
+            $verificationStage = $parent . DIRECTORY_SEPARATOR . '.' . basename($artifactDirectory)
+                . '.verify-' . bin2hex(random_bytes(6));
+            $this->ensureDirectory($verificationStage);
+            try {
+                $sources = $this->extractArtifactSources($contract, $artifactDirectory, $verificationStage);
+            } finally {
+                $this->removeTree($verificationStage);
+            }
+
+            return $this->artifactBuildReceipt($contract, $artifactDirectory, true);
+        }
+
+        $stage = $parent . DIRECTORY_SEPARATOR . '.' . basename($artifactDirectory)
+            . '.stage-' . bin2hex(random_bytes(6));
+        $this->ensureDirectory($stage . DIRECTORY_SEPARATOR . 'sources');
+
+        try {
+            $manifestSources = [];
+            foreach ($contract['sources'] as $source) {
+                $repository = $this->repositoryPath((string) $source['repository']);
+                $mount = $source['mount'];
+                $tar = $stage . DIRECTORY_SEPARATOR . '.' . $mount . '.tar';
+                $verificationRoot = $stage . DIRECTORY_SEPARATOR . '.verify-' . $mount;
+                $archiveRelative = 'sources/' . $mount . '.tar.gz';
+                $archive = $stage . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $archiveRelative);
+
+                $this->runGitArchive($repository, $source['commit'], $source['tree'], $tar);
+                $rawHash = hash_file('sha256', $tar);
+                if (!is_string($rawHash) || !hash_equals($source['sha256'], $rawHash)) {
+                    throw new RuntimeException('core_assets_source_checksum_mismatch:' . $mount);
+                }
+                $this->assertArchiveSafe($tar);
+                $this->ensureDirectory($verificationRoot);
+                $this->extractArchive($tar, $verificationRoot);
+                $verification = $this->verifyExtractedSource(
+                    $repository,
+                    $source['commit'],
+                    $source['tree'],
+                    $verificationRoot,
+                );
+                if ($verification['file_count'] !== $source['files']) {
+                    throw new RuntimeException('core_assets_source_file_count_mismatch:' . $mount);
+                }
+
+                $this->gzipArchive($tar, $archive);
+                $compressedHash = hash_file('sha256', $archive);
+                if (!is_string($compressedHash)) {
+                    throw new RuntimeException('core_assets_compressed_archive_checksum_failed:' . $mount);
+                }
+
+                $manifestSources[] = [
+                    'commit' => $source['commit'],
+                    'tree' => $source['tree'],
+                    'mount' => $mount,
+                    'archive_sha256' => $rawHash,
+                    'files' => $source['files'],
+                    'archive' => $archiveRelative,
+                    'compressed_sha256' => $compressedHash,
+                    'tree_fingerprint_sha256' => $verification['tree_fingerprint_sha256'],
+                    'object_format' => $verification['object_format'],
+                    'file_count' => $verification['file_count'],
+                ];
+
+                @unlink($tar);
+                $this->removeTree($verificationRoot);
+            }
+
+            $this->writeJson($stage . DIRECTORY_SEPARATOR . 'manifest.json', [
+                'schema' => $contract['schema'],
+                'publication_profile' => $contract['publication_profile'],
+                'bundle_id' => $contract['bundle_id'],
+                'sources' => $manifestSources,
+            ]);
+            if (!rename($stage, $artifactDirectory)) {
+                throw new RuntimeException('core_assets_artifact_activate_rename_failed');
+            }
+        } catch (\Throwable $exception) {
+            $this->removeTree($stage);
+            throw $exception;
+        }
+
+        return $this->artifactBuildReceipt($contract, $artifactDirectory, false);
+    }
+
+    /**
+     * Publish a bundle from a verified portable artifact directory.
+     *
+     * @param array{
+     *   schema:string,
+     *   publication_profile:string,
+     *   bundle_id:string,
+     *   sources:list<array{commit:string,tree:string,mount:string,archive_sha256:string,files:int}>
+     * } $expectedContract
+     * @return array<string, mixed>
+     */
+    public function publishArtifactDirectory(
+        array $expectedContract,
+        string $artifactDirectory,
+        string $destinationRoot,
+        string $stateFile,
+    ): array {
+        $contract = $this->normalizeExpectedContract($expectedContract, false);
+        $artifactDirectory = $this->absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
+        if (!is_dir($artifactDirectory)) {
+            throw new InvalidArgumentException('core_assets_artifact_directory_missing');
+        }
+        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $bundleId = $contract['bundle_id'];
+        $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $bundleId;
+
+        $this->ensureDirectory($destinationRoot);
+        $this->ensureDirectory(dirname($stateFile));
+        $stage = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId . '.stage-' . bin2hex(random_bytes(6));
+        $this->ensureDirectory($stage);
+
+        try {
+            $artifactReceipts = $this->extractArtifactSources($contract, $artifactDirectory, $stage);
+            $this->writeJson($stage . DIRECTORY_SEPARATOR . '.larena-bundle.json', [
+                'schema' => self::BUNDLE_SCHEMA,
+                'artifact_contract_schema' => $contract['schema'],
+                'publication_profile' => $contract['publication_profile'],
+                'bundle_id' => $bundleId,
+                'sources' => $artifactReceipts,
+            ]);
+
+            if (!is_dir($bundlePath)) {
+                if (!rename($stage, $bundlePath)) {
+                    throw new RuntimeException('core_assets_bundle_activate_rename_failed');
+                }
+            } else {
+                $existingReceipts = $this->validateExistingArtifactBundle(
+                    $bundlePath,
+                    $contract,
+                    $artifactReceipts,
+                );
+                $this->removeTree($stage);
+                $artifactReceipts = $existingReceipts;
+            }
+        } catch (\Throwable $exception) {
+            $this->removeTree($stage);
+            throw $exception;
+        }
+
+        return $this->activateBundle(
+            $bundlePath,
+            $stateFile,
+            $bundleId,
+            $contract['publication_profile'],
+            $artifactReceipts,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $expected
+     * @return array{
+     *   schema:string,
+     *   publication_profile:string,
+     *   bundle_id:string,
+     *   sources:list<array{repository?:string,commit:string,tree:string,mount:string,sha256:string,files:int}>
+     * }
+     */
+    private function normalizeExpectedContract(array $expected, bool $requireRepository): array
+    {
+        $schema = $this->aliasedString(
+            $expected,
+            'schema',
+            'artifact_schema',
+            'core_assets_artifact_schema_invalid',
+            'core_assets_artifact_schema_conflict',
+        );
+        if ($schema === '' || preg_match('/^[a-z][a-z0-9._-]{2,191}$/', $schema) !== 1) {
+            throw new InvalidArgumentException('core_assets_artifact_schema_invalid');
+        }
+        $profile = $this->stableSegment(
+            (string) ($expected['publication_profile'] ?? ''),
+            'core_assets_publication_profile_invalid',
+        );
+        $bundleId = $this->stableSegment(
+            (string) ($expected['bundle_id'] ?? ''),
+            'core_assets_bundle_id_invalid',
+        );
+        if (!is_array($expected['sources'] ?? null) || $expected['sources'] === []) {
+            throw new InvalidArgumentException('core_assets_bundle_sources_required');
+        }
+
+        $sources = [];
+        $mounts = [];
+        foreach (array_values($expected['sources']) as $source) {
+            if (!is_array($source)) {
+                throw new InvalidArgumentException('core_assets_source_contract_invalid');
+            }
+            $commit = $this->fullSha((string) ($source['commit'] ?? ''));
+            $tree = $this->stablePath((string) ($source['tree'] ?? ''), 'core_assets_source_tree_invalid');
+            $mount = $this->stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
+            $sha256 = $this->sourceArchiveChecksum($source);
+            $files = $source['files'] ?? null;
+            if (preg_match('/^[a-f0-9]{64}$/', $sha256) !== 1) {
+                throw new InvalidArgumentException('core_assets_source_checksum_invalid');
+            }
+            if (!is_int($files) || $files < 1) {
+                throw new InvalidArgumentException('core_assets_source_file_count_invalid');
+            }
+            if (isset($mounts[$mount])) {
+                throw new InvalidArgumentException('core_assets_source_mount_duplicate:' . $mount);
+            }
+            $mounts[$mount] = true;
+            $normalized = compact('commit', 'tree', 'mount', 'sha256', 'files');
+            if ($requireRepository) {
+                $repository = (string) ($source['repository'] ?? '');
+                if ($repository === '') {
+                    throw new InvalidArgumentException('core_assets_source_repository_required:' . $mount);
+                }
+                $normalized = ['repository' => $repository, ...$normalized];
+            }
+            $sources[] = $normalized;
+        }
 
         return [
-            'schema' => 'larena.core_assets.publication_receipt.v2',
-            'publication_profile' => self::PUBLICATION_PROFILE,
-            'activation_owner' => 'larena/core:core.assets',
+            'schema' => $schema,
+            'publication_profile' => $profile,
             'bundle_id' => $bundleId,
-            'bundle_path' => $bundlePath,
-            'active_bundle' => $bundleId,
-            'previous_bundle' => $state['previous_bundle'],
-            'sources' => $receipts,
-            'writes_database' => false,
-            'uses_cdn' => false,
+            'sources' => $sources,
+        ];
+    }
+
+    /** @param array<string, mixed> $values */
+    private function aliasedString(
+        array $values,
+        string $canonicalKey,
+        string $legacyKey,
+        string $invalidError,
+        string $conflictError,
+    ): string {
+        $canonical = $values[$canonicalKey] ?? null;
+        $legacy = $values[$legacyKey] ?? null;
+        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
+            throw new InvalidArgumentException($invalidError);
+        }
+        $canonical = trim((string) $canonical);
+        $legacy = trim((string) $legacy);
+        if ($canonical !== '' && $legacy !== '' && $canonical !== $legacy) {
+            throw new InvalidArgumentException($conflictError);
+        }
+
+        return $canonical !== '' ? $canonical : $legacy;
+    }
+
+    /** @param array<string, mixed> $source */
+    private function sourceArchiveChecksum(array $source): string
+    {
+        $canonical = $source['archive_sha256'] ?? null;
+        $legacy = $source['sha256'] ?? null;
+        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
+            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
+        }
+        $canonical = strtolower(trim((string) $canonical));
+        $legacy = strtolower(trim((string) $legacy));
+        if (($canonical !== '' && preg_match('/^[a-f0-9]{64}$/', $canonical) !== 1)
+            || ($legacy !== '' && preg_match('/^[a-f0-9]{64}$/', $legacy) !== 1)
+        ) {
+            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
+        }
+        if ($canonical !== '' && $legacy !== '' && !hash_equals($canonical, $legacy)) {
+            throw new InvalidArgumentException('core_assets_source_checksum_conflict');
+        }
+        $checksum = $canonical !== '' ? $canonical : $legacy;
+        if ($checksum === '') {
+            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
+        }
+
+        return $checksum;
+    }
+
+    /**
+     * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
+     * @return list<array<string, string|int>>
+     */
+    private function extractArtifactSources(array $contract, string $artifactDirectory, string $stage): array
+    {
+        $this->assertArtifactDirectoryShape($contract, $artifactDirectory);
+        $artifactRoot = realpath($artifactDirectory);
+        if ($artifactRoot === false || !is_dir($artifactRoot) || is_link($artifactDirectory)) {
+            throw new RuntimeException('core_assets_artifact_directory_invalid');
+        }
+        $manifest = $this->readJson($artifactRoot . DIRECTORY_SEPARATOR . 'manifest.json');
+        if (($manifest['schema'] ?? null) !== $contract['schema']
+            || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
+            || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
+            || !is_array($manifest['sources'] ?? null)
+            || count($manifest['sources']) !== count($contract['sources'])
+        ) {
+            throw new RuntimeException('core_assets_artifact_manifest_invalid');
+        }
+
+        $manifestSources = array_values($manifest['sources']);
+        $receipts = [];
+        foreach ($contract['sources'] as $index => $expected) {
+            $source = $manifestSources[$index] ?? null;
+            if (!is_array($source)) {
+                throw new RuntimeException('core_assets_artifact_source_invalid:' . $expected['mount']);
+            }
+            foreach (['commit', 'tree', 'mount', 'files'] as $field) {
+                if (($source[$field] ?? null) !== $expected[$field]) {
+                    throw new RuntimeException('core_assets_artifact_source_mismatch:' . $expected['mount'] . ':' . $field);
+                }
+            }
+            try {
+                $artifactArchiveChecksum = $this->sourceArchiveChecksum($source);
+            } catch (InvalidArgumentException $exception) {
+                throw new RuntimeException(
+                    'core_assets_artifact_source_receipt_invalid:' . $expected['mount'] . ':archive_sha256',
+                    0,
+                    $exception,
+                );
+            }
+            if (!hash_equals($expected['sha256'], $artifactArchiveChecksum)) {
+                throw new RuntimeException('core_assets_artifact_source_mismatch:' . $expected['mount'] . ':archive_sha256');
+            }
+            $archiveRelative = 'sources/' . $expected['mount'] . '.tar.gz';
+            if (($source['archive'] ?? null) !== $archiveRelative
+                || !is_string($source['compressed_sha256'] ?? null)
+                || preg_match('/^[a-f0-9]{64}$/', $source['compressed_sha256']) !== 1
+                || !is_string($source['tree_fingerprint_sha256'] ?? null)
+                || preg_match('/^[a-f0-9]{64}$/', $source['tree_fingerprint_sha256']) !== 1
+                || !in_array($source['object_format'] ?? null, ['sha1', 'sha256'], true)
+                || ($source['file_count'] ?? null) !== $expected['files']
+            ) {
+                throw new RuntimeException('core_assets_artifact_source_receipt_invalid:' . $expected['mount']);
+            }
+
+            $archive = $artifactRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $archiveRelative);
+            $archivePath = realpath($archive);
+            if ($archivePath === false
+                || !is_file($archivePath)
+                || is_link($archive)
+                || !str_starts_with($archivePath, $artifactRoot . DIRECTORY_SEPARATOR)
+            ) {
+                throw new RuntimeException('core_assets_artifact_archive_missing:' . $expected['mount']);
+            }
+            $compressedHash = hash_file('sha256', $archivePath);
+            if (!is_string($compressedHash) || !hash_equals($source['compressed_sha256'], $compressedHash)) {
+                throw new RuntimeException('core_assets_artifact_compressed_checksum_mismatch:' . $expected['mount']);
+            }
+
+            $tar = $stage . DIRECTORY_SEPARATOR . '.' . $expected['mount'] . '.tar';
+            $this->decompressGzipArchive($archivePath, $tar);
+            try {
+                $rawHash = hash_file('sha256', $tar);
+                if (!is_string($rawHash) || !hash_equals($expected['sha256'], $rawHash)) {
+                    throw new RuntimeException('core_assets_artifact_raw_checksum_mismatch:' . $expected['mount']);
+                }
+                $this->assertArchiveSafe($tar);
+                $mountPath = $stage . DIRECTORY_SEPARATOR . $expected['mount'];
+                $this->ensureDirectory($mountPath);
+                $this->extractArchive($tar, $mountPath);
+                $tree = $this->scanExtractedTree($mountPath, (string) $source['object_format']);
+                if ($expected['files'] !== count($tree['entries'])
+                    || !hash_equals($source['tree_fingerprint_sha256'], $tree['tree_fingerprint_sha256'])
+                ) {
+                    throw new RuntimeException('core_assets_artifact_tree_mismatch:' . $expected['mount']);
+                }
+            } finally {
+                @unlink($tar);
+            }
+
+            $receipts[] = [
+                'commit' => $expected['commit'],
+                'tree' => $expected['tree'],
+                'mount' => $expected['mount'],
+                'sha256' => $expected['sha256'],
+                'file_count' => $expected['files'],
+                'tree_fingerprint_sha256' => $source['tree_fingerprint_sha256'],
+                'object_format' => $source['object_format'],
+            ];
+        }
+
+        return $receipts;
+    }
+
+    /**
+     * @param array{bundle_id:string,sources:list<array<string,mixed>>} $contract
+     */
+    private function assertArtifactDirectoryShape(array $contract, string $artifactDirectory): void
+    {
+        $rootEntries = array_values(array_filter(
+            scandir($artifactDirectory) ?: [],
+            static fn (string $entry): bool => !in_array($entry, ['.', '..'], true),
+        ));
+        sort($rootEntries, SORT_STRING);
+        if ($rootEntries !== ['manifest.json', 'sources']
+            || !is_file($artifactDirectory . DIRECTORY_SEPARATOR . 'manifest.json')
+            || is_link($artifactDirectory . DIRECTORY_SEPARATOR . 'manifest.json')
+            || !is_dir($artifactDirectory . DIRECTORY_SEPARATOR . 'sources')
+            || is_link($artifactDirectory . DIRECTORY_SEPARATOR . 'sources')
+        ) {
+            throw new RuntimeException('core_assets_artifact_directory_shape_invalid');
+        }
+
+        $expectedArchives = array_map(
+            static fn (array $source): string => $source['mount'] . '.tar.gz',
+            $contract['sources'],
+        );
+        sort($expectedArchives, SORT_STRING);
+        $sourceEntries = array_values(array_filter(
+            scandir($artifactDirectory . DIRECTORY_SEPARATOR . 'sources') ?: [],
+            static fn (string $entry): bool => !in_array($entry, ['.', '..'], true),
+        ));
+        sort($sourceEntries, SORT_STRING);
+        if ($sourceEntries !== $expectedArchives) {
+            throw new RuntimeException('core_assets_artifact_sources_shape_invalid');
+        }
+    }
+
+    /**
+     * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
+     * @return list<array<string, string|int>>
+     */
+    private function validateExistingArtifactBundle(
+        string $bundlePath,
+        array $contract,
+        array $artifactReceipts,
+    ): array {
+        $manifest = $this->readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
+            || ($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']
+            || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
+            || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
+            || !is_array($manifest['sources'] ?? null)
+            || count($manifest['sources']) !== count($artifactReceipts)
+        ) {
+            throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
+        }
+
+        $receipts = array_values($manifest['sources']);
+        foreach ($artifactReceipts as $index => $expected) {
+            $receipt = $receipts[$index] ?? [];
+            foreach (['commit', 'tree', 'mount', 'sha256', 'file_count', 'tree_fingerprint_sha256', 'object_format'] as $field) {
+                if (($receipt[$field] ?? null) !== $expected[$field]) {
+                    throw new RuntimeException('core_assets_existing_bundle_source_mismatch:' . $field);
+                }
+            }
+        }
+        $this->validateBundleTreeFromManifest($bundlePath, $contract['bundle_id']);
+
+        /** @var list<array<string, string|int>> $receipts */
+        return $receipts;
+    }
+
+    /**
+     * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
+     * @return array<string, mixed>
+     */
+    private function artifactBuildReceipt(array $contract, string $artifactDirectory, bool $reused): array
+    {
+        $manifestPath = $artifactDirectory . DIRECTORY_SEPARATOR . 'manifest.json';
+        $manifestHash = hash_file('sha256', $manifestPath);
+        $manifest = $this->readJson($manifestPath);
+        if (!is_string($manifestHash) || !is_array($manifest['sources'] ?? null)) {
+            throw new RuntimeException('core_assets_artifact_manifest_checksum_failed');
+        }
+
+        return [
+            'schema' => 'larena.core_assets.artifact_build_receipt.v1',
+            'artifact_contract_schema' => $contract['schema'],
+            'publication_profile' => $contract['publication_profile'],
+            'bundle_id' => $contract['bundle_id'],
+            'artifact_directory' => $artifactDirectory,
+            'manifest_path' => $manifestPath,
+            'manifest_sha256' => $manifestHash,
+            'sources' => array_values($manifest['sources']),
+            'reused' => $reused,
         ];
     }
 
@@ -149,10 +619,7 @@ final class VerifiedAssetBundlePublisher
      */
     private function extractVerifiedSource(array $source, string $stage): array
     {
-        $repository = realpath($source['repository']);
-        if ($repository === false || !is_dir($repository . DIRECTORY_SEPARATOR . '.git')) {
-            throw new InvalidArgumentException('core_assets_source_repository_invalid');
-        }
+        $repository = $this->repositoryPath($source['repository']);
         $commit = $this->fullSha($source['commit']);
         $tree = $this->stablePath($source['tree'], 'core_assets_source_tree_invalid');
         $mount = $this->stableSegment($source['mount'], 'core_assets_source_mount_invalid');
@@ -168,6 +635,7 @@ final class VerifiedAssetBundlePublisher
             @unlink($tar);
             throw new RuntimeException('core_assets_source_checksum_mismatch:' . $mount);
         }
+        $this->assertArchiveSafe($tar);
 
         $mountPath = $stage . DIRECTORY_SEPARATOR . $mount;
         $this->ensureDirectory($mountPath);
@@ -338,6 +806,28 @@ final class VerifiedAssetBundlePublisher
         return $entries;
     }
 
+    private function repositoryPath(string $path): string
+    {
+        $path = trim($path);
+        $repository = $path !== '' && !str_contains($path, "\0") ? realpath($path) : false;
+        if ($repository === false || !is_dir($repository)) {
+            throw new InvalidArgumentException('core_assets_source_repository_invalid');
+        }
+        try {
+            $gitDirectory = trim($this->gitOutput(
+                ['git', '-C', $repository, 'rev-parse', '--git-dir'],
+                'core_assets_source_repository_invalid',
+            ));
+        } catch (\Throwable $exception) {
+            throw new InvalidArgumentException('core_assets_source_repository_invalid', 0, $exception);
+        }
+        if ($gitDirectory === '') {
+            throw new InvalidArgumentException('core_assets_source_repository_invalid');
+        }
+
+        return $repository;
+    }
+
     /** @param list<string> $command */
     private function gitOutput(array $command, string $error): string
     {
@@ -358,7 +848,13 @@ final class VerifiedAssetBundlePublisher
 
     private function safeArchivePath(string $path): bool
     {
-        if ($path === '' || $path[0] === '/' || str_contains($path, "\0")) {
+        if ($path === ''
+            || $path[0] === '/'
+            || str_contains($path, "\0")
+            || str_contains($path, "\\")
+            || str_contains($path, "\n")
+            || str_contains($path, "\r")
+        ) {
             return false;
         }
         foreach (explode('/', $path) as $segment) {
@@ -413,6 +909,86 @@ final class VerifiedAssetBundlePublisher
         }
     }
 
+    private function gzipArchive(string $tar, string $target): void
+    {
+        $this->runCommandToFile(
+            ['gzip', '-n', '-9', '-c', $tar],
+            $target,
+            'core_assets_archive_compress_failed',
+        );
+    }
+
+    private function decompressGzipArchive(string $archive, string $target): void
+    {
+        $this->runCommandToFile(
+            ['gzip', '-d', '-c', $archive],
+            $target,
+            'core_assets_archive_decompress_failed',
+        );
+    }
+
+    /** @param list<string> $command */
+    private function runCommandToFile(array $command, string $target, string $error): void
+    {
+        $process = proc_open(
+            $command,
+            [1 => ['file', $target, 'wb'], 2 => ['pipe', 'w']],
+            $pipes,
+        );
+        if (!is_resource($process)) {
+            throw new RuntimeException($error);
+        }
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        $exit = proc_close($process);
+        if ($exit !== 0 || !is_file($target)) {
+            @unlink($target);
+            throw new RuntimeException($error . ':' . trim((string) $stderr));
+        }
+    }
+
+    private function assertArchiveSafe(string $tar): void
+    {
+        $pathsOutput = $this->gitOutput(
+            ['tar', '-tf', $tar],
+            'core_assets_archive_list_failed',
+        );
+        $verboseOutput = $this->gitOutput(
+            ['tar', '-tvf', $tar],
+            'core_assets_archive_verbose_list_failed',
+        );
+        $paths = $this->archiveOutputLines($pathsOutput);
+        $verbose = $this->archiveOutputLines($verboseOutput);
+        if ($paths === [] || count($paths) !== count($verbose)) {
+            throw new RuntimeException('core_assets_archive_listing_invalid');
+        }
+
+        $seen = [];
+        foreach ($paths as $index => $path) {
+            $type = $verbose[$index][0] ?? '';
+            $normalized = str_ends_with($path, '/') ? substr($path, 0, -1) : $path;
+            if ($normalized === ''
+                || !$this->safeArchivePath($normalized)
+                || !in_array($type, ['-', 'd'], true)
+                || isset($seen[$normalized])
+            ) {
+                throw new RuntimeException('core_assets_archive_entry_unsafe');
+            }
+            $seen[$normalized] = true;
+        }
+    }
+
+    /** @return list<string> */
+    private function archiveOutputLines(string $output): array
+    {
+        $output = rtrim($output, "\r\n");
+        if ($output === '') {
+            return [];
+        }
+
+        return preg_split('/\r?\n/', $output) ?: [];
+    }
+
     /**
      * @param list<array{repository:string,commit:string,tree:string,mount:string,sha256:string}> $sources
      * @return list<array<string, string|int>>
@@ -438,10 +1014,7 @@ final class VerifiedAssetBundlePublisher
                     throw new RuntimeException('core_assets_existing_bundle_source_mismatch:' . $field);
                 }
             }
-            $repository = realpath($source['repository']);
-            if ($repository === false || !is_dir($repository . DIRECTORY_SEPARATOR . '.git')) {
-                throw new InvalidArgumentException('core_assets_source_repository_invalid');
-            }
+            $repository = $this->repositoryPath($source['repository']);
             $verification = $this->verifyExtractedSource(
                 $repository,
                 $this->fullSha($source['commit']),
@@ -454,21 +1027,32 @@ final class VerifiedAssetBundlePublisher
                 }
             }
         }
+        $this->validateBundleTreeFromManifest($bundlePath, $bundleId);
         /** @var list<array<string, string|int>> $receipts */
         return $receipts;
     }
 
     private function validateBundleTreeFromManifest(string $bundlePath, string $bundleId): void
     {
-        $manifest = $this->readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        $manifestPath = $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json';
+        if (!is_dir($bundlePath)
+            || is_link($bundlePath)
+            || !is_file($manifestPath)
+            || is_link($manifestPath)
+        ) {
+            throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
+        }
+        $manifest = $this->readJson($manifestPath);
         if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
-            || ($manifest['publication_profile'] ?? null) !== self::PUBLICATION_PROFILE
+            || !is_string($manifest['publication_profile'] ?? null)
+            || preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $manifest['publication_profile']) !== 1
             || ($manifest['bundle_id'] ?? null) !== $bundleId
             || !is_array($manifest['sources'] ?? null)
             || $manifest['sources'] === []
         ) {
             throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
         }
+        $expectedRootEntries = ['.larena-bundle.json'];
         foreach ($manifest['sources'] as $receipt) {
             if (!is_array($receipt)
                 || !is_string($receipt['mount'] ?? null)
@@ -478,8 +1062,14 @@ final class VerifiedAssetBundlePublisher
             ) {
                 throw new RuntimeException('core_assets_existing_bundle_receipt_invalid');
             }
+            $mount = $this->stableSegment($receipt['mount'], 'core_assets_source_mount_invalid');
+            $mountPath = $bundlePath . DIRECTORY_SEPARATOR . $mount;
+            if (!is_dir($mountPath) || is_link($mountPath)) {
+                throw new RuntimeException('core_assets_existing_bundle_mount_invalid:' . $mount);
+            }
+            $expectedRootEntries[] = $mount;
             $verification = $this->scanExtractedTree(
-                $bundlePath . DIRECTORY_SEPARATOR . $this->stableSegment($receipt['mount'], 'core_assets_source_mount_invalid'),
+                $mountPath,
                 is_string($receipt['object_format'] ?? null) ? $receipt['object_format'] : '',
             );
             if ($receipt['file_count'] !== count($verification['entries'])
@@ -488,6 +1078,62 @@ final class VerifiedAssetBundlePublisher
                 throw new RuntimeException('core_assets_existing_bundle_tree_mismatch:' . $receipt['mount']);
             }
         }
+        sort($expectedRootEntries, SORT_STRING);
+        $actualRootEntries = array_values(array_filter(
+            scandir($bundlePath) ?: [],
+            static fn (string $entry): bool => !in_array($entry, ['.', '..'], true),
+        ));
+        sort($actualRootEntries, SORT_STRING);
+        if ($actualRootEntries !== $expectedRootEntries) {
+            throw new RuntimeException('core_assets_existing_bundle_root_shape_invalid');
+        }
+    }
+
+    /**
+     * @param list<array<string, string|int>> $receipts
+     * @return array<string, mixed>
+     */
+    private function activateBundle(
+        string $bundlePath,
+        string $stateFile,
+        string $bundleId,
+        string $publicationProfile,
+        array $receipts,
+    ): array {
+        $manifestHash = hash_file('sha256', $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        if (!is_string($manifestHash)) {
+            throw new RuntimeException('core_assets_bundle_manifest_checksum_failed');
+        }
+        $before = $this->readState($stateFile);
+        $sameActiveBundle = ($before['active_bundle'] ?? null) === $bundleId;
+        $trustedActive = is_string($before['active_bundle'] ?? null)
+            && is_string($before['active_bundle_manifest_sha256'] ?? null)
+            && preg_match('/^[a-f0-9]{64}$/', $before['active_bundle_manifest_sha256']) === 1;
+        $state = [
+            'schema' => 'larena.core_assets.activation_state.v2',
+            'active_bundle' => $bundleId,
+            'active_bundle_manifest_sha256' => $manifestHash,
+            'previous_bundle' => $sameActiveBundle
+                ? ($before['previous_bundle'] ?? null)
+                : ($trustedActive ? $before['active_bundle'] : null),
+            'previous_bundle_manifest_sha256' => $sameActiveBundle
+                ? ($before['previous_bundle_manifest_sha256'] ?? null)
+                : ($trustedActive ? $before['active_bundle_manifest_sha256'] : null),
+        ];
+        $this->writeJson($stateFile, $state);
+
+        return [
+            'schema' => 'larena.core_assets.publication_receipt.v2',
+            'publication_profile' => $publicationProfile,
+            'activation_owner' => 'larena/core:core.assets',
+            'bundle_id' => $bundleId,
+            'bundle_path' => $bundlePath,
+            'active_bundle' => $bundleId,
+            'previous_bundle' => $state['previous_bundle'],
+            'sources' => $receipts,
+            'writes_database' => false,
+            'uses_cdn' => false,
+        ];
     }
 
     /** @return array<string, mixed> */

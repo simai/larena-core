@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Larena\Core\Starter;
 
 use InvalidArgumentException;
+use Larena\Core\Assets\VerifiedAssetBundleInspector;
 
 final class CoreAssetActivationContract
 {
@@ -13,13 +14,19 @@ final class CoreAssetActivationContract
     public const ROUTE_PUBLICATION_STATUS = 'activation_contract_ready_read_only_route_publication';
     public const FRONTEND_CONVEYOR_STATUS = 'activation_contract_ready_frontend_conveyor_demo';
     public const ASSET_DESCRIPTOR_STATUS = 'activation_contract_ready_package_asset_descriptor_pilot';
-    public const IMMUTABLE_BUNDLE_STATUS = 'immutable_bundle_publication_ready';
+    public const IMMUTABLE_BUNDLE_STATUS = 'immutable_bundle_publication_verified';
+    public const IMMUTABLE_BUNDLE_NOT_READY_STATUS = 'immutable_bundle_publication_not_verified';
 
     /**
      * @param list<array{asset_key:string,kind:string,relative_path:string,critical?:bool}> $assets
      * @return array<string, mixed>
      */
-    public static function immutableBundle(string $bundleId, array $assets, string $publicBase): array
+    public static function immutableBundle(
+        string $bundleId,
+        array $assets,
+        string $publicBase,
+        ?array $inspection = null,
+    ): array
     {
         if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $bundleId)) {
             throw new InvalidArgumentException('core_assets_bundle_id_invalid');
@@ -29,17 +36,35 @@ final class CoreAssetActivationContract
             throw new InvalidArgumentException('core_assets_bundle_assets_required');
         }
 
-        $activated = [];
+        $normalizedAssets = [];
         foreach ($assets as $asset) {
             $assetKey = self::requiredString($asset, 'asset_key');
             $kind = self::requiredString($asset, 'kind');
             $relativePath = self::safeResourcePath(self::requiredString($asset, 'relative_path'));
-            $activated[] = [
+            $normalizedAssets[] = [
                 'asset_key' => $assetKey,
                 'kind' => $kind,
                 'critical' => ($asset['critical'] ?? true) === true,
+                'relative_path' => $relativePath,
+            ];
+        }
+
+        $relativePaths = array_column($normalizedAssets, 'relative_path');
+        $inspectionTrusted = self::trustedBundleInspection($inspection, $bundleId, $relativePaths);
+        $verifiedFiles = $inspectionTrusted && is_array($inspection['verified_files'] ?? null)
+            ? array_fill_keys($inspection['verified_files'], true)
+            : [];
+
+        $activated = [];
+        foreach ($normalizedAssets as $asset) {
+            $relativePath = $asset['relative_path'];
+            $ready = isset($verifiedFiles[$relativePath]);
+            $activated[] = [
+                'asset_key' => $asset['asset_key'],
+                'kind' => $asset['kind'],
+                'critical' => $asset['critical'],
                 'activation_owner' => self::OWNER,
-                'physical_publication_ready' => true,
+                'physical_publication_ready' => $ready,
                 'publication_mode' => 'verified_immutable_bundle',
                 'bundle_id' => $bundleId,
                 'relative_path' => $relativePath,
@@ -49,19 +74,60 @@ final class CoreAssetActivationContract
 
         return [
             'schema' => 'larena.core_assets.activation_contract.v1',
-            'status' => self::IMMUTABLE_BUNDLE_STATUS,
+            'status' => $inspectionTrusted ? self::IMMUTABLE_BUNDLE_STATUS : self::IMMUTABLE_BUNDLE_NOT_READY_STATUS,
             'resource_pack_key' => 'immutable.' . $bundleId,
             'activation_owner' => self::OWNER,
             'activation_mode' => 'verified_immutable_bundle',
-            'physical_publication_ready' => true,
+            'physical_publication_ready' => $inspectionTrusted,
             'writes_database' => false,
             'copies_to_root' => false,
             'publishes_verified_bundle_to_public_root' => true,
             'uses_hardcoded_cdn' => false,
             'asset_count' => count($activated),
             'assets' => $activated,
-            'renderable_tags' => self::renderTags($activated),
+            'renderable_tags' => $inspectionTrusted ? self::renderTags($activated) : [],
+            'inspection' => [
+                'schema' => is_string($inspection['schema'] ?? null) ? $inspection['schema'] : null,
+                'status' => is_string($inspection['status'] ?? null) ? $inspection['status'] : 'not_available',
+                'manifest_sha' => is_string($inspection['manifest_sha'] ?? null) ? $inspection['manifest_sha'] : null,
+                'required_file_set_sha256' => VerifiedAssetBundleInspector::requiredFileSetSha256($relativePaths),
+                'missing_or_invalid' => is_array($inspection['missing_or_invalid'] ?? null)
+                    ? array_values($inspection['missing_or_invalid'])
+                    : ['inspection_missing_or_invalid'],
+            ],
         ];
+    }
+
+    /**
+     * @param array<string, mixed>|null $inspection
+     * @param list<string> $relativePaths
+     */
+    private static function trustedBundleInspection(?array $inspection, string $bundleId, array $relativePaths): bool
+    {
+        if ($inspection === null
+            || ($inspection['schema'] ?? null) !== VerifiedAssetBundleInspector::INSPECTION_SCHEMA
+            || ($inspection['status'] ?? null) !== 'verified'
+            || ($inspection['physical_publication_ready'] ?? null) !== true
+            || ($inspection['bundle_id'] ?? null) !== $bundleId
+            || !is_string($inspection['manifest_sha'] ?? null)
+            || preg_match('/^[a-f0-9]{64}$/', $inspection['manifest_sha']) !== 1
+            || ($inspection['required_file_set_sha256'] ?? null) !== VerifiedAssetBundleInspector::requiredFileSetSha256($relativePaths)
+            || !is_array($inspection['verified_files'] ?? null)
+            || !is_array($inspection['missing_or_invalid'] ?? null)
+            || $inspection['missing_or_invalid'] !== []
+        ) {
+            return false;
+        }
+
+        $expected = array_values(array_unique($relativePaths));
+        $verified = array_values(array_unique(array_filter(
+            $inspection['verified_files'],
+            static fn (mixed $path): bool => is_string($path),
+        )));
+        sort($expected, SORT_STRING);
+        sort($verified, SORT_STRING);
+
+        return $verified === $expected;
     }
 
     /**
