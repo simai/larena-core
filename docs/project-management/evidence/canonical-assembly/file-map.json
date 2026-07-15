@@ -1,14 +1,13 @@
 {
   "schema": "larena.package_integration_file_map.v1",
   "package": "larena/core",
-  "status": "coding_started",
+  "status": "implementation_verified",
   "touched_files": [
     ".larena/launch-context.json",
     "docs/project-management/launch-records/canonical-developer-alpha-integration.json",
     "module.yaml"
   ],
   "planned_changes": [
-    "ancestry-preserving merge of the recorded integration input",
-    "conflict resolution only within allowed_files"
+    "No further Core implementation change is planned; root pinning and assembly acceptance remain pending."
   ]
 }

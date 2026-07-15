@@ -59,6 +59,20 @@
             "options": {
                 "symlink": true
             }
+        },
+        {
+            "type": "path",
+            "url": "../ui",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../dataview",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "scripts": {
@@ -67,6 +81,7 @@
             "@php tests/Unit/OperationRuntimeFailsClosedTest.php",
             "@php tests/Unit/SyncOperationRuntimeTest.php",
             "@php tests/Unit/SyncOperationRuntimeFailsClosedTest.php",
+            "@php tests/Unit/SyncOperationRuntimeTransactionBoundaryTest.php",
             "@php tests/Unit/RuntimeSecurityCompositionTest.php",
             "@php tests/Unit/RuntimeSecurityCompositionFailsClosedTest.php",
             "@php tests/Unit/FoundationPackageSetTest.php",
@@ -89,6 +104,7 @@
             "@php tests/Unit/OperationRuntimeFailsClosedTest.php",
             "@php tests/Unit/SyncOperationRuntimeTest.php",
             "@php tests/Unit/SyncOperationRuntimeFailsClosedTest.php",
+            "@php tests/Unit/SyncOperationRuntimeTransactionBoundaryTest.php",
             "@php tests/Unit/RuntimeSecurityCompositionTest.php",
             "@php tests/Unit/RuntimeSecurityCompositionFailsClosedTest.php",
             "@php tests/Unit/FoundationPackageSetTest.php",
@@ -129,6 +145,6 @@
             "php": "8.3.0"
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

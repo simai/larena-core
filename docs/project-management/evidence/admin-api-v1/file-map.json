@@ -1,0 +1,14 @@
+{
+  "contracts": [
+    "src/Contracts/OperationDescriptor.php",
+    "src/Contracts/OperationTransactionBoundary.php"
+  ],
+  "runtime": [
+    "src/Runtime/SyncOperationRuntime.php",
+    "src/Exceptions/OperationTransactionAborted.php"
+  ],
+  "tests": [
+    "tests/Unit/SyncOperationRuntimeTransactionBoundaryTest.php",
+    "tests/Unit/VerifiedAssetBundlePublisherTest.php"
+  ]
+}

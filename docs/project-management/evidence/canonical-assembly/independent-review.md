@@ -1,3 +1,3 @@
 # Independent review
 
-The pre-merge review confirmed the base/input lineage, isolated worktree, allowed scope and conflict strategy. Implementation and test evidence still require a separate post-change review.
+The resolved tree retains both verified asset publication and the backend transaction boundary. Conflicts were limited to launch metadata; strict Composer validation and the complete package gate passed. Final acceptance remains owned by the root assembly review.

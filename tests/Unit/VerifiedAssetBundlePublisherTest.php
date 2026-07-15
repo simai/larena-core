@@ -9,6 +9,14 @@ require_once dirname(__DIR__, 2) . '/src/Assets/VerifiedAssetBundleInspector.php
 use Larena\Core\Assets\VerifiedAssetBundleInspector;
 use Larena\Core\Assets\VerifiedAssetBundlePublisher;
 
+// Git exports the linked-worktree index path to commit hooks. The fixture
+// repository must never inherit that path, otherwise `git add` below mutates
+// the real package index instead of its disposable repository.
+foreach (['GIT_INDEX_FILE', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_COMMON_DIR'] as $gitEnvironmentVariable) {
+    putenv($gitEnvironmentVariable);
+    unset($_ENV[$gitEnvironmentVariable], $_SERVER[$gitEnvironmentVariable]);
+}
+
 function assertTrue(bool $condition, string $message): void
 {
     if (!$condition) {

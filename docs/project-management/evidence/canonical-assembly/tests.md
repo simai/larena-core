@@ -7,4 +7,4 @@ Pre-implementation checks completed:
 - package launch validator passes;
 - package scope checker passes.
 
-Package quality, regression and root assembly acceptance remain pending until the implementation commit exists.
+The merged package passed strict Composer validation and its complete `quality:gate`: launch validation, lint, PHPStan, all Core unit scripts including the verified asset publisher and transaction boundary, metadata sync, evidence check and scope check. Root assembly acceptance remains pending.

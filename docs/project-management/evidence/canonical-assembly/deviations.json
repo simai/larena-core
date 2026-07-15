@@ -1,8 +1,9 @@
 {
   "schema": "larena.package_integration_deviations.v1",
   "package": "larena/core",
-  "status": "coding_started",
-  "deviations": [
-    "The frontend base composer.lock does not yet contain three packages required by composer.json; the accepted backend merge input contains the lock update and must resolve this before package acceptance."
+  "status": "implementation_verified",
+  "deviations": [],
+  "resolved": [
+    "The incomplete frontend composer.lock was reconciled by the accepted backend ancestry merge; strict Composer validation now passes."
   ]
 }

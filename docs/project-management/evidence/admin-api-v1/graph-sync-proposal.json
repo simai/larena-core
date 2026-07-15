@@ -1,0 +1,10 @@
+{
+  "status": "proposal_only",
+  "canonical_update_allowed": false,
+  "proposals": [
+    {
+      "feature": "core.operation_runtime.transaction_boundary",
+      "reason": "Make the optional generic transaction seam discoverable after implementation acceptance."
+    }
+  ]
+}

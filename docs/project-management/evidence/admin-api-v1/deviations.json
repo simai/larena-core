@@ -1,0 +1,19 @@
+{
+  "deviations": [
+    {
+      "id": "core-historical-composer-lock-runtime-section",
+      "status": "resolved_during_acceptance",
+      "reason": "Independent review reproduced the historical strict Composer failure because Access, Audit and Licensing were stored in packages-dev. The lock was regenerated after declaring the existing UI and Dataview path graph and aligning the package minimum-stability with the Larena development graph; strict validation and the full package gate now pass."
+    },
+    {
+      "id": "invitation-domain-transaction",
+      "status": "accepted_goal_boundary",
+      "reason": "Administrator invitation delivery runs after its Auth-owned commit and must not be presented as exactly-once delivery through a generic Core transaction."
+    },
+    {
+      "id": "asset-fixture-linked-worktree-index",
+      "status": "resolved_during_publication",
+      "reason": "The existing asset publisher fixture inherited Git's linked-worktree GIT_INDEX_FILE inside commit hooks and wrote disposable fixture entries into the package index. The standalone test now clears repository-local Git environment variables before creating its temporary repository."
+    }
+  ]
+}

@@ -10,9 +10,11 @@
   "integration_input_commit": "f930a649d50b1d929ee6459398f57446280d4672",
   "merge_base": "72e6662d8ec1a90bcc0cc4023948bff767dfc39c",
   "selected_features": [
+    "audit.events",
     "canonical_assembly_reconciliation",
-    "verified_framework_asset_runtime_preservation",
-    "operation_transaction_boundary_preservation"
+    "core.operation_runtime.transaction_boundary",
+    "operation_transaction_boundary_preservation",
+    "verified_framework_asset_runtime_preservation"
   ],
   "allowed_files": [
     ".larena/launch-context.json",

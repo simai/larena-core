@@ -1,7 +1,7 @@
 package: larena/core
 title: Larena Core
 status: coding_started
-cluster: runtime-security
+cluster: platform-api
 batch: canonical-developer-alpha-integration
 features:
   - core.assets.activation_contract
@@ -13,6 +13,7 @@ features:
   - core.installer_persistence_foundation_guarded_apply
   - core.native_command_ux
   - core.operation_runtime
+  - core.operation_runtime.transaction_boundary
   - core.package_registry_db_seed_guarded
   - core.package_registry_diagnostics
   - core.package_registry_seed_guarded_apply
