@@ -1,0 +1,15 @@
+{
+  "schema": "larena.evidence.file_map.v1",
+  "files": [
+    ".larena/launch-context.json",
+    "module.yaml",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/README.md",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/code-review-feedback.md",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/deviations.json",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/file-map.json",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/graph-sync-proposal.json",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/implementation-summary.md",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/smoke.md",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/tests.md"
+  ]
+}

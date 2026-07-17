@@ -1,8 +1,8 @@
 package: larena/core
 title: Larena Core
-status: coding_started
+status: contract_skeleton_review_passed
 cluster: platform-api
-batch: canonical-developer-alpha-integration
+batch: larena-simai-framework-canonical-naming-migration
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -46,4 +46,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/canonical-assembly/
+  path: docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/

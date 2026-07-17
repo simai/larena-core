@@ -1,0 +1,11 @@
+{
+  "schema": "larena.evidence.deviations.v1",
+  "deviations": [
+    {
+      "id": "accepted-core-base-semantic-rebase",
+      "status": "resolved_during_integration",
+      "reason": "The source payload was authored on 2ee83f37fd46a13df51b08a85fef2bcb6defb42b, while the isolated target starts from accepted canonical revision 46f3bbc8baba0262117bc9b9519713ee21b1d981. The integration preserves the accepted platform-api cluster, transaction-boundary feature and newer specs revision while applying only the naming batch metadata and evidence."
+    }
+  ],
+  "historical_evidence_rewritten": false
+}
