@@ -24,3 +24,8 @@ Batch 1 covers `core.operation_runtime`:
 
 The package intentionally exposes decision slots for access, capability,
 audit/correlation and queue/deferred context without owning those packages.
+
+`OperationTransactionAborted` may retain the original failure as its internal
+previous cause solely so a composition-layer transaction boundary can classify
+real database concurrency failures. That cause is never part of the normalized
+`OperationResult` or any public output.

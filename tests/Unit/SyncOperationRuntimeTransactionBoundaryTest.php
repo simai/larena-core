@@ -12,6 +12,7 @@ use Larena\Core\Contracts\OperationHandler;
 use Larena\Core\Contracts\OperationResult;
 use Larena\Core\Contracts\OperationTransactionBoundary;
 use Larena\Core\Enums\OperationExecutionMode;
+use Larena\Core\Exceptions\OperationTransactionAborted;
 use Larena\Core\Runtime\SyncOperationRuntime;
 
 require_once __DIR__.'/../../src/Enums/OperationExecutionMode.php';
@@ -45,6 +46,7 @@ final class RecordingTransactionBoundary implements OperationTransactionBoundary
 {
     public int $commits = 0;
     public int $rollbacks = 0;
+    public ?Throwable $lastFailure = null;
 
     public function __construct(private readonly TransactionRuntimeState $state) {}
 
@@ -60,6 +62,7 @@ final class RecordingTransactionBoundary implements OperationTransactionBoundary
         } catch (Throwable $throwable) {
             $this->state->writes = $snapshot;
             $this->rollbacks++;
+            $this->lastFailure = $throwable;
 
             throw $throwable;
         }
@@ -181,6 +184,12 @@ assertTransactionRuntime($resultFailureCalls === 1, 'Result Audit failure occurs
 assertTransactionRuntime(($resultFailure->runtimeTrace['transaction_rolled_back'] ?? false) === true, 'Rollback must be explicit in the runtime trace.');
 assertTransactionRuntime($resultFailure->auditEvents === [], 'Rolled-back Audit events must not be reported as persisted.');
 assertTransactionRuntime(!str_contains(json_encode($resultFailure, JSON_THROW_ON_ERROR), 'database details'), 'Audit exception details must not escape.');
+assertTransactionRuntime(
+    $resultFailureBoundary->lastFailure instanceof OperationTransactionAborted
+        && $resultFailureBoundary->lastFailure->getPrevious() instanceof RuntimeException
+        && $resultFailureBoundary->lastFailure->getPrevious()->getMessage() === 'database details must not escape',
+    'The internal transaction abort must retain a result-Audit failure for boundary-level retry classification.',
+);
 
 $decisionFailureState = new TransactionRuntimeState();
 $decisionFailureBoundary = new RecordingTransactionBoundary($decisionFailureState);
@@ -193,6 +202,12 @@ assertTransactionRuntime($decisionFailureBoundary->rollbacks === 1, 'Decision Au
 assertTransactionRuntime(
     count($decisionFailure->auditEvents) === 1 && ($decisionFailure->auditEvents[0]['phase'] ?? null) === 'rollback',
     'Confirmed decision rollback must retain only its post-transaction rollback Audit event.',
+);
+assertTransactionRuntime(
+    $decisionFailureBoundary->lastFailure instanceof OperationTransactionAborted
+        && $decisionFailureBoundary->lastFailure->getPrevious() instanceof RuntimeException
+        && $decisionFailureBoundary->lastFailure->getPrevious()->getMessage() === 'database details must not escape',
+    'The internal transaction abort must retain a decision-Audit failure for boundary-level retry classification.',
 );
 
 $handlerFailureState = new TransactionRuntimeState();
@@ -212,6 +227,17 @@ assertTransactionRuntime(
 );
 assertTransactionRuntime(($handlerFailure->runtimeTrace['transaction_rolled_back'] ?? false) === true, 'Handler failure rollback must be explicit in the runtime trace.');
 assertTransactionRuntime(!str_contains(json_encode($handlerFailure, JSON_THROW_ON_ERROR), 'database_password'), 'Handler exception details must not escape.');
+assertTransactionRuntime(
+    $handlerFailureBoundary->lastFailure instanceof OperationTransactionAborted
+        && $handlerFailureBoundary->lastFailure->getPrevious() instanceof RuntimeException
+        && $handlerFailureBoundary->lastFailure->getPrevious()->getMessage() === 'database_password_must_not_escape',
+    'The internal transaction abort must retain the original handler failure for boundary-level retry classification.',
+);
+assertTransactionRuntime(
+    $handlerFailureBoundary->lastFailure instanceof OperationTransactionAborted
+        && !str_contains(json_encode($handlerFailureBoundary->lastFailure->result, JSON_THROW_ON_ERROR), 'database_password'),
+    'The retained internal failure cause must not leak into the normalized operation result.',
+);
 
 $missingBoundaryAudit = new TransactionRuntimeAudit();
 $missingBoundary = new SyncOperationRuntime(

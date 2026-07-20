@@ -156,7 +156,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
             );
 
             if ($abortOnFailure) {
-                throw new OperationTransactionAborted($result);
+                throw new OperationTransactionAborted($result, $decisionAudit['cause'] ?? null);
             }
 
             return $result;
@@ -179,7 +179,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
                 );
 
                 if ($abortOnFailure) {
-                    throw new OperationTransactionAborted($failed);
+                    throw new OperationTransactionAborted($failed, $resultAudit['cause'] ?? null);
                 }
 
                 return $failed;
@@ -193,7 +193,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
         try {
             $payload = $this->handler->handle($descriptor, $context);
             $result = OperationResult::fromDecision($decision, $payload, $auditEvents, $this->trace($descriptor, $context, $decision));
-        } catch (Throwable) {
+        } catch (Throwable $failure) {
             $failedDecision = OperationDecision::invalid('handler_failed', 'The operation handler failed safely.');
             $result = OperationResult::fromDecision(
                 $failedDecision,
@@ -208,7 +208,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
             // records exactly one rollback event only after the boundary has
             // confirmed the rollback outcome.
             if ($abortOnFailure) {
-                throw new OperationTransactionAborted($result);
+                throw new OperationTransactionAborted($result, $failure);
             }
         }
 
@@ -225,7 +225,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
             );
 
             if ($abortOnFailure) {
-                throw new OperationTransactionAborted($failed);
+                throw new OperationTransactionAborted($failed, $resultAudit['cause'] ?? null);
             }
 
             return $failed;
@@ -321,7 +321,7 @@ final readonly class SyncOperationRuntime implements OperationRuntime
     }
 
     /**
-     * @return array{failed: bool, event?: array<string, mixed>, message?: string}
+     * @return array{failed: bool, event?: array<string, mixed>, message?: string, cause?: Throwable}
      */
     private function recordDecision(OperationDescriptor $descriptor, OperationContext $context, OperationDecision $decision): array
     {
@@ -330,13 +330,13 @@ final readonly class SyncOperationRuntime implements OperationRuntime
                 'failed' => false,
                 'event' => $this->auditRecorder->recordDecision($descriptor, $context, $decision, 'decision'),
             ];
-        } catch (Throwable) {
-            return $this->auditFailure();
+        } catch (Throwable $failure) {
+            return $this->auditFailure($failure);
         }
     }
 
     /**
-     * @return array{failed: bool, event?: array<string, mixed>, message?: string}
+     * @return array{failed: bool, event?: array<string, mixed>, message?: string, cause?: Throwable}
      */
     private function recordResult(
         OperationDescriptor $descriptor,
@@ -350,19 +350,20 @@ final readonly class SyncOperationRuntime implements OperationRuntime
                 'failed' => false,
                 'event' => $this->auditRecorder->recordResult($descriptor, $context, $result, $phase),
             ];
-        } catch (Throwable) {
-            return $this->auditFailure();
+        } catch (Throwable $failure) {
+            return $this->auditFailure($failure);
         }
     }
 
     /**
-     * @return array{failed: true, message: string}
+     * @return array{failed: true, message: string, cause: Throwable}
      */
-    private function auditFailure(): array
+    private function auditFailure(Throwable $failure): array
     {
         return [
             'failed' => true,
             'message' => 'Audit recording failed safely.',
+            'cause' => $failure,
         ];
     }
 
