@@ -1,0 +1,8 @@
+{
+  "schema": "larena.evidence.file_map.v1",
+  "files": [
+    ".larena/launch-context.json",
+    "module.yaml",
+    "docs/project-management/evidence/larena-simai-framework-canonical-naming-migration/*"
+  ]
+}
