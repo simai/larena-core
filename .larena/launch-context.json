@@ -3,10 +3,10 @@
   "package": "larena/core",
   "repository_class": "continuation_repository",
   "repository_contains_prior_implementation": true,
-  "launch_record_ref": "docs/project-management/launch-records/canonical-developer-alpha-integration.json",
+  "launch_record_ref": "docs/project-management/launch-records/first-run-site-wizard-v1.json",
   "specs_repo": "simai/larena-specs",
   "specs_commit": "66938800984dcbd1b8bbe38be440d775ac07851f",
-  "base_commit": "2ee83f37fd46a13df51b08a85fef2bcb6defb42b",
+  "base_commit": "68ee3f79ed6313ca9c819340e6be3ff471957f91",
   "integration_input_commit": "f930a649d50b1d929ee6459398f57446280d4672",
   "merge_base": "72e6662d8ec1a90bcc0cc4023948bff767dfc39c",
   "selected_features": [
@@ -15,12 +15,16 @@
     "core.operation_runtime.transaction_boundary",
     "operation_transaction_boundary_preservation",
     "verified_framework_asset_runtime_preservation"
+    ,"core.first_run_state_machine"
+    ,"core.first_run_preflight"
+    ,"core.first_run_atomic_initialized_marker"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
     "README.md",
     "composer.json",
     "composer.lock",
+    "docs/project-management/launch-records/first-run-site-wizard-v1.json",
     "docs/project-management/evidence/admin-api-v1/README.md",
     "docs/project-management/evidence/admin-api-v1/code-review-feedback.md",
     "docs/project-management/evidence/admin-api-v1/deviations.json",
@@ -34,9 +38,20 @@
     "module.yaml",
     "src/Contracts/OperationDescriptor.php",
     "src/Contracts/OperationTransactionBoundary.php",
+    "src/Contracts/FirstRunContributor.php",
+    "src/FirstRun/FirstRunAvailability.php",
+    "src/FirstRun/FirstRunContext.php",
+    "src/FirstRun/FirstRunCoordinator.php",
+    "src/FirstRun/FirstRunPayload.php",
+    "src/FirstRun/FirstRunPreflightReport.php",
+    "src/FirstRun/FirstRunPreflightService.php",
+    "src/FirstRun/FirstRunValidationFailed.php",
+    "src/Providers/CoreServiceProvider.php",
     "src/Exceptions/OperationTransactionAborted.php",
     "src/Runtime/SyncOperationRuntime.php",
     "tests/Unit/SyncOperationRuntimeTransactionBoundaryTest.php",
+    "tests/Unit/FirstRunCoordinatorTest.php",
+    "tests/Unit/FirstRunPreflightServiceTest.php",
     "tests/Unit/VerifiedAssetBundlePublisherTest.php"
   ],
   "forbidden_files": [
@@ -46,7 +61,6 @@
     "../ui/*"
   ],
   "forbidden_behavior": [
-    "new_product_feature",
     "parallel_operation_runtime",
     "mutable_or_unverified_asset_publication",
     "historical_framework_abbreviation_in_new_identifiers",

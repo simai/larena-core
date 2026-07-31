@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: platform-api
-batch: canonical-developer-alpha-integration
+batch: first-run-site-wizard-v1
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -19,6 +19,9 @@ features:
   - core.package_registry_seed_guarded_apply
   - core.runtime_security_cluster_smoke
   - core.starter_cli_commands
+  - core.first_run_state_machine
+  - core.first_run_preflight
+  - core.first_run_atomic_initialized_marker
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -30,6 +33,9 @@ owner_boundary:
     - read-only runtime/security cluster smoke report
     - core.assets activation contract
     - verified immutable frontend bundle publication for approved runtime tracks
+    - first-run state machine and initialized marker
+    - sanitized first-run environment preflight
+    - atomic dependency-inverted bootstrap orchestration
   consumes:
     - larena/access decisions
     - larena/licensing capability context

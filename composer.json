@@ -98,6 +98,8 @@
             "@php tests/Unit/StarterEvidencePathTest.php",
             "@php tests/Unit/CoreAssetActivationContractTest.php",
             "@php tests/Unit/VerifiedAssetBundlePublisherTest.php"
+            ,"@php tests/Unit/FirstRunCoordinatorTest.php"
+            ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
@@ -121,6 +123,8 @@
             "@php tests/Unit/StarterEvidencePathTest.php",
             "@php tests/Unit/CoreAssetActivationContractTest.php",
             "@php tests/Unit/VerifiedAssetBundlePublisherTest.php"
+            ,"@php tests/Unit/FirstRunCoordinatorTest.php"
+            ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",

@@ -1,0 +1,14 @@
+{
+  "schema": "larena.package_launch_record.v1",
+  "id": "core-first-run-site-wizard-v1",
+  "goal": "larena-first-run-site-wizard-v1",
+  "package": "larena/core",
+  "branch": "main",
+  "base_commit": "68ee3f79ed6313ca9c819340e6be3ff471957f91",
+  "scope": "First-run state machine, sanitized preflight and atomic initialized marker orchestration.",
+  "runtime_boundary": "marker-owned disposable only",
+  "production_ready": false,
+  "frontend_complete": false,
+  "all_42_packages_ready": false,
+  "status": "coding_started"
+}
