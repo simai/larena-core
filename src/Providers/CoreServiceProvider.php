@@ -59,7 +59,11 @@ final class CoreServiceProvider extends ServiceProvider
         ));
 
         $this->app->bind(WebInstallCoordinator::class, static function (Application $app): WebInstallCoordinator {
-            $fault = $app->make('config')->get('larena-core.web_install.test_fault_checkpoint');
+            $fault = getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT');
+            $faultsEnabled = filter_var(
+                getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED') ?: false,
+                FILTER_VALIDATE_BOOL,
+            );
             $allowed = [
                 'before_configuration_activation',
                 'after_configuration_activation',
@@ -67,7 +71,7 @@ final class CoreServiceProvider extends ServiceProvider
                 'after_completed_state_persistence',
             ];
             $hook = $app->environment(['local', 'testing'])
-                && (bool) $app->make('config')->get('larena-core.web_install.test_faults_enabled', false)
+                && $faultsEnabled
                 && is_string($fault) && in_array($fault, $allowed, true)
                 ? static function (string $checkpoint) use ($fault): void {
                     if ($checkpoint === $fault) {
