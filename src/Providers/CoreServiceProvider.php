@@ -17,6 +17,8 @@ use Larena\Core\Console\Commands\ValidatePackagesCommand;
 use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
+use Larena\Core\WebInstall\WebInstallCoordinator;
+use Larena\Core\WebInstall\WebInstallStateStore;
 
 final class CoreServiceProvider extends ServiceProvider
 {
@@ -40,15 +42,28 @@ final class CoreServiceProvider extends ServiceProvider
                 $app->environment('testing'),
             );
         });
+
+        $this->app->bind(WebInstallStateStore::class, static fn (Application $app): WebInstallStateStore => new WebInstallStateStore(
+            $app->storagePath('app/private/larena-web-install'),
+            (string) $app->make('config')->get('app.key'),
+        ));
+
+        $this->app->bind(WebInstallCoordinator::class, static fn (Application $app): WebInstallCoordinator => new WebInstallCoordinator(
+            $app,
+            $app->make('config'),
+            $app->make(DatabaseManager::class),
+            $app->make('migrator'),
+            $app->make(WebInstallStateStore::class),
+        ));
     }
 
     public function boot(): void
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+
         if (!$this->app->runningInConsole()) {
             return;
         }
-
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         $this->commands([
             ClusterSmokeCommand::class,

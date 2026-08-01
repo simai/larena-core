@@ -18,12 +18,15 @@
     ,"core.first_run_state_machine"
     ,"core.first_run_preflight"
     ,"core.first_run_atomic_initialized_marker"
+    ,"core.ordinary_hosting_web_install_state_machine"
+    ,"core.ordinary_hosting_web_install_atomic_mysql_bootstrap"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
     "README.md",
     "composer.json",
     "composer.lock",
+    "module.yaml",
     "docs/project-management/launch-records/first-run-site-wizard-v1.json",
     "docs/project-management/evidence/admin-api-v1/README.md",
     "docs/project-management/evidence/admin-api-v1/code-review-feedback.md",
@@ -52,7 +55,13 @@
     "tests/Unit/SyncOperationRuntimeTransactionBoundaryTest.php",
     "tests/Unit/FirstRunCoordinatorTest.php",
     "tests/Unit/FirstRunPreflightServiceTest.php",
-    "tests/Unit/VerifiedAssetBundlePublisherTest.php"
+    "tests/Unit/VerifiedAssetBundlePublisherTest.php",
+    "src/WebInstall/WebInstallCoordinator.php",
+    "src/WebInstall/WebInstallDatabaseConfiguration.php",
+    "src/WebInstall/WebInstallException.php",
+    "src/WebInstall/WebInstallPreflightReport.php",
+    "src/WebInstall/WebInstallStateStore.php",
+    "tests/Unit/WebInstallStateStoreTest.php"
   ],
   "forbidden_files": [
     "../admin/*",

@@ -1,5 +1,10 @@
 # Larena Core
 
+The package owns the fail-closed ordinary-hosting web-install state machine.
+It keeps the one-time capability, signed private checkpoints, bounded MySQL
+preflight and migration rollback/resume boundary separate from Admin
+presentation and Root bundle composition.
+
 Larena Core is the package foundation for platform contracts, operation runtime
 boundaries and shared infrastructure contracts.
 

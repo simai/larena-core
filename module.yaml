@@ -22,6 +22,8 @@ features:
   - core.first_run_state_machine
   - core.first_run_preflight
   - core.first_run_atomic_initialized_marker
+  - core.ordinary_hosting_web_install_state_machine
+  - core.ordinary_hosting_web_install_atomic_mysql_bootstrap
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -36,6 +38,8 @@ owner_boundary:
     - first-run state machine and initialized marker
     - sanitized first-run environment preflight
     - atomic dependency-inverted bootstrap orchestration
+    - signed ordinary-hosting web-install capability and checkpoint state
+    - empty-schema MySQL preflight and atomic migration activation or rollback
   consumes:
     - larena/access decisions
     - larena/licensing capability context
