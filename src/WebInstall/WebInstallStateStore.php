@@ -66,7 +66,7 @@ final readonly class WebInstallStateStore
         $encoded = json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $temporary = $this->directory.'/.state-'.bin2hex(random_bytes(8)).'.json';
         if (!is_string($encoded)
-            || file_put_contents($temporary, $encoded.PHP_EOL, LOCK_EX) === false
+            || !$this->writeDurably($temporary, $encoded.PHP_EOL)
             || !chmod($temporary, 0600)
             || !rename($temporary, $this->statePath())) {
             if (is_file($temporary)) {
@@ -89,7 +89,7 @@ final readonly class WebInstallStateStore
         $encoded = json_encode($configuration, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $temporary = $this->directory.'/.database-candidate-'.bin2hex(random_bytes(8)).'.json';
         if (!is_string($encoded)
-            || file_put_contents($temporary, $encoded.PHP_EOL, LOCK_EX) === false
+            || !$this->writeDurably($temporary, $encoded.PHP_EOL)
             || !chmod($temporary, 0600)
             || !rename($temporary, $this->candidatePath())) {
             if (is_file($temporary)) {
@@ -102,7 +102,28 @@ final readonly class WebInstallStateStore
     /** @return array<string, mixed> */
     public function readCandidate(): array
     {
-        $path = $this->candidatePath();
+        return $this->readConfigurationFile($this->candidatePath());
+    }
+
+    /** @return array<string, mixed> */
+    public function readConfiguration(): array
+    {
+        return $this->readConfigurationFile($this->configurationPath());
+    }
+
+    public function candidateExists(): bool
+    {
+        return is_file($this->candidatePath()) && !is_link($this->candidatePath());
+    }
+
+    public function configurationExists(): bool
+    {
+        return is_file($this->configurationPath()) && !is_link($this->configurationPath());
+    }
+
+    /** @return array<string, mixed> */
+    private function readConfigurationFile(string $path): array
+    {
         try {
             $configuration = is_file($path) && !is_link($path)
                 ? json_decode((string) file_get_contents($path), true, 16, JSON_THROW_ON_ERROR)
@@ -170,6 +191,26 @@ final readonly class WebInstallStateStore
             || is_link($this->directory)
             || !chmod($this->directory, 0700)) {
             throw new WebInstallException('web_install_state_directory_unavailable');
+        }
+    }
+
+    private function writeDurably(string $path, string $contents): bool
+    {
+        $handle = fopen($path, 'xb');
+        if ($handle === false) {
+            return false;
+        }
+        try {
+            if (!flock($handle, LOCK_EX) || fwrite($handle, $contents) !== strlen($contents) || !fflush($handle)) {
+                return false;
+            }
+            if (function_exists('fsync') && !fsync($handle)) {
+                return false;
+            }
+            return true;
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
         }
     }
 

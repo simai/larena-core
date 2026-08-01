@@ -18,12 +18,15 @@ use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
 use Larena\Core\WebInstall\WebInstallCoordinator;
+use Larena\Core\WebInstall\LaravelWebInstallDatabaseLifecycle;
+use Larena\Core\WebInstall\WebInstallDatabaseLifecycle;
 use Larena\Core\WebInstall\WebInstallStateStore;
 
 final class CoreServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/larena-core.php', 'larena-core');
         $this->app->bind(FirstRunCoordinator::class, static function (Application $app): FirstRunCoordinator {
             return new FirstRunCoordinator(
                 $app->make(DatabaseManager::class)->connection(),
@@ -48,13 +51,37 @@ final class CoreServiceProvider extends ServiceProvider
             (string) $app->make('config')->get('app.key'),
         ));
 
-        $this->app->bind(WebInstallCoordinator::class, static fn (Application $app): WebInstallCoordinator => new WebInstallCoordinator(
+        $this->app->bind(WebInstallDatabaseLifecycle::class, static fn (Application $app): WebInstallDatabaseLifecycle => new LaravelWebInstallDatabaseLifecycle(
             $app,
             $app->make('config'),
             $app->make(DatabaseManager::class),
             $app->make('migrator'),
-            $app->make(WebInstallStateStore::class),
         ));
+
+        $this->app->bind(WebInstallCoordinator::class, static function (Application $app): WebInstallCoordinator {
+            $fault = $app->make('config')->get('larena-core.web_install.test_fault_checkpoint');
+            $allowed = [
+                'before_configuration_activation',
+                'after_configuration_activation',
+                'before_completed_state_persistence',
+                'after_completed_state_persistence',
+            ];
+            $hook = $app->environment(['local', 'testing'])
+                && (bool) $app->make('config')->get('larena-core.web_install.test_faults_enabled', false)
+                && is_string($fault) && in_array($fault, $allowed, true)
+                ? static function (string $checkpoint) use ($fault): void {
+                    if ($checkpoint === $fault) {
+                        exit(91);
+                    }
+                }
+                : null;
+            return new WebInstallCoordinator(
+                $app->make(WebInstallDatabaseLifecycle::class),
+                $app->make(WebInstallStateStore::class),
+                (string) $app->make('config')->get('app.key'),
+                $hook,
+            );
+        });
     }
 
     public function boot(): void

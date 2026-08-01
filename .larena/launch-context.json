@@ -58,9 +58,13 @@
     "tests/Unit/VerifiedAssetBundlePublisherTest.php",
     "src/WebInstall/WebInstallCoordinator.php",
     "src/WebInstall/WebInstallDatabaseConfiguration.php",
+    "src/WebInstall/WebInstallDatabaseLifecycle.php",
     "src/WebInstall/WebInstallException.php",
+    "src/WebInstall/LaravelWebInstallDatabaseLifecycle.php",
     "src/WebInstall/WebInstallPreflightReport.php",
     "src/WebInstall/WebInstallStateStore.php",
+    "config/larena-core.php",
+    "tests/Unit/WebInstallCoordinatorRecoveryTest.php",
     "tests/Unit/WebInstallStateStoreTest.php"
   ],
   "forbidden_files": [

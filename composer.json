@@ -101,6 +101,7 @@
             ,"@php tests/Unit/FirstRunCoordinatorTest.php"
             ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
+            ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
@@ -127,6 +128,7 @@
             ,"@php tests/Unit/FirstRunCoordinatorTest.php"
             ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
+            ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",

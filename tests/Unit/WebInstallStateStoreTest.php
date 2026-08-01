@@ -23,6 +23,9 @@ assert(($store->readCandidate()['database'] ?? null) === 'owned_schema');
 $store->activateCandidate();
 assert(is_file($store->configurationPath()));
 assert(!is_file($store->candidatePath()));
+assert(($store->readConfiguration()['database'] ?? null) === 'owned_schema');
+assert($store->configurationExists());
+assert(!$store->candidateExists());
 $store->discardConfiguration();
 assert(!is_file($store->configurationPath()));
 
