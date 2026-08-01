@@ -21,4 +21,15 @@ assert(!$report->passed());
 assert(array_filter($report->checks, static fn (array $check): bool => $check['id'] === 'database.sqlite' && !$check['passed']) !== []);
 assert(array_filter($report->checks, static fn (array $check): bool => $check['id'] === 'writable.runtime' && !$check['passed']) !== []);
 
+$mysql = new class(new PDO('sqlite::memory:'), 'larena_first_run_mysql_test', '', ['driver' => 'mysql']) extends Illuminate\Database\Connection {
+    public function getDriverName(): string
+    {
+        return 'mysql';
+    }
+};
+$mysqlReport = (new FirstRunPreflightService($mysql, ['runtime' => $directory]))->inspect();
+assert(array_filter($mysqlReport->checks, static fn (array $check): bool => $check['id'] === 'database.mysql' && $check['passed']) !== []);
+assert(array_filter($mysqlReport->checks, static fn (array $check): bool => $check['id'] === 'database.sqlite') === []);
+assert(array_filter($mysqlReport->checks, static fn (array $check): bool => $check['id'] === 'extension.pdo_mysql') !== []);
+
 echo "First-run preflight contract passed.\n";
