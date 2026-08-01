@@ -69,6 +69,7 @@ $providerSource = (string) file_get_contents(__DIR__.'/../../src/Providers/CoreS
 expectRecovery(str_contains($providerSource, "environment(['local', 'testing'])"), 'fault hook is not environment-bounded');
 expectRecovery(str_contains($providerSource, "getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED')"), 'fault hook is not explicitly enabled');
 expectRecovery(str_contains($providerSource, "getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT')"), 'fault checkpoint is not process-bound');
+expectRecovery(str_contains($providerSource, "posix_kill(getmypid()"), 'sealed server fault hook is not process-fatal');
 
 function coordinator(string $root, ?string $fault = null, bool $failPrepare = false): WebInstallCoordinator
 {

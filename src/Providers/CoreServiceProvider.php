@@ -75,6 +75,9 @@ final class CoreServiceProvider extends ServiceProvider
                 && is_string($fault) && in_array($fault, $allowed, true)
                 ? static function (string $checkpoint) use ($fault): void {
                     if ($checkpoint === $fault) {
+                        if (function_exists('posix_kill')) {
+                            posix_kill(getmypid(), defined('SIGKILL') ? SIGKILL : 9);
+                        }
                         exit(91);
                     }
                 }
