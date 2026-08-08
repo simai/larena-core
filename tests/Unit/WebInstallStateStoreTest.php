@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Larena\Core\WebInstall\WebInstallException;
 use Larena\Core\WebInstall\WebInstallStateStore;
 
-require_once __DIR__.'/../../vendor/autoload.php';
+require_once __DIR__.'/../bootstrap.php';
 
 $root = sys_get_temp_dir().'/larena-web-install-state-'.bin2hex(random_bytes(8));
 $store = new WebInstallStateStore($root, 'test-signing-key');

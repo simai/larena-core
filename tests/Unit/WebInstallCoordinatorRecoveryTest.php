@@ -9,7 +9,7 @@ use Larena\Core\WebInstall\WebInstallException;
 use Larena\Core\WebInstall\WebInstallPreflightReport;
 use Larena\Core\WebInstall\WebInstallStateStore;
 
-require_once __DIR__.'/../../vendor/autoload.php';
+require_once __DIR__.'/../bootstrap.php';
 
 final readonly class FakeWebInstallDatabaseLifecycle implements WebInstallDatabaseLifecycle
 {
