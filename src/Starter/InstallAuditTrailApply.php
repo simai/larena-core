@@ -8,7 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Larena\Audit\Install\InstallAuditTrail;
+use Larena\Core\Contracts\InstallAuditTrailAdapter;
 use Throwable;
 
 final class InstallAuditTrailApply
@@ -26,13 +26,14 @@ final class InstallAuditTrailApply
         $evidencePath = self::absolutePath($basePath, (string) $launchRecord['evidence_path']);
         $applyOutputPath = rtrim($evidencePath, '/') . '/install-audit-trail-apply-output.json';
 
-        if (!class_exists(InstallAuditTrail::class)) {
+        if (!$app->bound(InstallAuditTrailAdapter::class)) {
             return self::blocked($applyOutputPath, 'audit_install_trail_contract_missing', [
                 'required_package' => 'larena/audit',
             ]);
         }
 
-        $migrationPath = InstallAuditTrail::migrationPath();
+        $auditTrail = $app->make(InstallAuditTrailAdapter::class);
+        $migrationPath = $auditTrail->migrationPath();
         if (!is_dir($migrationPath)) {
             return self::blocked($applyOutputPath, 'audit_install_trail_migration_path_missing', [
                 'migration_path' => $migrationPath,
@@ -65,7 +66,7 @@ final class InstallAuditTrailApply
             ]);
         }
 
-        $event = InstallAuditTrail::eventPayload(
+        $event = $auditTrail->eventPayload(
             $launchRecord,
             'install_audit_trail_apply',
             'passed',
@@ -128,7 +129,7 @@ final class InstallAuditTrailApply
                 'creates_database' => false,
                 'writes_environment' => false,
                 'migration_path' => $migrationPath,
-                'planned_tables' => InstallAuditTrail::plannedTables(),
+                'planned_tables' => $auditTrail->plannedTables(),
                 'migrate_output' => $migrateOutput,
             ],
             'audit_event' => $event,

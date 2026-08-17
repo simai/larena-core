@@ -1,8 +1,8 @@
 package: larena/core
 title: Larena Core
-status: coding_started
+status: review_completed
 cluster: platform-api
-batch: larena-minimal-cms-v1-b1
+batch: larena-minimal-cms-v1-b4
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -56,4 +56,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/larena-minimal-cms-v1-b1
+  path: docs/project-management/evidence/larena-minimal-cms-v1-b4

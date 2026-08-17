@@ -5,6 +5,8 @@
 ### Changed
 
 - Removed Access, Audit and Licensing from Core's mandatory Composer runtime; they remain development-only compatibility fixtures until B4 purifies historical integration code.
+- Replaced remaining upper-package source imports with Core-owned fail-closed adapter and lifecycle-hook contracts.
+- Made the runtime-security smoke exercise only Core operation contracts and sanitization.
 
 ### Documentation
 
@@ -12,4 +14,4 @@
 
 ### Non-claims
 
-- No runtime behavior, public contract or package version changes are introduced by B0–B1.
+- No Accepted Target State, package version or mandatory dependency change is introduced by B4.

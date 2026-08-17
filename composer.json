@@ -117,6 +117,7 @@
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
             ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
             ,"@php tests/Unit/MinimalCmsDependencyContractTest.php"
+            ,"@php tests/Unit/MinimalCmsCoreBoundaryTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
@@ -145,6 +146,7 @@
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
             ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
             ,"@php tests/Unit/MinimalCmsDependencyContractTest.php"
+            ,"@php tests/Unit/MinimalCmsCoreBoundaryTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",

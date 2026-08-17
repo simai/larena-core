@@ -19,7 +19,9 @@ use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
 use Larena\Core\WebInstall\WebInstallCoordinator;
 use Larena\Core\WebInstall\LaravelWebInstallDatabaseLifecycle;
+use Larena\Core\WebInstall\NullWebInstallPostMigrationHook;
 use Larena\Core\WebInstall\WebInstallDatabaseLifecycle;
+use Larena\Core\WebInstall\WebInstallPostMigrationHook;
 use Larena\Core\WebInstall\WebInstallStateStore;
 
 final class CoreServiceProvider extends ServiceProvider
@@ -51,11 +53,14 @@ final class CoreServiceProvider extends ServiceProvider
             (string) $app->make('config')->get('app.key'),
         ));
 
+        $this->app->bindIf(WebInstallPostMigrationHook::class, NullWebInstallPostMigrationHook::class);
+
         $this->app->bind(WebInstallDatabaseLifecycle::class, static fn (Application $app): WebInstallDatabaseLifecycle => new LaravelWebInstallDatabaseLifecycle(
             $app,
             $app->make('config'),
             $app->make(DatabaseManager::class),
             $app->make('migrator'),
+            $app->make(WebInstallPostMigrationHook::class),
         ));
 
         $this->app->bind(WebInstallCoordinator::class, static function (Application $app): WebInstallCoordinator {

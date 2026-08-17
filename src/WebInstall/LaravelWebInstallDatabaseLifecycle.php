@@ -8,7 +8,6 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Migrations\Migrator;
-use Larena\Access\Runtime\SystemRolePresetSynchronizer;
 use PDO;
 use Throwable;
 
@@ -19,6 +18,7 @@ final readonly class LaravelWebInstallDatabaseLifecycle implements WebInstallDat
         private ConfigRepository $config,
         private DatabaseManager $databases,
         private Migrator $migrator,
+        private WebInstallPostMigrationHook $postMigrationHook,
     ) {
     }
 
@@ -76,7 +76,7 @@ final readonly class LaravelWebInstallDatabaseLifecycle implements WebInstallDat
             $this->migrator->getRepository()->createRepository();
         }
         $ran = $this->migrator->run($paths, ['pretend' => false, 'step' => false]);
-        $this->app->make(SystemRolePresetSynchronizer::class)->synchronizeForLifecycle();
+        $this->postMigrationHook->afterMigrations();
         $ledger = $this->migrationLedgerSha256();
         $now = gmdate('Y-m-d H:i:s');
         $this->databases->connection('mysql')->table('larena_install_state')->updateOrInsert(

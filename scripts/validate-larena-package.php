@@ -58,6 +58,7 @@ if ($codingStarted) {
     $allowedCodingStatuses = [
         'coding_started',
         'contract_skeleton_review_passed',
+        'review_completed',
     ];
 
     foreach (['module.yaml', 'config/larena-core.php'] as $requiredContractFile) {

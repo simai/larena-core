@@ -16,9 +16,9 @@ Accepted Target State: `larena.target.minimal_cms_v1` at semantic digest `sha256
 
 This repository is a continuation repository. Existing compatible contracts stay in place. Higher-level integrations are detached from the mandatory runtime instead of deleting historical code. Optional compatibility adapters may remain only when they do not re-enter the minimal Composer closure.
 
-## B1 alignment status
+## B4 alignment status
 
-The mandatory Composer dependency set is now empty. Access, Audit and Licensing remain development-only compatibility fixtures so the unchanged historical integration tests can run; B4 owns removal or adaptation of higher-level source imports. No runtime behavior correction is claimed by B1.
+The mandatory Composer dependency set is empty and Core product source has no upper-package imports. Optional install-audit and post-migration behavior now enters through Core-owned fail-closed contracts; the pure runtime-security diagnostic constructs only Core contracts.
 
 ## Install and rollback baseline
 

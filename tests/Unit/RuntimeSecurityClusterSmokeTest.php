@@ -16,9 +16,6 @@ mkdir($basePath . '/bootstrap/cache', 0775, true);
 
 $requiredPackages = [
     'larena/core',
-    'larena/access',
-    'larena/audit',
-    'larena/licensing',
 ];
 $foundationPackages = FoundationPackageSet::foundationPreview();
 

@@ -6,17 +6,6 @@ namespace Larena\Core\Diagnostics;
 
 use Composer\InstalledVersions;
 use InvalidArgumentException;
-use Larena\Access\Contracts\AccessDecisionEngine;
-use Larena\Access\Runtime\GrantAwareAccessDecisionEngine;
-use Larena\Access\Runtime\InMemoryTargetGrantProvider;
-use Larena\Access\Runtime\StaticAccessPolicyDescriptor;
-use Larena\Audit\Contracts\AuditEvent;
-use Larena\Audit\Contracts\AuditEventDescriptor;
-use Larena\Audit\Enums\AuditRetentionClass;
-use Larena\Audit\Enums\AuditSeverity;
-use Larena\Audit\Runtime\AuditEventPipeline;
-use Larena\Audit\Runtime\DefaultAuditRedactor;
-use Larena\Audit\Runtime\InMemoryAuditSink;
 use Larena\Core\Contracts\OperationAccessGate;
 use Larena\Core\Contracts\OperationAuditRecorder;
 use Larena\Core\Contracts\OperationCapabilityGate;
@@ -27,12 +16,6 @@ use Larena\Core\Contracts\OperationHandler;
 use Larena\Core\Contracts\OperationResult;
 use Larena\Core\Enums\OperationExecutionMode;
 use Larena\Core\Runtime\SyncOperationRuntime;
-use Larena\Licensing\Contracts\EntitlementSnapshot;
-use Larena\Licensing\Contracts\LicensingRuntime;
-use Larena\Licensing\Enums\EntitlementStatus;
-use Larena\Licensing\Runtime\SnapshotLicensingRuntime;
-use Larena\Licensing\Runtime\StaticCapability;
-use Larena\Licensing\Runtime\StaticEntitlementSnapshot;
 use RuntimeException;
 
 final class RuntimeSecuritySmoke
@@ -54,41 +37,12 @@ final class RuntimeSecuritySmoke
             'handler_failed' => self::runtime(entitled: true, handlerShouldFail: true)->execute(self::descriptor('site.content.publish'), self::context('admin', 'laravel-smoke-handler-fail')),
         ];
 
-        $pipeline = new AuditEventPipeline(new DefaultAuditRedactor(), [new InMemoryAuditSink()]);
-        $auditDescriptor = new SmokeAuditDescriptor();
-
-        $redactedEvent = $pipeline->route(
-            $auditDescriptor,
-            AuditEvent::create(
-                sourcePackage: 'larena/core',
-                category: 'operation_runtime',
-                type: 'runtime_security_laravel_smoke',
-                actor: 'admin',
-                subject: 'audit_redaction',
-                severity: AuditSeverity::Info,
-                retentionClass: AuditRetentionClass::Operational,
-                correlationId: 'laravel-smoke-redaction',
-                payload: ['secret_value' => 'must-not-leak'],
-            ),
-        );
+        $redactedPayload = SmokeAuditRecorder::sanitize(['secret_value' => 'must-not-leak']);
 
         $forbiddenPayloadFailedClosed = false;
 
         try {
-            $pipeline->route(
-                $auditDescriptor,
-                AuditEvent::create(
-                    sourcePackage: 'larena/core',
-                    category: 'operation_runtime',
-                    type: 'runtime_security_laravel_smoke',
-                    actor: 'admin',
-                    subject: 'audit_forbidden_payload',
-                    severity: AuditSeverity::Info,
-                    retentionClass: AuditRetentionClass::Operational,
-                    correlationId: 'laravel-smoke-forbidden',
-                    payload: ['raw_password' => 'must-fail'],
-                ),
-            );
+            SmokeAuditRecorder::sanitize(['raw_password' => 'must-fail']);
         } catch (InvalidArgumentException) {
             $forbiddenPayloadFailedClosed = true;
         }
@@ -101,8 +55,8 @@ final class RuntimeSecuritySmoke
             'package_sources' => self::packageSources($applicationContext['base_path']),
             'cases' => array_map([self::class, 'summarize'], $cases),
             'audit_redaction' => [
-                'redacted_payload' => $redactedEvent->payload,
-                'redaction_passed' => ($redactedEvent->payload['secret_value'] ?? null) === DefaultAuditRedactor::REDACTED_VALUE,
+                'redacted_payload' => $redactedPayload,
+                'redaction_passed' => ($redactedPayload['secret_value'] ?? null) === '[REDACTED]',
                 'forbidden_payload_failed_closed' => $forbiddenPayloadFailedClosed,
             ],
         ];
@@ -156,27 +110,10 @@ final class RuntimeSecuritySmoke
 
     private static function runtime(bool $entitled, bool $handlerShouldFail = false): SyncOperationRuntime
     {
-        $access = new GrantAwareAccessDecisionEngine([
-            new InMemoryTargetGrantProvider('site', [
-                'admin' => ['demo' => ['site.manage']],
-                'viewer' => ['demo' => ['site.view']],
-            ]),
-        ]);
-
-        $snapshot = new StaticEntitlementSnapshot(
-            status: EntitlementStatus::Active,
-            keyId: 'local-laravel-smoke-key',
-            signature: 'local-laravel-smoke-signature',
-            capabilityKeys: $entitled ? ['runtime_security.manage'] : [],
-        );
-
         return new SyncOperationRuntime(
-            accessGate: new SmokeAccessGate($access),
-            capabilityGate: new SmokeCapabilityGate(new SnapshotLicensingRuntime(), $snapshot),
-            auditRecorder: new SmokeAuditRecorder(
-                new AuditEventPipeline(new DefaultAuditRedactor(), [new InMemoryAuditSink()]),
-                new SmokeAuditDescriptor(),
-            ),
+            accessGate: new SmokeAccessGate(),
+            capabilityGate: new SmokeCapabilityGate($entitled),
+            auditRecorder: new SmokeAuditRecorder(),
             handler: new SmokeHandler($handlerShouldFail),
         );
     }
@@ -186,12 +123,7 @@ final class RuntimeSecuritySmoke
      */
     private static function packageSources(string $basePath): array
     {
-        $packages = [
-            'core' => 'larena/core',
-            'access' => 'larena/access',
-            'licensing' => 'larena/licensing',
-            'audit' => 'larena/audit',
-        ];
+        $packages = ['core' => 'larena/core'];
 
         $sources = [];
 
@@ -299,43 +231,26 @@ final class RuntimeSecuritySmoke
 
 final readonly class SmokeAccessGate implements OperationAccessGate
 {
-    public function __construct(private AccessDecisionEngine $engine)
-    {
-    }
-
     public function decideAccess(OperationDescriptor $descriptor, OperationContext $context): OperationDecision
     {
         $target = $context->accessContext['target'] ?? null;
 
-        if (!is_string($target) || $target === '') {
-            return OperationDecision::denied('target_missing', 'Access target is missing.');
+        if ($target !== 'site:demo') {
+            return OperationDecision::denied('target_unknown');
         }
 
-        $decision = $this->engine->decide(
-            new StaticAccessPolicyDescriptor(
-                operation: $descriptor->name,
-                targetType: 'site',
-                requiredGrants: [$descriptor->accessScope ?? 'unknown'],
-            ),
-            $context->actorId,
-            $target,
-            $context->accessContext,
-        );
-
-        if (!$decision->isAllowed()) {
-            return OperationDecision::denied($decision->reasonCode, 'Access denied by Larena access runtime.');
+        if ($context->actorId !== 'admin' || $descriptor->accessScope !== 'site.manage') {
+            return OperationDecision::denied('access_denied');
         }
 
-        return OperationDecision::allowed(OperationExecutionMode::Sync, $decision->reasonCode);
+        return OperationDecision::allowed(OperationExecutionMode::Sync, 'access_allowed');
     }
 }
 
 final readonly class SmokeCapabilityGate implements OperationCapabilityGate
 {
-    public function __construct(
-        private LicensingRuntime $runtime,
-        private ?EntitlementSnapshot $snapshot,
-    ) {
+    public function __construct(private bool $entitled)
+    {
     }
 
     public function decideCapability(OperationDescriptor $descriptor, OperationContext $context): OperationDecision
@@ -344,78 +259,16 @@ final readonly class SmokeCapabilityGate implements OperationCapabilityGate
             return OperationDecision::allowed(OperationExecutionMode::Sync, 'capability_not_required');
         }
 
-        $decision = $this->runtime->decide(
-            new StaticCapability(
-                key: $descriptor->requiredCapability,
-                package: 'larena/core',
-                freeByDefault: false,
-                failClosedWhenUnknown: true,
-            ),
-            $this->snapshot,
-        );
-
-        if (!$decision->isAllowed()) {
-            return OperationDecision::capabilityLocked(
-                $decision->reasonCode(),
-                'Capability denied by Larena licensing runtime.',
-            );
+        if (!$this->entitled) {
+            return OperationDecision::capabilityLocked('capability_locked');
         }
 
-        return OperationDecision::allowed(OperationExecutionMode::Sync, $decision->reasonCode());
-    }
-}
-
-final readonly class SmokeAuditDescriptor implements AuditEventDescriptor
-{
-    public function sourcePackage(): string
-    {
-        return 'larena/core';
-    }
-
-    public function category(): string
-    {
-        return 'operation_runtime';
-    }
-
-    public function type(): string
-    {
-        return 'runtime_security_laravel_smoke';
-    }
-
-    public function severity(): AuditSeverity
-    {
-        return AuditSeverity::Info;
-    }
-
-    public function retentionClass(): AuditRetentionClass
-    {
-        return AuditRetentionClass::Operational;
-    }
-
-    public function redactedPayloadFields(): array
-    {
-        return ['secret_value'];
-    }
-
-    public function forbiddenPayloadFields(): array
-    {
-        return ['raw_password'];
-    }
-
-    public function isExperimental(): bool
-    {
-        return true;
+        return OperationDecision::allowed(OperationExecutionMode::Sync, 'capability_allowed');
     }
 }
 
 final readonly class SmokeAuditRecorder implements OperationAuditRecorder
 {
-    public function __construct(
-        private AuditEventPipeline $pipeline,
-        private AuditEventDescriptor $descriptor,
-    ) {
-    }
-
     public function recordDecision(
         OperationDescriptor $descriptor,
         OperationContext $context,
@@ -453,27 +306,27 @@ final readonly class SmokeAuditRecorder implements OperationAuditRecorder
         string $phase,
         array $payload,
     ): array {
-        $event = AuditEvent::create(
-            sourcePackage: 'larena/core',
-            category: 'operation_runtime',
-            type: $descriptor->auditEvent ?? 'runtime_security_laravel_smoke',
-            actor: $context->actorId,
-            subject: $descriptor->name,
-            severity: AuditSeverity::Info,
-            retentionClass: AuditRetentionClass::Operational,
-            correlationId: $context->correlationId,
-            payload: ['phase' => $phase] + $payload,
-        );
-
-        $redacted = $this->pipeline->route($this->descriptor, $event);
+        $redacted = self::sanitize(['phase' => $phase] + $payload);
 
         return [
             'phase' => $phase,
-            'type' => $redacted->type,
-            'actor' => $redacted->actor,
-            'subject' => $redacted->subject,
-            'payload' => $redacted->payload,
+            'type' => $descriptor->auditEvent ?? 'runtime_security_laravel_smoke',
+            'actor' => $context->actorId,
+            'subject' => $descriptor->name,
+            'payload' => $redacted,
         ];
+    }
+
+    /** @param array<string, mixed> $payload @return array<string, mixed> */
+    public static function sanitize(array $payload): array
+    {
+        if (array_key_exists('raw_password', $payload)) {
+            throw new InvalidArgumentException('forbidden_audit_payload_field');
+        }
+        if (array_key_exists('secret_value', $payload)) {
+            $payload['secret_value'] = '[REDACTED]';
+        }
+        return $payload;
     }
 }
 
