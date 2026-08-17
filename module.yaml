@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: platform-api
-batch: first-run-site-wizard-v1
+batch: larena-minimal-cms-v1-b1
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -56,4 +56,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/canonical-assembly/
+  path: docs/project-management/evidence/larena-minimal-cms-v1-b1

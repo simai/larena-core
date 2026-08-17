@@ -1,0 +1,1 @@
+{"schema_version":"1.0.0","deviations":[{"kind":"planned_compatibility","detail":"Historical higher-level integrations remain development-only test fixtures; B4 owns source purification.","blocking":false}]}

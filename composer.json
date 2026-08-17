@@ -13,10 +13,7 @@
         "php": "^8.3",
         "illuminate/console": "^13.0",
         "illuminate/database": "^13.0",
-        "illuminate/support": "^13.0",
-        "larena/access": "dev-main",
-        "larena/audit": "dev-main",
-        "larena/licensing": "dev-main"
+        "illuminate/support": "^13.0"
     },
     "autoload": {
         "psr-4": {
@@ -36,6 +33,9 @@
         }
     },
     "require-dev": {
+        "larena/access": "dev-main",
+        "larena/audit": "dev-main",
+        "larena/licensing": "dev-main",
         "phpstan/phpstan": "^2.0"
     },
     "repositories": [
@@ -48,7 +48,28 @@
         },
         {
             "type": "path",
+            "url": "../auth",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
             "url": "../audit",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../dataview",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../layout",
             "options": {
                 "symlink": true
             }
@@ -63,13 +84,6 @@
         {
             "type": "path",
             "url": "../ui",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "../dataview",
             "options": {
                 "symlink": true
             }
@@ -102,6 +116,7 @@
             ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
             ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
+            ,"@php tests/Unit/MinimalCmsDependencyContractTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
@@ -129,6 +144,7 @@
             ,"@php tests/Unit/FirstRunPreflightServiceTest.php"
             ,"@php tests/Unit/WebInstallStateStoreTest.php"
             ,"@php tests/Unit/WebInstallCoordinatorRecoveryTest.php"
+            ,"@php tests/Unit/MinimalCmsDependencyContractTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",
