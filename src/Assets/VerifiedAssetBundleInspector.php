@@ -17,6 +17,172 @@ use Throwable;
 final class VerifiedAssetBundleInspector
 {
     public const INSPECTION_SCHEMA = 'larena.core_assets.bundle_inspection.v1';
+    public const ROUTE_RECEIPT_SCHEMA = 'larena.core_assets.route_receipt.v1';
+
+    /**
+     * Build a deployment-time receipt only after the complete immutable bundle
+     * inspection has passed. The receipt narrows later HTTP checks to the exact
+     * files the application can render; deployment verification still checks
+     * the complete source trees.
+     *
+     * @param array<string, mixed> $expectedContract
+     * @param list<string> $requestedFiles
+     * @return array<string, mixed>
+     */
+    public function routeReceipt(
+        array $expectedContract,
+        array $requestedFiles,
+        string $destinationRoot,
+        string $stateFile,
+    ): array {
+        $inspection = $this->inspect($expectedContract, $requestedFiles, $destinationRoot, $stateFile);
+        if ($inspection['physical_publication_ready'] !== true) {
+            throw new RuntimeException('core_assets_route_receipt_full_inspection_required');
+        }
+
+        $contract = $this->normalizeExpectedContract($expectedContract);
+        $requestedFiles = self::normalizeRequestedFiles($requestedFiles);
+        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $contract['bundle_id'];
+        $resolvedBundlePath = realpath($bundlePath);
+        $stateSha256 = hash_file('sha256', $stateFile);
+        if ($resolvedBundlePath === false || !is_string($stateSha256)) {
+            throw new RuntimeException('core_assets_route_receipt_source_unavailable');
+        }
+
+        $files = [];
+        foreach ($requestedFiles as $relativePath) {
+            $path = $bundlePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+            $resolved = realpath($path);
+            $sha256 = $resolved === false ? false : hash_file('sha256', $resolved);
+            if ($resolved === false
+                || !str_starts_with($resolved, $resolvedBundlePath . DIRECTORY_SEPARATOR)
+                || !is_string($sha256)
+            ) {
+                throw new RuntimeException('core_assets_route_receipt_file_unavailable:' . $relativePath);
+            }
+            $files[$relativePath] = $sha256;
+        }
+
+        return [
+            'schema' => self::ROUTE_RECEIPT_SCHEMA,
+            'publication_profile' => $contract['publication_profile'],
+            'bundle_id' => $contract['bundle_id'],
+            'manifest_sha' => $inspection['manifest_sha'],
+            'state_sha256' => $stateSha256,
+            'required_file_set_sha256' => self::requiredFileSetSha256($requestedFiles),
+            'files' => $files,
+            'inspection' => $inspection,
+        ];
+    }
+
+    /**
+     * Verify a deployment receipt on the HTTP path without recursively hashing
+     * thousands of files. State, immutable manifest and every renderable file
+     * are still checked on every call; missing, changed or unsafe input fails
+     * closed.
+     *
+     * @param array<string, mixed> $expectedContract
+     * @param list<string> $requestedFiles
+     * @param array<string, mixed> $routeReceipt
+     * @return array<string, mixed>
+     */
+    public function inspectRouteReceipt(
+        array $expectedContract,
+        array $requestedFiles,
+        string $destinationRoot,
+        string $stateFile,
+        array $routeReceipt,
+    ): array {
+        $contract = $this->normalizeExpectedContract($expectedContract);
+        $requestedFiles = self::normalizeRequestedFiles($requestedFiles);
+        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $requiredFileSetHash = self::requiredFileSetSha256($requestedFiles);
+        $manifestHash = null;
+        $verifiedFiles = [];
+        $problems = [];
+
+        if (($routeReceipt['schema'] ?? null) !== self::ROUTE_RECEIPT_SCHEMA
+            || ($routeReceipt['publication_profile'] ?? null) !== $contract['publication_profile']
+            || ($routeReceipt['bundle_id'] ?? null) !== $contract['bundle_id']
+            || ($routeReceipt['required_file_set_sha256'] ?? null) !== $requiredFileSetHash
+            || !is_array($routeReceipt['files'] ?? null)
+        ) {
+            $problems[] = 'route_receipt_contract_mismatch';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+        if (!is_file($stateFile) || is_link($stateFile)) {
+            $problems[] = 'state_missing_or_untrusted';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+        $stateSha256 = hash_file('sha256', $stateFile);
+        if (!is_string($stateSha256)
+            || !is_string($routeReceipt['state_sha256'] ?? null)
+            || !hash_equals($routeReceipt['state_sha256'], $stateSha256)
+        ) {
+            $problems[] = 'route_receipt_state_mismatch';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+
+        try {
+            $state = $this->readJson($stateFile);
+        } catch (Throwable) {
+            $problems[] = 'state_invalid';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+        if (($state['schema'] ?? null) !== 'larena.core_assets.activation_state.v2'
+            || ($state['active_bundle'] ?? null) !== $contract['bundle_id']
+            || !is_string($state['active_bundle_manifest_sha256'] ?? null)
+        ) {
+            $problems[] = 'state_contract_mismatch';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+
+        $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $contract['bundle_id'];
+        $resolvedBundlePath = realpath($bundlePath);
+        $manifestPath = $bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json';
+        if ($resolvedBundlePath === false || is_link($bundlePath) || !is_file($manifestPath) || is_link($manifestPath)) {
+            $problems[] = 'bundle_or_manifest_untrusted';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+        $actualManifestHash = hash_file('sha256', $manifestPath);
+        $manifestHash = is_string($actualManifestHash) ? $actualManifestHash : null;
+        if (!is_string($actualManifestHash)
+            || !is_string($routeReceipt['manifest_sha'] ?? null)
+            || !hash_equals($state['active_bundle_manifest_sha256'], $actualManifestHash)
+            || !hash_equals($routeReceipt['manifest_sha'], $actualManifestHash)
+        ) {
+            $problems[] = 'route_receipt_manifest_mismatch';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+
+        $receiptFiles = $routeReceipt['files'];
+        if (array_keys($receiptFiles) !== $requestedFiles) {
+            $problems[] = 'route_receipt_file_set_mismatch';
+            return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+        }
+        foreach ($requestedFiles as $relativePath) {
+            $expectedSha256 = $receiptFiles[$relativePath] ?? null;
+            $candidate = $bundlePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+            $resolved = realpath($candidate);
+            $actualSha256 = $resolved === false ? false : hash_file('sha256', $resolved);
+            if (!is_string($expectedSha256)
+                || preg_match('/^[a-f0-9]{64}$/', $expectedSha256) !== 1
+                || $resolved === false
+                || !str_starts_with($resolved, $resolvedBundlePath . DIRECTORY_SEPARATOR)
+                || !is_string($actualSha256)
+                || !hash_equals($expectedSha256, $actualSha256)
+            ) {
+                $problems[] = 'route_receipt_file_mismatch:' . $relativePath;
+                continue;
+            }
+            $verifiedFiles[] = $relativePath;
+        }
+
+        return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
+    }
 
     /**
      * @param array{

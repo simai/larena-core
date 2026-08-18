@@ -2,10 +2,11 @@ package: larena/core
 title: Larena Core
 status: review_completed
 cluster: platform-api
-batch: larena-minimal-cms-v1-b4
+batch: larena-sf-route-receipt-1
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
+  - core.assets.route_receipt
   - core.data_content_cluster_smoke
   - core.install_audit_trail_apply_guarded
   - core.install_readiness_contract
@@ -35,6 +36,7 @@ owner_boundary:
     - read-only runtime/security cluster smoke report
     - core.assets activation contract
     - verified immutable frontend bundle publication for approved runtime tracks
+    - deployment-time receipt and fail-closed verification for exact renderable asset entrypoints
     - first-run state machine and initialized marker
     - sanitized first-run environment preflight
     - atomic dependency-inverted bootstrap orchestration
@@ -56,4 +58,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/larena-minimal-cms-v1-b4
+  path: docs/project-management/evidence/larena-sf-route-receipt-1

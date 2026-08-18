@@ -257,6 +257,33 @@ assertTrue(
 );
 assertTrue($inspection['missing_or_invalid'] === [], 'verified inspection contains problems');
 
+$routeReceipt = $inspector->routeReceipt($publicationContract, $requestedFiles, $artifactPublic, $artifactState);
+assertTrue($routeReceipt['schema'] === VerifiedAssetBundleInspector::ROUTE_RECEIPT_SCHEMA, 'route receipt schema mismatch');
+$routeInspection = $inspector->inspectRouteReceipt(
+    $publicationContract,
+    $requestedFiles,
+    $artifactPublic,
+    $artifactState,
+    $routeReceipt,
+);
+assertTrue($routeInspection['status'] === 'verified', 'deployment route receipt was not trusted');
+$routeCssPath = $artifactPublic . '/artifact-v1/ui/distr/nested/runtime.css';
+$routeCssOriginal = (string) file_get_contents($routeCssPath);
+file_put_contents($routeCssPath, 'route-receipt-tampered');
+$tamperedRouteInspection = $inspector->inspectRouteReceipt(
+    $publicationContract,
+    $requestedFiles,
+    $artifactPublic,
+    $artifactState,
+    $routeReceipt,
+);
+assertTrue($tamperedRouteInspection['status'] === 'not_ready', 'route receipt accepted a changed renderable file');
+assertTrue(
+    in_array('route_receipt_file_mismatch:ui/distr/nested/runtime.css', $tamperedRouteInspection['missing_or_invalid'], true),
+    'route receipt did not identify the changed renderable file',
+);
+file_put_contents($routeCssPath, $routeCssOriginal);
+
 $partialInspection = $inspector->inspect(
     $publicationContract,
     ['ui/distr/runtime.js'],
