@@ -1,0 +1,48 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "batch": "minimal-cms-v1-1-batch-3-operation-registry",
+  "wave": "A",
+  "package": "larena/core",
+  "canonical_update_allowed": false,
+  "canonical_update_reason": "a package coding wave never writes the canonical graph; larena-specs applies a graph cycle after the batch is accepted",
+  "target_ref": "specs/project-management/larena-minimal-cms-v1-1-owner-amendment-target-state.json",
+  "target_semantic_digest": "sha256:cbbfa628327f11f1f2c958c9b24cc10334fba965b9cce232e40884a6f37a1d3f",
+  "feature_observations": [
+    {
+      "feature": "core.operation_transport",
+      "observed_state": "partially_implemented",
+      "implemented": [
+        "the transport-neutral operation registry REST and MCP will project",
+        "the descriptor v2 policy enforced at registration",
+        "the local transport, always available and free",
+        "transport resolution with a fail-closed network path naming every missing gate",
+        "the proposal and approved write through one path"
+      ],
+      "not_implemented": [
+        "the network transport itself",
+        "the service subject delegation chain",
+        "the remote receipt and compensation",
+        "core.transport.invoke_remote"
+      ],
+      "acceptance_covered": [
+        "the local transport is always available and free",
+        "the network transport fails closed without verified node trust and without the distributed entitlement, and the diagnostic names the missing gate",
+        "the open core contains only the transport interface and the local implementation"
+      ],
+      "acceptance_not_covered": [
+        "a remote call carries a service subject with a delegation chain narrower than the caller",
+        "every remote mutation carries a correlation identifier, is idempotent on retry or is rejected",
+        "REST and MCP surfaces are projections of the same operation registry — waves B and C of this batch"
+      ]
+    },
+    {
+      "feature": "core.operation_runtime",
+      "observed_state": "amended",
+      "detail": "unchanged in code; a registry-aware entry point was added beside it, and its descriptors now carry the v2 fields that registration requires"
+    }
+  ],
+  "nonclaims": [
+    "A graph sync proposal records what a coding wave observed; it does not update the canonical graph.",
+    "Partial implementation of a feature is not implementation of the feature."
+  ]
+}

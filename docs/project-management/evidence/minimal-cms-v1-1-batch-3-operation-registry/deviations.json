@@ -1,0 +1,73 @@
+{
+  "schema": "larena.batch_deviations.v1",
+  "batch": "minimal-cms-v1-1-batch-3-operation-registry",
+  "wave": "A",
+  "package": "larena/core",
+  "launch_record_ref": "docs/project-management/launch-records/minimal-cms-v1-1-batch-3-wave-a-core-operation-registry.json",
+  "deviations": [
+    {
+      "id": "coverage_report_extracted",
+      "kind": "allowed_file_added",
+      "path": "src/Registry/OperationCoverageReport.php",
+      "detail": "The launch record allowed only the console command. Keeping the report logic inside a Command would have made the required test — coverage content and exit behaviour — impossible without booting a console application.",
+      "resolution": "The report is a plain class in src/Registry; the command finds the installed packages and presents it. The larena-specs launch record is amended with the same entry.",
+      "shape_impact": "none: the report shape is the frozen one"
+    },
+    {
+      "id": "descriptor_file_validator_added",
+      "kind": "allowed_file_added",
+      "path": "src/Registry/PackageDescriptorFileValidator.php",
+      "detail": "Named in the freeze as the structural descriptor check and listed in the launch record allowed files.",
+      "shape_impact": "none"
+    },
+    {
+      "id": "symfony_yaml_dependency",
+      "kind": "dependency_added",
+      "path": "composer.json",
+      "detail": "The declaration file is YAML, matching the existing api.yaml and access.yaml style, so larena/core now requires symfony/yaml ^7.4|^8.0 exactly as larena/rest does.",
+      "resolution": "Declared in composer.json. composer could not install it into the package vendor tree — it cannot resolve this workspace's dev path repositories at all — so composer.lock is untouched and the tests and the analyser resolve the parser from the entry application, the way larena/access resolves larena/core for its own tests.",
+      "alternative_rejected": "writing a YAML subset parser, or moving the declaration to JSON against the established descriptor style"
+    },
+    {
+      "id": "phpstan_scan_directories",
+      "kind": "allowed_file_changed",
+      "path": "phpstan.neon.dist",
+      "detail": "scanDirectories points at ../../app/vendor/symfony/yaml for the same reason.",
+      "shape_impact": "none"
+    },
+    {
+      "id": "descriptor_contract_widened",
+      "kind": "design_correction_during_batch",
+      "detail": "The first closed key set for access.yaml and audit.yaml was derived from core and access alone and rejected nonclaims, allowed_payload_fields and forbidden_payload_fields, which six installed packages legitimately use.",
+      "resolution": "The contract was widened to the keys actually in use, keeping the closed-set principle. Found by running the command against the root rather than by reading files.",
+      "shape_impact": "none on the frozen shapes; the validator contract is not a frozen artifact"
+    },
+    {
+      "id": "unversioned_descriptor_is_a_notice",
+      "kind": "design_correction_during_batch",
+      "detail": "larena/file-manager ships an access.yaml with no schema and no package key. Failing the coverage gate on it would make a Batch 3 gate red for pre-existing drift in a package outside this write boundary.",
+      "resolution": "A missing schema is reported as a notice with reason code schema_absent, only list shapes are checked, and the finding is recorded for a later batch to own.",
+      "shape_impact": "the report gains descriptor_file_notices beside the frozen keys"
+    },
+    {
+      "id": "gap_does_not_fail_the_gate",
+      "kind": "freeze_alignment",
+      "detail": "The report first failed on an access operation code declared by a package with no scheduled registration batch. The freeze's exit-code rule says non-zero only on policy or descriptor-file violations.",
+      "resolution": "The report fails only on descriptor violations and on an operation registered against an undeclared code. Gaps carry a scheduled or unscheduled state and a gap_counts summary.",
+      "shape_impact": "the report gains gap_counts"
+    },
+    {
+      "id": "remote_invoke_not_registered",
+      "kind": "frozen_decision_applied",
+      "detail": "core.transport.invoke_remote appears in the feature specification but is not declared or registered, per the freeze's deferred_operations.",
+      "shape_impact": "none"
+    }
+  ],
+  "no_deviation_areas": [
+    "the declaration schema, key sets, grammars, registry contract, rejection reasons, descriptor v2 rules, proposal receipt keys, approval digest algorithm, transport resolution order and gate order follow the freeze exactly",
+    "OperationDescriptor and SyncOperationRuntime are unchanged",
+    "no table, column or migration",
+    "no public HTTP, REST or MCP surface",
+    "no change to any package other than larena/core"
+  ]
+}

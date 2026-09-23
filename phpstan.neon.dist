@@ -5,3 +5,9 @@ parameters:
     - scripts
     - tests
     - tools
+  # composer cannot resolve this workspace's dev path repositories, so the
+  # package vendor tree has no symfony/yaml even though composer.json requires
+  # it. The entry application installs it; point the analyser there, exactly as
+  # larena/access points at ../core/src for the same reason.
+  scanDirectories:
+    - ../../app/vendor/symfony/yaml

@@ -1,0 +1,1378 @@
+# Operation declarations for larena/core.
+#
+# One operation is declared once, here, with its gates, risk, reversibility and
+# schemas. The PHP descriptor binds the same operation to a handler, and the
+# registry refuses to register the two when they disagree on any shared field.
+schema: larena.operations.contract.v1
+package: larena/core
+version: 1.0.0
+operations:
+  - name: 'core.scope.create'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.scope.manage'
+    audit_event: 'core.scope.created'
+    idempotency_key: 'scope_ref'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+        name:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        parent_scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+      required:
+        - 'scope_ref'
+        - 'name'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            kind:
+              type: 'string'
+              enum:
+                - 'site'
+                - 'organization'
+            identifier:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'scope'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.scope.read'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.scope.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+      required:
+        - 'scope_ref'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            kind:
+              type: 'string'
+              enum:
+                - 'site'
+                - 'organization'
+            identifier:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required: []
+  - name: 'core.scope.list'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.scope.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        kind:
+          type: 'string'
+          enum:
+            - 'site'
+            - 'organization'
+        include_archived:
+          type: 'boolean'
+      required: []
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scopes:
+          type: 'array'
+          items:
+            type: 'object'
+            additionalProperties: true
+            properties:
+              scope_ref:
+                type: 'string'
+                pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+                maxLength: 80
+              kind:
+                type: 'string'
+                enum:
+                  - 'site'
+                  - 'organization'
+              identifier:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              name:
+                type: 'string'
+                minLength: 1
+                maxLength: 190
+              parent_scope_ref:
+                type: 'string'
+                pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+                maxLength: 80
+              status:
+                type: 'string'
+                enum:
+                  - 'active'
+                  - 'archived'
+            required: []
+      required:
+        - 'scopes'
+  - name: 'core.scope.archive'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.scope.manage'
+    audit_event: 'core.scope.archived'
+    idempotency_key: 'scope_ref'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+      required:
+        - 'scope_ref'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            kind:
+              type: 'string'
+              enum:
+                - 'site'
+                - 'organization'
+            identifier:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'scope'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.scope.resolve_ref'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.scope.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+      required:
+        - 'scope_ref'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        resolved:
+          type: 'boolean'
+        scope:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            kind:
+              type: 'string'
+              enum:
+                - 'site'
+                - 'organization'
+            identifier:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'resolved'
+  - name: 'core.scope.explain'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.scope.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+      required:
+        - 'scope_ref'
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+        exists:
+          type: 'boolean'
+      required: []
+  - name: 'core.plane.create'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.manage'
+    audit_event: 'core.plane.created'
+    idempotency_key: 'plane_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        scope_ref:
+          type: 'string'
+          pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+          maxLength: 80
+        plane_key:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        kind:
+          type: 'string'
+          enum:
+            - 'tree'
+            - 'flat'
+        name:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'scope_ref'
+        - 'plane_key'
+        - 'kind'
+        - 'name'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        plane:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            plane_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            plane_key:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            kind:
+              type: 'string'
+              enum:
+                - 'tree'
+                - 'flat'
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'plane'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.archive'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.manage'
+    audit_event: 'core.plane.archived'
+    idempotency_key: 'plane_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        plane_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'plane_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        plane:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            plane_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            scope_ref:
+              type: 'string'
+              pattern: '^(site|organization):[a-z0-9][a-z0-9_-]{0,62}$'
+              maxLength: 80
+            plane_key:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            kind:
+              type: 'string'
+              enum:
+                - 'tree'
+                - 'flat'
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'plane'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.node.create'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.manage'
+    audit_event: 'core.plane.node.created'
+    idempotency_key: 'node_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        plane_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        node_key:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        name:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        parent_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        order_index:
+          type: 'integer'
+      required:
+        - 'plane_id'
+        - 'node_key'
+        - 'name'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            plane_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            node_key:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            path:
+              type: 'string'
+              maxLength: 2048
+            order_index:
+              type: 'integer'
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'node'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.node.move'
+    execution_mode: 'sync'
+    risk: 'bulk'
+    reversible: true
+    access_scope: 'core.plane.manage'
+    audit_event: 'core.plane.node.moved'
+    idempotency_key: 'node_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        parent_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        order_index:
+          type: 'integer'
+      required:
+        - 'node_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            plane_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            node_key:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            path:
+              type: 'string'
+              maxLength: 2048
+            order_index:
+              type: 'integer'
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'node'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.node.archive'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.manage'
+    audit_event: 'core.plane.node.archived'
+    idempotency_key: 'node_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'node_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            plane_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            node_key:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            parent_node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            path:
+              type: 'string'
+              maxLength: 2048
+            order_index:
+              type: 'integer'
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'archived'
+          required: []
+      required:
+        - 'node'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.membership.assign'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.membership.manage'
+    audit_event: 'core.plane.membership.assigned'
+    idempotency_key: 'membership_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        subject_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        role_tag:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'node_id'
+        - 'subject_ref'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        membership:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            membership_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            subject_ref:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            role_tag:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'revoked'
+          required: []
+      required:
+        - 'membership'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.membership.revoke'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.plane.membership.manage'
+    audit_event: 'core.plane.membership.revoked'
+    idempotency_key: 'membership_id'
+    transactional: true
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        subject_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'node_id'
+        - 'subject_ref'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        membership:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            membership_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            node_id:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            subject_ref:
+              type: 'string'
+              minLength: 1
+              maxLength: 190
+            role_tag:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            status:
+              type: 'string'
+              enum:
+                - 'active'
+                - 'revoked'
+          required: []
+      required:
+        - 'membership'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.plane.resolve_members'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.plane.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        include_descendants:
+          type: 'boolean'
+      required:
+        - 'node_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        include_descendants:
+          type: 'boolean'
+        subject_refs:
+          type: 'array'
+          items:
+            type: 'string'
+            minLength: 1
+            maxLength: 190
+        node_ids:
+          type: 'array'
+          items:
+            type: 'string'
+            minLength: 1
+            maxLength: 120
+      required:
+        - 'node_id'
+        - 'include_descendants'
+        - 'subject_refs'
+        - 'node_ids'
+  - name: 'core.plane.resolve_ancestry'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.plane.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'node_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        ancestry:
+          type: 'array'
+          items:
+            type: 'object'
+            additionalProperties: true
+            properties:
+              node_id:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              plane_id:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              node_key:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              name:
+                type: 'string'
+                minLength: 1
+                maxLength: 190
+              parent_node_id:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              path:
+                type: 'string'
+                maxLength: 2048
+              order_index:
+                type: 'integer'
+              status:
+                type: 'string'
+                enum:
+                  - 'active'
+                  - 'archived'
+            required: []
+      required:
+        - 'ancestry'
+  - name: 'core.plane.explain'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.plane.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        plane_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'plane_id'
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        plane_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        exists:
+          type: 'boolean'
+      required: []
+  - name: 'core.operation_registry.describe'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.operation_registry.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'object'
+          additionalProperties: true
+          properties:
+            name:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            package:
+              type: 'string'
+              minLength: 1
+              maxLength: 120
+            risk:
+              type: 'string'
+              enum:
+                - 'read'
+                - 'change'
+                - 'bulk'
+                - 'irreversible'
+                - 'external'
+            reversible:
+              type: 'boolean'
+          required: []
+      required:
+        - 'operation'
+  - name: 'core.operation_registry.list'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.operation_registry.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        package:
+          type: 'string'
+          maxLength: 120
+        risk:
+          type: 'string'
+          enum:
+            - 'read'
+            - 'change'
+            - 'bulk'
+            - 'irreversible'
+            - 'external'
+      required: []
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operations:
+          type: 'array'
+          items:
+            type: 'object'
+            additionalProperties: true
+            properties:
+              name:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+              package:
+                type: 'string'
+                minLength: 1
+                maxLength: 120
+            required: []
+      required:
+        - 'operations'
+  - name: 'core.transport.resolve'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.transport.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        resolved_kind:
+          type: 'string'
+          enum:
+            - 'local'
+            - 'network'
+        local_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        missing_gates:
+          type: 'array'
+          items:
+            type: 'string'
+            enum:
+              - 'distributed_entitlement'
+              - 'node_trust'
+              - 'network_transport_implementation'
+        reason_code:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+        - 'local_node_id'
+        - 'missing_gates'
+        - 'reason_code'
+  - name: 'core.transport.invoke_local'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.transport.invoke'
+    audit_event: 'core.transport.invoked'
+    idempotency_key: 'correlation_id'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        payload:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+      required:
+        - 'operation'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        decision_status:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        decision_reason:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+        - 'decision_status'
+        - 'decision_reason'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.transport.verify_node_trust'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.transport.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'node_id'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        trusted:
+          type: 'boolean'
+      required:
+        - 'node_id'
+        - 'trusted'
+  - name: 'core.transport.explain'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.transport.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        operation:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        resolved_kind:
+          type: 'string'
+          enum:
+            - 'local'
+            - 'network'
+        local_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        target_node_id:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+        missing_gates:
+          type: 'array'
+          items:
+            type: 'string'
+            enum:
+              - 'distributed_entitlement'
+              - 'node_trust'
+              - 'network_transport_implementation'
+        reason_code:
+          type: 'string'
+          minLength: 1
+          maxLength: 120
+      required:
+        - 'operation'
+        - 'local_node_id'
+        - 'missing_gates'
+        - 'reason_code'

@@ -13,7 +13,8 @@
         "php": "^8.3",
         "illuminate/console": "^13.0",
         "illuminate/database": "^13.0",
-        "illuminate/support": "^13.0"
+        "illuminate/support": "^13.0",
+        "symfony/yaml": "^7.4|^8.0"
     },
     "autoload": {
         "psr-4": {
@@ -128,7 +129,18 @@
             "@php tests/Unit/MembershipResolverDescendantsTest.php",
             "@php tests/Unit/ScopeBaselineInstallerIdempotencyTest.php",
             "@php tests/Unit/ScopePlaneAuditEventTest.php",
-            "@php tests/Unit/OperationDescriptorRiskClassDefaultTest.php"
+            "@php tests/Unit/OperationDescriptorRiskClassDefaultTest.php",
+            "@php tests/Unit/OperationDeclarationLoaderTest.php",
+            "@php tests/Unit/OperationDeclarationLoaderFailsClosedTest.php",
+            "@php tests/Unit/DeclaredOperationRegistryTest.php",
+            "@php tests/Unit/DescriptorPolicyTest.php",
+            "@php tests/Unit/ConfirmationPolicyTest.php",
+            "@php tests/Unit/ProposalAndApprovalTest.php",
+            "@php tests/Unit/ProposalFailsClosedTest.php",
+            "@php tests/Unit/TransportResolutionTest.php",
+            "@php tests/Unit/TransportGateMatrixTest.php",
+            "@php tests/Unit/PackageDescriptorFileValidatorTest.php",
+            "@php tests/Unit/OperationCoverageReportTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",

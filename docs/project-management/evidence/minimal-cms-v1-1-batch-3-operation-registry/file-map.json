@@ -1,0 +1,132 @@
+{
+  "schema": "larena.batch_file_map.v1",
+  "batch": "minimal-cms-v1-1-batch-3-operation-registry",
+  "wave": "A",
+  "package": "larena/core",
+  "changed_files": [
+    ".larena/launch-context.json",
+    "access.yaml",
+    "audit.yaml",
+    "composer.json",
+    "docs/project-management/evidence/minimal-cms-v1-1-batch-3-operation-registry/",
+    "docs/project-management/launch-records/minimal-cms-v1-1-batch-3-wave-a-core-operation-registry.json",
+    "module.yaml",
+    "operations.yaml",
+    "phpstan.neon.dist",
+    "src/Console/Commands/OperationCoverageCommand.php",
+    "src/Contracts/ConfirmationPolicy.php",
+    "src/Contracts/DistributedEntitlementGate.php",
+    "src/Contracts/NetworkTransport.php",
+    "src/Contracts/NodeTrustVerifier.php",
+    "src/Contracts/OperationApproval.php",
+    "src/Contracts/OperationDeclaration.php",
+    "src/Contracts/OperationProposalHandler.php",
+    "src/Contracts/OperationProvider.php",
+    "src/Contracts/OperationReceipt.php",
+    "src/Contracts/OperationRegistry.php",
+    "src/Contracts/OperationTransport.php",
+    "src/Contracts/TopologyBinding.php",
+    "src/Contracts/TransportDiagnostic.php",
+    "src/Contracts/TransportResolver.php",
+    "src/Enums/OperationInvocationMode.php",
+    "src/Enums/TransportGate.php",
+    "src/Enums/TransportKind.php",
+    "src/Exceptions/OperationDeclarationInvalid.php",
+    "src/Exceptions/OperationNotRegistered.php",
+    "src/Exceptions/OperationRegistrationRejected.php",
+    "src/Exceptions/TransportResolutionFailed.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Registry/",
+    "src/Runtime/LocalTransport.php",
+    "src/Runtime/OperationRegistryOperationHandlers.php",
+    "src/Runtime/ProposalDigest.php",
+    "src/Runtime/RegistryOperationRuntime.php",
+    "src/Runtime/ResolvingTransportResolver.php",
+    "src/Runtime/RiskClassConfirmationPolicy.php",
+    "src/Runtime/StaticTopologyBinding.php",
+    "src/Runtime/TransportAuditEventCatalog.php",
+    "src/Runtime/TransportOperationHandlers.php",
+    "tests/Unit/ConfirmationPolicyTest.php",
+    "tests/Unit/DeclaredOperationRegistryTest.php",
+    "tests/Unit/DescriptorPolicyTest.php",
+    "tests/Unit/OperationCoverageReportTest.php",
+    "tests/Unit/OperationDeclarationLoaderFailsClosedTest.php",
+    "tests/Unit/OperationDeclarationLoaderTest.php",
+    "tests/Unit/PackageDescriptorFileValidatorTest.php",
+    "tests/Unit/ProposalAndApprovalTest.php",
+    "tests/Unit/ProposalFailsClosedTest.php",
+    "tests/Unit/TransportGateMatrixTest.php",
+    "tests/Unit/TransportResolutionTest.php",
+    "tests/support/operation-registry-fixtures.php"
+  ],
+  "surfaces": {
+    "declaration": [
+      "operations.yaml"
+    ],
+    "contracts": [
+      "src/Contracts/ConfirmationPolicy.php",
+      "src/Contracts/DistributedEntitlementGate.php",
+      "src/Contracts/NetworkTransport.php",
+      "src/Contracts/NodeTrustVerifier.php",
+      "src/Contracts/OperationApproval.php",
+      "src/Contracts/OperationDeclaration.php",
+      "src/Contracts/OperationProposalHandler.php",
+      "src/Contracts/OperationProvider.php",
+      "src/Contracts/OperationReceipt.php",
+      "src/Contracts/OperationRegistry.php",
+      "src/Contracts/OperationTransport.php",
+      "src/Contracts/TopologyBinding.php",
+      "src/Contracts/TransportDiagnostic.php",
+      "src/Contracts/TransportResolver.php"
+    ],
+    "enums": [
+      "src/Enums/OperationInvocationMode.php",
+      "src/Enums/TransportGate.php",
+      "src/Enums/TransportKind.php"
+    ],
+    "exceptions": [
+      "src/Exceptions/OperationDeclarationInvalid.php",
+      "src/Exceptions/OperationNotRegistered.php",
+      "src/Exceptions/OperationRegistrationRejected.php",
+      "src/Exceptions/TransportResolutionFailed.php"
+    ],
+    "registry": [
+      "src/Registry/"
+    ],
+    "runtime": [
+      "src/Runtime/LocalTransport.php",
+      "src/Runtime/OperationRegistryOperationHandlers.php",
+      "src/Runtime/ProposalDigest.php",
+      "src/Runtime/RegistryOperationRuntime.php",
+      "src/Runtime/ResolvingTransportResolver.php",
+      "src/Runtime/RiskClassConfirmationPolicy.php",
+      "src/Runtime/StaticTopologyBinding.php",
+      "src/Runtime/TransportAuditEventCatalog.php",
+      "src/Runtime/TransportOperationHandlers.php"
+    ],
+    "console": [
+      "src/Console/Commands/OperationCoverageCommand.php"
+    ],
+    "descriptors": [
+      "access.yaml",
+      "audit.yaml",
+      "module.yaml"
+    ],
+    "tests": [
+      "tests/Unit/ConfirmationPolicyTest.php",
+      "tests/Unit/DeclaredOperationRegistryTest.php",
+      "tests/Unit/DescriptorPolicyTest.php",
+      "tests/Unit/OperationCoverageReportTest.php",
+      "tests/Unit/OperationDeclarationLoaderFailsClosedTest.php",
+      "tests/Unit/OperationDeclarationLoaderTest.php",
+      "tests/Unit/PackageDescriptorFileValidatorTest.php",
+      "tests/Unit/ProposalAndApprovalTest.php",
+      "tests/Unit/ProposalFailsClosedTest.php",
+      "tests/Unit/TransportGateMatrixTest.php",
+      "tests/Unit/TransportResolutionTest.php",
+      "tests/support/operation-registry-fixtures.php"
+    ]
+  },
+  "no_migration": true,
+  "no_migration_reason": "the registry is composed at boot and the proposal path is stateless, so nothing needs persistence"
+}

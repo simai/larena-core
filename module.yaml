@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: platform-api
-batch: minimal-cms-v1-1-batch-1-core-scopes-planes
+batch: minimal-cms-v1-1-batch-3-wave-a-core-operation-registry
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -27,6 +27,7 @@ features:
   - core.ordinary_hosting_web_install_atomic_mysql_bootstrap
   - core.scope_model
   - core.plane_membership
+  - core.operation_transport
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -47,6 +48,10 @@ owner_boundary:
     - scope model: site and organization system records and the ScopeRef contract
     - planes, nodes and membership system records with no business meaning
     - idempotent scope and plane baseline install step
+    - the one transport-neutral operation registry and its declaration contract
+    - the descriptor v2 policy enforced at registration
+    - the stateless proposal, approval and confirmation path
+    - transport resolution, the local transport and the network transport port
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -63,4 +68,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/minimal-cms-v1-1-batch-1-core-scopes-planes
+  path: docs/project-management/evidence/minimal-cms-v1-1-batch-3-operation-registry

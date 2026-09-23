@@ -31,3 +31,6 @@ events:
   - type: core.plane.membership.revoked
     category: core_plane_membership
     severity: security
+  - type: core.transport.invoked
+    category: core_transport
+    severity: operational

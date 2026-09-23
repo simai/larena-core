@@ -11,18 +11,31 @@ use Larena\Core\Console\Commands\ClusterSmokeCommand;
 use Larena\Core\Console\Commands\DataContentSmokeCommand;
 use Larena\Core\Console\Commands\DoctorCommand;
 use Larena\Core\Console\Commands\InstallCommand;
+use Larena\Core\Console\Commands\OperationCoverageCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
 use Larena\Core\Console\Commands\ValidatePackagesCommand;
 use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
+use Larena\Core\Contracts\ConfirmationPolicy;
 use Larena\Core\Contracts\MembershipResolver;
+use Larena\Core\Contracts\OperationRegistry;
+use Larena\Core\Contracts\TopologyBinding;
+use Larena\Core\Contracts\TransportResolver;
 use Larena\Core\Contracts\PlaneRegistry;
 use Larena\Core\Contracts\ScopeRefResolver;
 use Larena\Core\Contracts\ScopeRegistry;
 use Larena\Core\Plane\DatabaseMembershipResolver;
 use Larena\Core\Plane\DatabasePlaneRegistry;
+use Larena\Core\Registry\CoreOperationProvider;
+use Larena\Core\Registry\DeclaredOperationRegistry;
+use Larena\Core\Registry\PackageDescriptorFileValidator;
+use Larena\Core\Contracts\OperationRuntime;
+use Larena\Core\Runtime\LocalTransport;
+use Larena\Core\Runtime\ResolvingTransportResolver;
+use Larena\Core\Runtime\RiskClassConfirmationPolicy;
+use Larena\Core\Runtime\StaticTopologyBinding;
 use Larena\Core\Scope\DatabaseScopeRegistry;
 use Larena\Core\Starter\ScopeBaselineInstaller;
 use Larena\Core\WebInstall\WebInstallCoordinator;
@@ -66,6 +79,36 @@ final class CoreServiceProvider extends ServiceProvider
             $app->make(DatabaseManager::class)->connection(),
             $app->make(DatabaseScopeRegistry::class),
             $app->make(DatabasePlaneRegistry::class),
+        ));
+
+        // The registry is composed from declaration files at boot and holds no
+        // state of its own, so a singleton is both correct and the cheapest
+        // option; nothing here touches the database.
+        $this->app->singleton(DeclaredOperationRegistry::class, static function (): DeclaredOperationRegistry {
+            return DeclaredOperationRegistry::fromProviders([new CoreOperationProvider()]);
+        });
+        $this->app->alias(DeclaredOperationRegistry::class, OperationRegistry::class);
+
+        $this->app->singleton(PackageDescriptorFileValidator::class);
+        $this->app->bindIf(ConfirmationPolicy::class, RiskClassConfirmationPolicy::class);
+
+        $this->app->bindIf(TopologyBinding::class, static fn (): TopologyBinding => new StaticTopologyBinding());
+
+        // The local transport carries whatever operation runtime the application
+        // composed. Core does not bind a default runtime, so resolving a
+        // transport without one fails loudly here instead of quietly executing
+        // through a half-built runtime somewhere later.
+        $this->app->bind(LocalTransport::class, static fn (Application $app): LocalTransport => new LocalTransport(
+            $app->make(OperationRuntime::class),
+        ));
+
+        // No network transport, node trust verifier or entitlement gate is bound
+        // here: the open core ships none, and the resolver treats each absence
+        // as a missing gate rather than as permission.
+        $this->app->bind(TransportResolver::class, static fn (Application $app): TransportResolver => new ResolvingTransportResolver(
+            $app->make(OperationRegistry::class),
+            $app->make(LocalTransport::class),
+            $app->make(TopologyBinding::class),
         ));
 
         $this->app->bind(FirstRunPreflightService::class, static function (Application $app): FirstRunPreflightService {
@@ -145,6 +188,7 @@ final class CoreServiceProvider extends ServiceProvider
             DataContentSmokeCommand::class,
             DoctorCommand::class,
             InstallCommand::class,
+            OperationCoverageCommand::class,
             PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,
             ValidatePackagesCommand::class,

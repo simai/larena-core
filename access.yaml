@@ -16,3 +16,12 @@ operations:
   - code: core.plane.read
     risk: high
     audit: denial
+  - code: core.operation_registry.read
+    risk: high
+    audit: denial
+  - code: core.transport.read
+    risk: high
+    audit: denial
+  - code: core.transport.invoke
+    risk: critical
+    audit: always
