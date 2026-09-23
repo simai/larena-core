@@ -68,16 +68,16 @@ $make = static function (string $id, int $priority, string $state = FirstRunCont
     };
 };
 
-$coordinator = new FirstRunCoordinator($connection, [$make('content', 300), $make('auth', 100), $make('setting', 200)]);
+$coordinator = new FirstRunCoordinator($connection, [$make('site', 300), $make('auth', 100), $make('setting', 200)]);
 assert(first_run_availability($coordinator) === FirstRunAvailability::AVAILABLE);
 $result = $coordinator->bootstrap($payload);
 assert($result->integer('auth.done') === 1);
-assert($connection->table('first_run_test_steps')->orderByRaw('rowid')->pluck('step')->all() === ['auth', 'setting', 'content']);
+assert($connection->table('first_run_test_steps')->orderByRaw('rowid')->pluck('step')->all() === ['auth', 'setting', 'site']);
 assert(first_run_availability($coordinator) === FirstRunAvailability::COMPLETED);
 
 $connection->table('larena_install_state')->delete();
 $connection->table('first_run_test_steps')->delete();
-$failing = new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200, fail: true), $make('content', 300)]);
+$failing = new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200, fail: true), $make('site', 300)]);
 try {
     $failing->bootstrap($payload);
     throw new LogicException('Injected failure must escape.');
@@ -93,7 +93,7 @@ try {
 } catch (LogicException) {
 }
 
-$invalid = new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('content', 300)]);
+$invalid = new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('site', 300)]);
 try {
     $invalid->bootstrap(new FirstRunPayload('Admin', 'admin@example.test', 'Strong-password!', '', 'en', 'UTC'));
     throw new RuntimeException('Validation must fail.');
@@ -101,5 +101,14 @@ try {
     assert(isset($exception->errors['site_name']));
 }
 assert(first_run_table_count($connection, 'first_run_test_steps') === 0);
+
+// Content is no longer a first-run step. A composition that still names it is
+// refused, exactly as one that omits a step is: the set is exact.
+try {
+    new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('content', 300)]);
+    throw new RuntimeException('A composition naming content must fail closed.');
+} catch (LogicException $exception) {
+    assert(str_contains($exception->getMessage(), 'auth, setting and site'));
+}
 
 echo "First-run coordinator contract passed.\n";

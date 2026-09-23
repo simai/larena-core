@@ -10,7 +10,14 @@ use Larena\Core\Contracts\FirstRunContributor;
 final readonly class FirstRunCoordinator
 {
     private const STATE_KEY = 'first_run_site';
-    private const REQUIRED_CONTRIBUTORS = ['auth', 'setting', 'content'];
+    /**
+     * The exact first-run composition, in order. It stays exact on purpose: an
+     * install that can be configured into an incomplete state eventually is one,
+     * and the failure would surface later as missing data rather than as a
+     * refusal here. The third step writes the starter site, which Storage owns
+     * since Content left the runtime.
+     */
+    private const REQUIRED_CONTRIBUTORS = ['auth', 'setting', 'site'];
 
     /** @var list<FirstRunContributor> */
     private array $contributors;
@@ -23,7 +30,7 @@ final readonly class FirstRunCoordinator
 
         $ids = array_map(static fn (FirstRunContributor $contributor): string => $contributor->id(), $resolved);
         if ($ids !== self::REQUIRED_CONTRIBUTORS || count($ids) !== count(array_unique($ids))) {
-            throw new \LogicException('First-run composition requires the exact auth, setting and content contributors.');
+            throw new \LogicException('First-run composition requires the exact auth, setting and site contributors.');
         }
 
         $this->contributors = $resolved;
