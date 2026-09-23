@@ -1,0 +1,18 @@
+schema: larena.access.descriptor.v1
+package: larena/core
+operations:
+  - code: core.scope.manage
+    risk: critical
+    audit: always
+  - code: core.scope.read
+    risk: high
+    audit: denial
+  - code: core.plane.manage
+    risk: critical
+    audit: always
+  - code: core.plane.membership.manage
+    risk: critical
+    audit: always
+  - code: core.plane.read
+    risk: high
+    audit: denial

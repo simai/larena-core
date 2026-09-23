@@ -1,0 +1,259 @@
+{
+  "schema": "larena.batch_file_map.v1",
+  "batch": "minimal-cms-v1-1-batch-1-core-scopes-planes",
+  "package": "larena/core",
+  "base_commit": "47123f2",
+  "file_count": 50,
+  "files": [
+    {
+      "path": ".larena/launch-context.json",
+      "status": "M",
+      "sha256": "sha256:0557460b62cb74f9f500f57910e3a6718626e9b3ccc0def3bf55897ec5d577b6"
+    },
+    {
+      "path": "access.yaml",
+      "status": "A",
+      "sha256": "sha256:8a263b936e425ef91b281515e12fe2f6d749dcd2b1777900e0baad719e76e0e3"
+    },
+    {
+      "path": "audit.yaml",
+      "status": "A",
+      "sha256": "sha256:3d27aab74bc77fc211d441abb23c98be9dce998ea3c35b4ccd14f53bfbfa297f"
+    },
+    {
+      "path": "composer.json",
+      "status": "M",
+      "sha256": "sha256:4b306ccb445103c17307c992b8166b50ef84f1eae01aca717de09870572a3f39"
+    },
+    {
+      "path": "database/migrations/2026_09_24_000001_create_larena_core_scopes_table.php",
+      "status": "A",
+      "sha256": "sha256:053ac3ddc6b061c9d2bf78291a1d6bbe76947284412f94891d1d412dc422e6fa"
+    },
+    {
+      "path": "database/migrations/2026_09_24_000002_create_larena_core_planes_table.php",
+      "status": "A",
+      "sha256": "sha256:d7ca24134847f46f720e892af5c81975a67ad7228e6914fa43d9389318ccaaec"
+    },
+    {
+      "path": "database/migrations/2026_09_24_000003_create_larena_core_plane_nodes_table.php",
+      "status": "A",
+      "sha256": "sha256:cef89d9f7768e1cd92c4bbbf2520804d22803ab6bf1f04ab56ef8e0fb9989b34"
+    },
+    {
+      "path": "database/migrations/2026_09_24_000004_create_larena_core_memberships_table.php",
+      "status": "A",
+      "sha256": "sha256:b9c3bfab321ba0aa24868b48c5b61bd84e7260ac913b5e4cfd54026c8d49618e"
+    },
+    {
+      "path": "module.yaml",
+      "status": "M",
+      "sha256": "sha256:3d949aee140e697ec68425f95be9240e6335ae67c2446a60f620cc7200119b73"
+    },
+    {
+      "path": "src/Contracts/MembershipRecord.php",
+      "status": "A",
+      "sha256": "sha256:62b9bd33a07e6e2c415716cb9ce269f023daaed7845e855196d86c6c3dd40228"
+    },
+    {
+      "path": "src/Contracts/MembershipResolver.php",
+      "status": "A",
+      "sha256": "sha256:9674b89c762df407f5749822e429c13cd2fcdbaf5b80bdc61c33cdbd47563c1b"
+    },
+    {
+      "path": "src/Contracts/OperationDescriptor.php",
+      "status": "M",
+      "sha256": "sha256:db9d090064fb95566c1e3c8485575c6b5a74b21a21b7f6be5df93261b394cba7"
+    },
+    {
+      "path": "src/Contracts/PlaneNodeRecord.php",
+      "status": "A",
+      "sha256": "sha256:4c8fc7683f8ce9d8d131e05f4406108f63ac59d9ce96c547f596cce9518e5d37"
+    },
+    {
+      "path": "src/Contracts/PlaneRecord.php",
+      "status": "A",
+      "sha256": "sha256:ea3b13ec969ab139ade1ff7a313e27db64b5a5ffed8d9957bd81d3b2c7f04480"
+    },
+    {
+      "path": "src/Contracts/PlaneRegistry.php",
+      "status": "A",
+      "sha256": "sha256:a2663ab2e63cfa1569691da92e206c28ed5096f4b6d047eb99cdec94747199f7"
+    },
+    {
+      "path": "src/Contracts/ResolvedMemberSet.php",
+      "status": "A",
+      "sha256": "sha256:4a64ab4d618813ba5de7e1dd8c9b347b237204602b5c4d427fea41719fbd7360"
+    },
+    {
+      "path": "src/Contracts/ScopeRecord.php",
+      "status": "A",
+      "sha256": "sha256:0578fa2f9e1c3094336734a75064ed3b8ae3d282f2f2b2ee73264336dd2f8bb0"
+    },
+    {
+      "path": "src/Contracts/ScopeRefResolver.php",
+      "status": "A",
+      "sha256": "sha256:40a96209554423e20b03f70407b8218bd2bbf2d4ee8ace03334ba73118ba453e"
+    },
+    {
+      "path": "src/Contracts/ScopeRegistry.php",
+      "status": "A",
+      "sha256": "sha256:c4a23f39927c877e56662f4589cbaa8fc5335d4e3cfaa18d85b807b8d7d9f0b0"
+    },
+    {
+      "path": "src/Enums/MembershipStatus.php",
+      "status": "A",
+      "sha256": "sha256:bbe1251e836ab02d22b8a88ff31f13e75a7feb3f5619a18aa969343a83915b0a"
+    },
+    {
+      "path": "src/Enums/NodeStatus.php",
+      "status": "A",
+      "sha256": "sha256:c25222c9180497f38bb2b99e8aa0c7a0247ad3a55f6637ee37e40b6933cf45bc"
+    },
+    {
+      "path": "src/Enums/OperationRiskClass.php",
+      "status": "A",
+      "sha256": "sha256:5974c7dfb28137c1cff932081d27601a17ba1ed422037d1ca4c914690b29891e"
+    },
+    {
+      "path": "src/Enums/PlaneKind.php",
+      "status": "A",
+      "sha256": "sha256:c9f9ded0bd546c7a60b0ca15bbff78acaa0f444bf4d5c359ee0d37f2b14c213c"
+    },
+    {
+      "path": "src/Enums/PlaneStatus.php",
+      "status": "A",
+      "sha256": "sha256:99ad2df86577ea65139b7851a0d8e9a2a214fec992bef37a921ad07b2001cb13"
+    },
+    {
+      "path": "src/Enums/ScopeKind.php",
+      "status": "A",
+      "sha256": "sha256:1b68b15d2a837d35066c97cc68d29a060f36eee70ed7703f8fd4baf7f4c27b35"
+    },
+    {
+      "path": "src/Enums/ScopeStatus.php",
+      "status": "A",
+      "sha256": "sha256:d673d34fd33260aedb1e868be3fb572cbdc709c3db1a94cb7dc78419554fe572"
+    },
+    {
+      "path": "src/Exceptions/ScopeBoundaryViolation.php",
+      "status": "A",
+      "sha256": "sha256:f55d677bd3e12b73011056df121dd227b984d6c6858a285f8e3e7589d41a5f68"
+    },
+    {
+      "path": "src/Plane/DatabaseMembershipResolver.php",
+      "status": "A",
+      "sha256": "sha256:429f41992141b422d151630f2be9f34d4588cf7178e30c6cf2a575a602f146c1"
+    },
+    {
+      "path": "src/Plane/DatabasePlaneRegistry.php",
+      "status": "A",
+      "sha256": "sha256:0ddc669706c133c2a676acdf4ad7d9801e7f41262d36150994bc476d8c35fb17"
+    },
+    {
+      "path": "src/Plane/NodePath.php",
+      "status": "A",
+      "sha256": "sha256:1929d039dd588078371ad9934cc93ae6ab169fd675e1a6316507c19388a7eb24"
+    },
+    {
+      "path": "src/Plane/PlaneAuditEventCatalog.php",
+      "status": "A",
+      "sha256": "sha256:4767bf0d06d83ad1ae6ce195207c7bc6a7881f341877bd628434c8ed45bbfc93"
+    },
+    {
+      "path": "src/Providers/CoreServiceProvider.php",
+      "status": "M",
+      "sha256": "sha256:9b37c714d281559dc7d1c0d5d0a8171a54737dd6f7dd90c792fb3c0d85b6aa3f"
+    },
+    {
+      "path": "src/Runtime/PlaneOperationHandlers.php",
+      "status": "A",
+      "sha256": "sha256:2415bff1957d6a81f69f8db6b8b6803533eb110f44734bc96dd70d4dc4103ee3"
+    },
+    {
+      "path": "src/Runtime/ScopeOperationHandlers.php",
+      "status": "A",
+      "sha256": "sha256:3df356fa0ea59db0e2cd9d87483a5b3b91231a19d7abeb86290769d7c9353e9b"
+    },
+    {
+      "path": "src/Scope/DatabaseScopeRegistry.php",
+      "status": "A",
+      "sha256": "sha256:1df97c3e3ca8ea05cbb6a9e0c636736435c3c0eb632e78e1621199c6c13ce2c0"
+    },
+    {
+      "path": "src/Scope/ScopeAuditEventCatalog.php",
+      "status": "A",
+      "sha256": "sha256:35274ee525f6d8c1130bcef57c538305ac04f7ba7bf6715e2216d98ed761d478"
+    },
+    {
+      "path": "src/Scope/ScopeRef.php",
+      "status": "A",
+      "sha256": "sha256:365fb3b338dee5863750ffb44addb5a1646b03b5967878ce295b3cda871c1bfe"
+    },
+    {
+      "path": "src/Starter/ScopeBaselineInstaller.php",
+      "status": "A",
+      "sha256": "sha256:de08f4b978a150b3148c9162657149cc70393766c938d4b8132902d3b8f8af06"
+    },
+    {
+      "path": "tests/Unit/MembershipResolverDescendantsTest.php",
+      "status": "A",
+      "sha256": "sha256:7bfffbee893fb49337eadbe0043690a799308cb1491b77b8586efd13047a6fb4"
+    },
+    {
+      "path": "tests/Unit/MembershipResolverTest.php",
+      "status": "A",
+      "sha256": "sha256:534b3b4be4371745c5ca82886c2a8bcf22e56cb68ef9c37985d6aed9351637f5"
+    },
+    {
+      "path": "tests/Unit/OperationDescriptorRiskClassDefaultTest.php",
+      "status": "A",
+      "sha256": "sha256:211f6d0002b853e5081b3d352c8334bac234e4275c04d80377c4e2eccf56936c"
+    },
+    {
+      "path": "tests/Unit/PlaneNodeMoveFailsClosedTest.php",
+      "status": "A",
+      "sha256": "sha256:6e329674e22be2af3a0d6177385821aeddf0db1f78527aaff0b9255196df4fe2"
+    },
+    {
+      "path": "tests/Unit/PlaneNodeMoveTest.php",
+      "status": "A",
+      "sha256": "sha256:ae98439ccb6471714be19e267491e8129f5048249041561ae93a2e430eee4be9"
+    },
+    {
+      "path": "tests/Unit/PlaneRegistryTest.php",
+      "status": "A",
+      "sha256": "sha256:1cbda316a615f6c2377cc8b8fb0cc45c4bfd36019503e7ee1327720d0e04a38b"
+    },
+    {
+      "path": "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php",
+      "status": "A",
+      "sha256": "sha256:33ff782efbdaf9b5c63437bba3bb031d6375a46ef1d18436ea4a81c7947a8ea2"
+    },
+    {
+      "path": "tests/Unit/ScopePlaneAuditEventTest.php",
+      "status": "A",
+      "sha256": "sha256:d399baed50d027d0f95975878e6db46df38a130fb371444df565149731530017"
+    },
+    {
+      "path": "tests/Unit/ScopeRefTest.php",
+      "status": "A",
+      "sha256": "sha256:34d92547f5f12cce6cca64752edb547d393cfbcb0c610c07fa83f7a6669337e7"
+    },
+    {
+      "path": "tests/Unit/ScopeRegistryFailsClosedTest.php",
+      "status": "A",
+      "sha256": "sha256:166a4e074d7faf298cf64cea4149a00affa1619f86ca769227e8a39c741a743e"
+    },
+    {
+      "path": "tests/Unit/ScopeRegistryTest.php",
+      "status": "A",
+      "sha256": "sha256:ae0d347b00cf20fa3d9611373668a8a1fc0fe2d9578010a9f39eda8007185b1e"
+    },
+    {
+      "path": "tests/support/scope-plane-schema.php",
+      "status": "A",
+      "sha256": "sha256:41b8826261f21fd65b2786127da7644578a72c3e1f577d38a12837b93cec5f60"
+    }
+  ]
+}

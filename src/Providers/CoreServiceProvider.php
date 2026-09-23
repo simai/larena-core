@@ -17,6 +17,14 @@ use Larena\Core\Console\Commands\ValidatePackagesCommand;
 use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
+use Larena\Core\Contracts\MembershipResolver;
+use Larena\Core\Contracts\PlaneRegistry;
+use Larena\Core\Contracts\ScopeRefResolver;
+use Larena\Core\Contracts\ScopeRegistry;
+use Larena\Core\Plane\DatabaseMembershipResolver;
+use Larena\Core\Plane\DatabasePlaneRegistry;
+use Larena\Core\Scope\DatabaseScopeRegistry;
+use Larena\Core\Starter\ScopeBaselineInstaller;
 use Larena\Core\WebInstall\WebInstallCoordinator;
 use Larena\Core\WebInstall\LaravelWebInstallDatabaseLifecycle;
 use Larena\Core\WebInstall\NullWebInstallPostMigrationHook;
@@ -35,6 +43,30 @@ final class CoreServiceProvider extends ServiceProvider
                 $app->tagged(FirstRunContributor::class),
             );
         });
+
+        $this->app->singleton(DatabaseScopeRegistry::class, static fn (Application $app): DatabaseScopeRegistry => new DatabaseScopeRegistry(
+            $app->make(DatabaseManager::class)->connection(),
+        ));
+        $this->app->alias(DatabaseScopeRegistry::class, ScopeRegistry::class);
+        $this->app->alias(DatabaseScopeRegistry::class, ScopeRefResolver::class);
+
+        $this->app->singleton(DatabasePlaneRegistry::class, static fn (Application $app): DatabasePlaneRegistry => new DatabasePlaneRegistry(
+            $app->make(DatabaseManager::class)->connection(),
+            $app->make(DatabaseScopeRegistry::class),
+        ));
+        $this->app->alias(DatabasePlaneRegistry::class, PlaneRegistry::class);
+
+        $this->app->singleton(DatabaseMembershipResolver::class, static fn (Application $app): DatabaseMembershipResolver => new DatabaseMembershipResolver(
+            $app->make(DatabaseManager::class)->connection(),
+            $app->make(DatabasePlaneRegistry::class),
+        ));
+        $this->app->alias(DatabaseMembershipResolver::class, MembershipResolver::class);
+
+        $this->app->singleton(ScopeBaselineInstaller::class, static fn (Application $app): ScopeBaselineInstaller => new ScopeBaselineInstaller(
+            $app->make(DatabaseManager::class)->connection(),
+            $app->make(DatabaseScopeRegistry::class),
+            $app->make(DatabasePlaneRegistry::class),
+        ));
 
         $this->app->bind(FirstRunPreflightService::class, static function (Application $app): FirstRunPreflightService {
             return new FirstRunPreflightService(

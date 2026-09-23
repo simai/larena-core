@@ -1,0 +1,61 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "batch": "minimal-cms-v1-1-batch-1-core-scopes-planes",
+  "package": "larena/core",
+  "specs_repo": "simai/larena-specs",
+  "specs_commit": "2aeb08da",
+  "target_id": "larena.target.minimal_cms_v1_1",
+  "status": "proposed",
+  "implementation_confirms": [
+    {
+      "feature": "core.scope_model",
+      "acceptance": "scope kinds site and organization are fixed-shape core system tables",
+      "evidence": "database/migrations/2026_09_24_000001_create_larena_core_scopes_table.php, tests/Unit/ScopeRegistryTest.php"
+    },
+    {
+      "feature": "core.scope_model",
+      "acceptance": "a site can exist without an organization",
+      "evidence": "tests/Unit/ScopeRegistryTest.php"
+    },
+    {
+      "feature": "core.plane_membership",
+      "acceptance": "a subject can hold membership in nodes of several planes at once",
+      "evidence": "tests/Unit/MembershipResolverTest.php"
+    },
+    {
+      "feature": "core.plane_membership",
+      "acceptance": "core.plane.resolve_members returns members with or without descendants deterministically and fails closed for an unknown node",
+      "evidence": "tests/Unit/MembershipResolverDescendantsTest.php"
+    },
+    {
+      "feature": "core.plane_membership",
+      "acceptance": "Minimal CMS creates one flat plane named Groups",
+      "evidence": "src/Starter/ScopeBaselineInstaller.php, tests/Unit/ScopeBaselineInstallerIdempotencyTest.php"
+    }
+  ],
+  "proposed_spec_amendments": [
+    {
+      "ref": "specs/implementation-planning/minimal-cms-v1-1-batch-1-pre-codegen-freeze.json",
+      "field": "frozen_descriptor_extension.fields.riskClass",
+      "current": "enum read|change|bulk|irreversible|external, default change",
+      "proposed": "nullable enum with a null default; effectiveRiskClass() resolves null to change",
+      "reason": "core contract files are loaded without the autoloader by older tests, so an enum default breaks them"
+    },
+    {
+      "ref": "specs/implementation-planning/minimal-cms-v1-1-batch-1-pre-codegen-freeze.json",
+      "field": "frozen_table_shapes.*.indexes",
+      "proposed": "record explicit index names; generated names can exceed the MySQL 64-character identifier limit",
+      "reason": "found by the MySQL smoke of this batch"
+    },
+    {
+      "ref": "specs/packages/core/features/plane-membership/feature.json",
+      "field": "acceptance",
+      "proposed": "state that the baseline is created by an idempotent install step rather than a first-run contributor while FirstRunCoordinator requires the exact auth, setting and content composition",
+      "reason": "implementation discovered the hard-coded contributor list; the change belongs to Batch 6"
+    }
+  ],
+  "nonclaims": [
+    "A graph sync proposal is owner-reviewable evidence; it never writes canonical specifications."
+  ],
+  "canonical_update_allowed": false
+}

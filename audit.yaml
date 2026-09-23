@@ -1,0 +1,33 @@
+schema: larena.audit.package-events.v1
+package: larena/core
+storage_owner: larena/audit
+retention: security
+atomic_completion: true
+events:
+  - type: core.scope.created
+    category: core_scope
+    severity: security
+  - type: core.scope.archived
+    category: core_scope
+    severity: security
+  - type: core.plane.created
+    category: core_plane
+    severity: security
+  - type: core.plane.archived
+    category: core_plane
+    severity: security
+  - type: core.plane.node.created
+    category: core_plane
+    severity: security
+  - type: core.plane.node.moved
+    category: core_plane
+    severity: security
+  - type: core.plane.node.archived
+    category: core_plane
+    severity: security
+  - type: core.plane.membership.assigned
+    category: core_plane_membership
+    severity: security
+  - type: core.plane.membership.revoked
+    category: core_plane_membership
+    severity: security

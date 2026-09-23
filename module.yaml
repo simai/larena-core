@@ -1,8 +1,8 @@
 package: larena/core
 title: Larena Core
-status: review_completed
+status: coding_started
 cluster: platform-api
-batch: larena-sf-route-receipt-1
+batch: minimal-cms-v1-1-batch-1-core-scopes-planes
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -25,6 +25,8 @@ features:
   - core.first_run_atomic_initialized_marker
   - core.ordinary_hosting_web_install_state_machine
   - core.ordinary_hosting_web_install_atomic_mysql_bootstrap
+  - core.scope_model
+  - core.plane_membership
 owner_boundary:
   owns:
     - operation runtime contract boundary
@@ -42,6 +44,9 @@ owner_boundary:
     - atomic dependency-inverted bootstrap orchestration
     - signed ordinary-hosting web-install capability and checkpoint state
     - empty-schema MySQL preflight and atomic migration activation or rollback
+    - scope model: site and organization system records and the ScopeRef contract
+    - planes, nodes and membership system records with no business meaning
+    - idempotent scope and plane baseline install step
   consumes:
     - larena/access decisions
     - larena/licensing capability context
@@ -58,4 +63,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/larena-sf-route-receipt-1
+  path: docs/project-management/evidence/minimal-cms-v1-1-batch-1-core-scopes-planes

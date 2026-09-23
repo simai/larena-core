@@ -1,0 +1,54 @@
+{
+  "schema": "larena.batch_deviations.v1",
+  "batch": "minimal-cms-v1-1-batch-1-core-scopes-planes",
+  "package": "larena/core",
+  "launch_record_ref": "docs/project-management/launch-records/minimal-cms-v1-1-batch-1-core-scopes-planes.json",
+  "deviations": [
+    {
+      "id": "test_support_schema_helper",
+      "kind": "allowed_file_added",
+      "path": "tests/support/scope-plane-schema.php",
+      "detail": "The launch record listed the eleven test files but not a shared schema helper. The four table shapes are needed by seven of them, so the helper exists instead of seven copies.",
+      "shape_impact": "none: the helper mirrors the frozen migration shapes",
+      "resolution": "added to the package launch context allowed files; the larena-specs launch record is amended with the same entry"
+    },
+    {
+      "id": "root_test_file_name",
+      "kind": "allowed_file_renamed",
+      "path": "tests/Unit/MinimalCmsFirstAdministratorPlaneMembershipTest.php",
+      "declared_path": "tests/Feature/MinimalCmsFirstAdministratorTest.php",
+      "detail": "The pre-existing root test for the creator is a unit test (tests/Unit/MinimalCmsFirstAdministratorCreatorTest.php), so the new test sits beside it as a unit test rather than in tests/Feature.",
+      "shape_impact": "none",
+      "resolution": "the larena-specs launch record is amended with the actual path"
+    },
+    {
+      "id": "explicit_index_names",
+      "kind": "frozen_shape_refinement",
+      "path": "database/migrations/2026_09_24_000001..4",
+      "detail": "The freeze declares index columns but not index names. Laravel's generated name for the plane node parent/order index is 65 characters and exceeds the MySQL 64-character identifier limit, so every new index is named explicitly.",
+      "shape_impact": "none: same columns, same uniqueness, only the identifier names are explicit",
+      "found_by": "MySQL smoke; SQLite accepted the long name silently"
+    },
+    {
+      "id": "descriptor_risk_class_nullable",
+      "kind": "frozen_shape_refinement",
+      "path": "src/Contracts/OperationDescriptor.php",
+      "detail": "The freeze declares riskClass with a default of change. Core's older tests load contract files without the autoloader, so an enum default would break them. The parameter is nullable with a null default and effectiveRiskClass() resolves null to change.",
+      "shape_impact": "none behaviourally: an undeclared risk class still counts as a non-reversible change",
+      "resolution": "recorded here and in the implementation summary; the freeze text should be amended when Batch 3 introduces the registry"
+    },
+    {
+      "id": "optional_root_dependencies",
+      "kind": "implementation_choice",
+      "path": "app/Support/Larena/MinimalCmsFirstAdministratorCreator.php",
+      "detail": "The core scope baseline and membership resolver are optional constructor parameters so that the pre-existing root unit test keeps working unchanged and an installation without the core scope tables keeps the previous behaviour.",
+      "shape_impact": "none"
+    }
+  ],
+  "no_deviation_areas": [
+    "table shapes, identity grammar, states and the sixteen-operation list follow the freeze exactly",
+    "FirstRunCoordinator::REQUIRED_CONTRIBUTORS untouched",
+    "no access, storage, rest, mcp, admin, docara or content change",
+    "no public HTTP, REST or MCP surface added"
+  ]
+}
