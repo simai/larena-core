@@ -130,7 +130,11 @@ final class CoreServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // The guarded installer applies and rolls back exactly the bootstrap
+        // migrations in database/migrations, so platform schema that is not part
+        // of the installer bootstrap lives in its own registered path.
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations/platform');
 
         if (!$this->app->runningInConsole()) {
             return;

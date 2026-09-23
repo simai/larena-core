@@ -19,13 +19,18 @@
     "access.yaml",
     "audit.yaml",
     "composer.json",
-    "module.yaml",
     "database/migrations/2026_09_24_000001_create_larena_core_scopes_table.php",
     "database/migrations/2026_09_24_000002_create_larena_core_planes_table.php",
     "database/migrations/2026_09_24_000003_create_larena_core_plane_nodes_table.php",
     "database/migrations/2026_09_24_000004_create_larena_core_memberships_table.php",
-    "docs/scopes-and-planes.md",
+    "database/migrations/platform/2026_09_24_000001_create_larena_core_scopes_table.php",
+    "database/migrations/platform/2026_09_24_000002_create_larena_core_planes_table.php",
+    "database/migrations/platform/2026_09_24_000003_create_larena_core_plane_nodes_table.php",
+    "database/migrations/platform/2026_09_24_000004_create_larena_core_memberships_table.php",
     "docs/project-management/evidence/minimal-cms-v1-1-batch-1-core-scopes-planes/*",
+    "docs/scopes-and-planes.md",
+    "module.yaml",
+    "source/output/action-gates/*",
     "src/Contracts/MembershipRecord.php",
     "src/Contracts/MembershipResolver.php",
     "src/Contracts/OperationDescriptor.php",
@@ -55,7 +60,6 @@
     "src/Scope/ScopeAuditEventCatalog.php",
     "src/Scope/ScopeRef.php",
     "src/Starter/ScopeBaselineInstaller.php",
-    "tests/support/scope-plane-schema.php",
     "tests/Unit/MembershipResolverDescendantsTest.php",
     "tests/Unit/MembershipResolverTest.php",
     "tests/Unit/OperationDescriptorRiskClassDefaultTest.php",
@@ -67,7 +71,7 @@
     "tests/Unit/ScopeRefTest.php",
     "tests/Unit/ScopeRegistryFailsClosedTest.php",
     "tests/Unit/ScopeRegistryTest.php",
-    "source/output/action-gates/*"
+    "tests/support/scope-plane-schema.php"
   ],
   "forbidden_files": [
     "src/FirstRun/*",
@@ -102,5 +106,6 @@
   "repository_enforcement_installed": true,
   "review_completed": false,
   "next_transition": "package_commit",
-  "coding_branch": "feature/minimal-cms-v1-1-batch-1-core-scopes-planes"
+  "coding_branch": "feature/minimal-cms-v1-1-batch-1-core-scopes-planes",
+  "allowed_files_note": "The bare database/migrations/2026_09_24_* entries cover the removal of the first placement; the live files are under database/migrations/platform/ (see deviations.json)."
 }

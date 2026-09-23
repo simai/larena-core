@@ -1,0 +1,40 @@
+{
+  "schema": "larena.batch_file_map.v1",
+  "batch": "minimal-cms-v1-1-batch-1-core-scopes-planes",
+  "package": "larena/core",
+  "base_commit": "47123f2",
+  "note": "Files changed after the first batch commit 5cc5514; the migration path move is recorded in deviations.json.",
+  "file_count": 6,
+  "files": [
+    {
+      "path": ".larena/launch-context.json",
+      "status": "M",
+      "sha256": "sha256:868bc01ec8fd86bca1e30ae9287cf1e237fc1bd819795bab2f8f7a182121ea72"
+    },
+    {
+      "path": "database/migrations/platform/2026_09_24_000001_create_larena_core_scopes_table.php",
+      "status": "R",
+      "sha256": "sha256:053ac3ddc6b061c9d2bf78291a1d6bbe76947284412f94891d1d412dc422e6fa"
+    },
+    {
+      "path": "database/migrations/platform/2026_09_24_000002_create_larena_core_planes_table.php",
+      "status": "R",
+      "sha256": "sha256:d7ca24134847f46f720e892af5c81975a67ad7228e6914fa43d9389318ccaaec"
+    },
+    {
+      "path": "database/migrations/platform/2026_09_24_000003_create_larena_core_plane_nodes_table.php",
+      "status": "R",
+      "sha256": "sha256:cef89d9f7768e1cd92c4bbbf2520804d22803ab6bf1f04ab56ef8e0fb9989b34"
+    },
+    {
+      "path": "database/migrations/platform/2026_09_24_000004_create_larena_core_memberships_table.php",
+      "status": "R",
+      "sha256": "sha256:b9c3bfab321ba0aa24868b48c5b61bd84e7260ac913b5e4cfd54026c8d49618e"
+    },
+    {
+      "path": "src/Providers/CoreServiceProvider.php",
+      "status": "M",
+      "sha256": "sha256:fc218d80c8a564c68da93142388d8a4373f2c33076e60af0f83e554481c408c4"
+    }
+  ]
+}

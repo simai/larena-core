@@ -77,6 +77,39 @@ php artisan migrate --force
 The migrations are additive and reversible; rollback and re-apply both succeed
 on MySQL.
 
+## Root suite comparison
+
+The root suite was run on both repositories at `main` and again on the batch
+branches:
+
+| Run | Tests | Passed | Failed |
+| --- | --- | --- | --- |
+| baseline (`main` + `main`) | 1257 | 958 | 208 |
+| batch branches, first attempt | 1260 | 960 | 209 |
+| batch branches, after the fix | see below | | |
+
+The comparison showed exactly **one** new failure and no fixed ones:
+
+```
+Tests\Feature\InstallerFoundationDiagnosticsTest::test_guarded_installer_db_schema_apply_runs_package_migrations_and_can_rollback
+```
+
+Cause: the guarded installer applies and rolls back every migration in
+`database/migrations` of the core package as its bootstrap schema, and the test
+rolls back with `--step 2` on that path. Four extra files there made the
+rollback remove the wrong migrations, leaving `larena_package_registry` in
+place.
+
+Fix: platform schema that is not installer bootstrap moved to
+`database/migrations/platform/` with its own `loadMigrationsFrom` registration.
+The installer path again holds exactly its two bootstrap migrations. After the
+fix the test passes and a fresh `php artisan migrate` still applies all four
+platform migrations.
+
+The other 208 failures are pre-existing on `main` and unrelated to this batch
+(auth identity lifecycle, composition workspace, admin diagnostics and other
+areas).
+
 ## Not covered by this batch
 
 No HTTP surface exists for scopes or planes, so there is no direct-HTTP

@@ -43,6 +43,16 @@
       "path": "app/Support/Larena/MinimalCmsFirstAdministratorCreator.php",
       "detail": "The core scope baseline and membership resolver are optional constructor parameters so that the pre-existing root unit test keeps working unchanged and an installation without the core scope tables keeps the previous behaviour.",
       "shape_impact": "none"
+    },
+    {
+      "id": "platform_migration_path",
+      "kind": "allowed_file_moved",
+      "path": "database/migrations/platform/2026_09_24_000001..4",
+      "declared_path": "database/migrations/2026_09_24_000001..4",
+      "detail": "The guarded installer applies and rolls back every migration in database/migrations as its bootstrap schema (InstallerDbSchemaApply::migrationPath), and the root test rollbackInstallerDbSchema uses --step 2 on that path. Four extra files there made the rollback remove the wrong migrations and left larena_package_registry in place.",
+      "shape_impact": "none: same four tables, same shapes; only the directory and a second loadMigrationsFrom in CoreServiceProvider",
+      "found_by": "root suite comparison against the main baseline: exactly one new failure, Tests\\Feature\\InstallerFoundationDiagnosticsTest::test_guarded_installer_db_schema_apply_runs_package_migrations_and_can_rollback",
+      "resolution": "platform schema that is not installer bootstrap lives in database/migrations/platform and is registered as its own migration path"
     }
   ],
   "no_deviation_areas": [
