@@ -1,0 +1,20 @@
+{
+  "schema": "larena.solution_manifest.v1",
+  "solution_id": "docara",
+  "version": "1.0.0",
+  "title": "Docara Documentation",
+  "author": "SIMAI",
+  "distribution": "simai_product",
+  "packages": ["larena/core", "larena/access", "larena/storage", "larena/docara"],
+  "scopes": ["site"],
+  "planes": ["org_chart"],
+  "structure_roles": ["doc_space", "doc_page"],
+  "editions": {
+    "free": { "capabilities": [] },
+    "pro": { "capabilities": ["larena.capability.docara.versioned_pages.v1"] }
+  },
+  "edition": "free",
+  "seed": { "sitepack": "docara/starter-space", "dry_run": true },
+  "assistant_profile": { "operations": ["core.solution.explain"], "max_risk": "read" },
+  "environment_requirements": ["writable_storage_path"]
+}

@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: platform-api
-batch: minimal-cms-v1-1-batch-5-wave-b-core-environment-profile
+batch: minimal-cms-v1-1-batch-5-wave-c-core-solution-descriptor
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -19,6 +19,7 @@ features:
   - core.package_registry_diagnostics
   - core.package_registry_seed_guarded_apply
   - core.runtime_security_cluster_smoke
+  - core.solution_descriptor
   - core.starter_cli_commands
   - core.first_run_state_machine
   - core.first_run_preflight

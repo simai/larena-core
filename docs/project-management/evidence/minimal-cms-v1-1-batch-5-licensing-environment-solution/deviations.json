@@ -1,41 +1,79 @@
 {
   "schema": "larena.batch_deviations.v1",
   "batch": "minimal-cms-v1-1-batch-5-licensing-environment-solution",
-  "wave": "B",
   "package": "larena/core",
-  "launch_record_ref": "docs/project-management/launch-records/minimal-cms-v1-1-batch-5-wave-b-core-environment-profile.json",
-  "deviations": [
-    {
-      "id": "mismatch_is_an_availability_difference",
-      "kind": "design_correction_during_batch",
-      "path": "src/Contracts/EnvironmentDiagnostic.php",
-      "detail": "The first rule reported any difference between a declared and a detected presence value. Wiring the profile into the doctor produced ten findings on an ordinary development machine, five of them 'declared absent, detected unknown' — not a disagreement, because both mean the capability is not there.",
-      "resolution": "A mismatch is a difference in availability. The raw difference stays readable through differs(). The same machine now reports five findings, every one a real difference. Ten findings is how an operator learns to ignore the environment section, which is worse than having none.",
-      "found_by": "running larena:doctor, not by reading the code",
-      "shape_impact": "none on the frozen profile document; the diagnostic gains one method"
-    },
-    {
-      "id": "probe_return_types_narrowed",
-      "kind": "implementation_choice",
-      "path": "src/Runtime/HostEnvironmentDetector.php",
-      "detail": "PHPStan objected that five default probes declared ?bool and always return bool.",
-      "resolution": "Those five declare bool; the storage-path probe keeps ?bool because it genuinely cannot answer without a path. The array's type still allows either, because 'I could not tell' has to be expressible.",
-      "shape_impact": "none"
-    },
-    {
-      "id": "declare_returns_rather_than_persists",
-      "kind": "boundary_decision",
-      "path": "src/Runtime/EnvironmentOperationHandlers.php",
-      "detail": "core.environment.declare validates a profile document and returns it with its fingerprint; it does not store it.",
-      "resolution": "Where a declaration lives is an application concern and core owns no table for it, which is also why this batch adds no migration. Recorded so a later batch knows the persistence decision is still open.",
-      "shape_impact": "none"
-    }
-  ],
   "no_deviation_areas": [
     "the capability key set, the three-valued presence enum, the unknown-is-absent rule, the ordinary-hosting profile and the four operations follow the freeze exactly",
     "detection never writes a declaration",
     "no table, no migration, no HTTP surface",
     "OperationDescriptor and SyncOperationRuntime are untouched",
     "no change to any package other than larena/core"
-  ]
+  ],
+  "waves": [
+    "B",
+    "C"
+  ],
+  "deviations_by_wave": {
+    "B": [
+      {
+        "id": "mismatch_is_an_availability_difference",
+        "kind": "design_correction_during_batch",
+        "path": "src/Contracts/EnvironmentDiagnostic.php",
+        "detail": "The first rule reported any difference between a declared and a detected presence value. Wiring the profile into the doctor produced ten findings on an ordinary development machine, five of them 'declared absent, detected unknown' — not a disagreement, because both mean the capability is not there.",
+        "resolution": "A mismatch is a difference in availability. The raw difference stays readable through differs(). The same machine now reports five findings, every one a real difference. Ten findings is how an operator learns to ignore the environment section, which is worse than having none.",
+        "found_by": "running larena:doctor, not by reading the code",
+        "shape_impact": "none on the frozen profile document; the diagnostic gains one method"
+      },
+      {
+        "id": "probe_return_types_narrowed",
+        "kind": "implementation_choice",
+        "path": "src/Runtime/HostEnvironmentDetector.php",
+        "detail": "PHPStan objected that five default probes declared ?bool and always return bool.",
+        "resolution": "Those five declare bool; the storage-path probe keeps ?bool because it genuinely cannot answer without a path. The array's type still allows either, because 'I could not tell' has to be expressible.",
+        "shape_impact": "none"
+      },
+      {
+        "id": "declare_returns_rather_than_persists",
+        "kind": "boundary_decision",
+        "path": "src/Runtime/EnvironmentOperationHandlers.php",
+        "detail": "core.environment.declare validates a profile document and returns it with its fingerprint; it does not store it.",
+        "resolution": "Where a declaration lives is an application concern and core owns no table for it, which is also why this batch adds no migration. Recorded so a later batch knows the persistence decision is still open.",
+        "shape_impact": "none"
+      }
+    ],
+    "C": [
+      {
+        "id": "environment_requirement_reason_code_added",
+        "kind": "frozen_contract_extension",
+        "path": "src/Runtime/SolutionPlanner.php",
+        "detail": "The freeze lists four topology reason codes, none of which covers a node whose requirement the host does not meet — yet the freeze also requires that case to be refused naming the capability.",
+        "resolution": "Added environment_requirement_unmet alongside them, with the missing capabilities listed separately so a reader sees which one. Recorded as an amendment on the launch record.",
+        "shape_impact": "one reason code added to the topology report; nothing removed or renamed"
+      },
+      {
+        "id": "cluster_threshold_chosen",
+        "kind": "implementation_choice",
+        "path": "src/Contracts/SolutionManifest.php",
+        "detail": "The freeze distinguishes 'more than one node' from 'a cluster' without saying where the line is.",
+        "resolution": "More than two nodes is a cluster. A pair is the ordinary web-and-worker split and needs remote operations; three or more is a topology somebody has to operate, which is what the cluster capability is for. Stated in isCluster() and in the document.",
+        "shape_impact": "none on the manifest; one rule now explicit"
+      },
+      {
+        "id": "installed_set_is_a_plain_map",
+        "kind": "implementation_choice",
+        "path": "src/Runtime/SolutionPlanner.php",
+        "detail": "Conflict detection needs to know what is already installed, and there is no installed-solution registry in this batch.",
+        "resolution": "The planner takes a map keyed by solution id. No new contract, and no table: this batch plans and nothing owns an installed set yet.",
+        "shape_impact": "none"
+      },
+      {
+        "id": "registry_count_assertions_updated",
+        "kind": "necessary_consequence",
+        "path": "tests/Unit/DeclaredOperationRegistryTest.php",
+        "detail": "Five new operations invalidate the asserted core operation count in two package tests and one root composition test.",
+        "resolution": "26 became 31 in all three. The counts are asserted rather than derived on purpose — an operation appearing without anyone noticing is what they are for.",
+        "shape_impact": "none"
+      }
+    ]
+  }
 }

@@ -1635,3 +1635,311 @@ operations:
         - 'capabilities'
         - 'fingerprint'
         - 'unknown_is_absent'
+
+  - name: 'core.solution.validate'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.solution.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        manifest:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+      required:
+        - 'manifest'
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        schema:
+          type: 'string'
+          maxLength: 64
+        solution_id:
+          type: 'string'
+          maxLength: 63
+        version:
+          type: 'string'
+          maxLength: 32
+        distribution:
+          type: 'string'
+          enum:
+            - 'simai_product'
+            - 'partner_marketplace'
+            - 'local_customization'
+        node_count:
+          type: 'integer'
+      required:
+        - 'schema'
+        - 'solution_id'
+        - 'version'
+        - 'distribution'
+        - 'node_count'
+
+  - name: 'core.solution.plan_install'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.solution.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        manifest:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+        installed:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+      required:
+        - 'manifest'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        action:
+          type: 'string'
+          enum:
+            - 'install'
+            - 'upgrade'
+        solution_id:
+          type: 'string'
+          maxLength: 63
+        from_version:
+          type: 'string'
+          maxLength: 32
+        to_version:
+          type: 'string'
+          maxLength: 32
+        actionable:
+          type: 'boolean'
+        steps:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 512
+        conflicts:
+          type: 'array'
+          items:
+            type: 'object'
+            additionalProperties: false
+            properties:
+              class:
+                type: 'string'
+                enum:
+                  - 'scope'
+                  - 'plane'
+                  - 'structure_role'
+                  - 'package'
+              key:
+                type: 'string'
+                maxLength: 191
+              held_by:
+                type: 'string'
+                maxLength: 63
+              reason_code:
+                type: 'string'
+                maxLength: 64
+            required:
+              - 'class'
+              - 'key'
+              - 'held_by'
+              - 'reason_code'
+        conflict_count:
+          type: 'integer'
+        reason_code:
+          type: 'string'
+          maxLength: 64
+        planning_only:
+          type: 'boolean'
+      required:
+        - 'action'
+        - 'solution_id'
+        - 'to_version'
+        - 'actionable'
+        - 'steps'
+        - 'conflicts'
+        - 'conflict_count'
+        - 'planning_only'
+
+  - name: 'core.solution.plan_upgrade'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.solution.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        manifest:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+        installed:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+      required:
+        - 'manifest'
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        action:
+          type: 'string'
+          enum:
+            - 'install'
+            - 'upgrade'
+        solution_id:
+          type: 'string'
+          maxLength: 63
+        actionable:
+          type: 'boolean'
+        reason_code:
+          type: 'string'
+          maxLength: 64
+        planning_only:
+          type: 'boolean'
+      required:
+        - 'action'
+        - 'solution_id'
+        - 'actionable'
+        - 'planning_only'
+
+  - name: 'core.solution.validate_topology'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.solution.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        manifest:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+      required:
+        - 'manifest'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        solution_id:
+          type: 'string'
+          maxLength: 63
+        node_count:
+          type: 'integer'
+        single_node:
+          type: 'boolean'
+        cluster:
+          type: 'boolean'
+        headless_nodes:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 63
+        allowed:
+          type: 'boolean'
+        reason_codes:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 64
+        missing_capabilities:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 96
+        missing_environment_capabilities:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 64
+        offline:
+          type: 'boolean'
+      required:
+        - 'solution_id'
+        - 'node_count'
+        - 'single_node'
+        - 'cluster'
+        - 'allowed'
+        - 'reason_codes'
+        - 'offline'
+
+  - name: 'core.solution.explain'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.solution.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties: {}
+      required: []
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        schema:
+          type: 'string'
+          maxLength: 64
+        top_level_keys:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 64
+        required_keys:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 64
+        distributions:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 32
+        conflict_classes:
+          type: 'array'
+          items:
+            type: 'string'
+            maxLength: 32
+        edition_rule:
+          type: 'string'
+          maxLength: 256
+        seed_rule:
+          type: 'string'
+          maxLength: 256
+        offline:
+          type: 'boolean'
+        installs:
+          type: 'boolean'
+      required:
+        - 'schema'
+        - 'top_level_keys'
+        - 'required_keys'
+        - 'distributions'
+        - 'conflict_classes'
+        - 'offline'
+        - 'installs'

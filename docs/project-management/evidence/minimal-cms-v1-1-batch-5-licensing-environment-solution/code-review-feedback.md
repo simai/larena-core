@@ -21,3 +21,19 @@ No independent review yet.
 5. **The fingerprint has no version.** If the capability key set ever grows, every
    fingerprint changes and every admitted node stops matching. A reviewer should decide
    whether the fingerprint needs its own version, separate from the profile's.
+
+---
+
+## Wave C — solution descriptor
+
+No independent review. The wave was implemented and verified in one line, the same
+gap recorded for waves A and B and for batches 1 through 4.
+
+Two things a reviewer should look at first:
+
+1. **The cluster threshold.** "More than two nodes" is my line, not the freeze's.
+   If a two-machine split should already require `distributed.cluster`, one
+   comparison changes and three assertions move with it.
+2. **The installed set.** A plain map keyed by solution id is enough to report
+   conflicts, but the day something owns an installed-solution registry, the
+   planner's signature is where that shows up.

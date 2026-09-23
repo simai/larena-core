@@ -144,7 +144,11 @@
             "@php tests/Unit/EnvironmentProfileTest.php",
             "@php tests/Unit/EnvironmentDetectionTest.php",
             "@php tests/Unit/EnvironmentVerificationTest.php",
-            "@php tests/Unit/EnvironmentFailsClosedTest.php"
+            "@php tests/Unit/EnvironmentFailsClosedTest.php",
+            "@php tests/Unit/SolutionManifestValidationTest.php",
+            "@php tests/Unit/SolutionPlannerConflictTest.php",
+            "@php tests/Unit/SolutionTopologyTest.php",
+            "@php tests/Unit/SolutionFailsClosedTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",

@@ -12,6 +12,7 @@ use Larena\Core\Runtime\EnvironmentOperationHandlers;
 use Larena\Core\Runtime\OperationRegistryOperationHandlers;
 use Larena\Core\Runtime\PlaneOperationHandlers;
 use Larena\Core\Runtime\ScopeOperationHandlers;
+use Larena\Core\Runtime\SolutionOperationHandlers;
 use Larena\Core\Runtime\TransportOperationHandlers;
 
 /**
@@ -76,6 +77,7 @@ final class CoreOperationProvider implements OperationProvider
             ...OperationRegistryOperationHandlers::descriptors(),
             ...TransportOperationHandlers::descriptors(),
             ...EnvironmentOperationHandlers::descriptors(),
+            ...SolutionOperationHandlers::descriptors(),
         ];
     }
 
@@ -104,6 +106,10 @@ final class CoreOperationProvider implements OperationProvider
 
         foreach (array_keys(EnvironmentOperationHandlers::descriptors()) as $name) {
             $refs[$name] = 'core.handler.environment';
+        }
+
+        foreach (array_keys(SolutionOperationHandlers::descriptors()) as $name) {
+            $refs[$name] = 'core.handler.solution';
         }
 
         return $refs;

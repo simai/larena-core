@@ -1,7 +1,7 @@
 {
   "schema": "larena.graph_sync_proposal.v1",
   "batch": "minimal-cms-v1-1-batch-5-licensing-environment-solution",
-  "wave": "B",
+  "wave": "B and C",
   "package": "larena/core",
   "canonical_update_allowed": false,
   "canonical_update_reason": "a package coding wave never writes the canonical graph",
@@ -33,6 +33,31 @@
         "a package that needs a capability the profile does not provide fails closed at install or activation: verify() answers the question and nothing calls it from the installer yet",
         "every core package must run on the ordinary-hosting profile: asserted for larena/core, not yet for every package",
         "the environment profile is the input a solution topology is validated against: wave C"
+      ]
+    },
+    {
+      "feature": "core.solution_descriptor",
+      "observed_state": "implemented",
+      "implemented": [
+        "a closed manifest schema larena.solution_manifest.v1 serving all three distributions",
+        "offline validation with a reason code for every refusal",
+        "an edition that changes only the enabled capability set",
+        "install and upgrade planning that writes nothing and reports every conflict of all four classes in one pass, each naming the incumbent",
+        "base compatibility enforced against a declared version range",
+        "seed data confined to SitePack, with raw SQL and direct table writes refused",
+        "an assistant profile that may only narrow",
+        "topology validation against the distributed entitlement and against the environment profile, with the headless marker declared rather than inferred",
+        "five read operations registered in the core registry",
+        "the Docara and Tracker manifests as fixtures"
+      ],
+      "not_implemented": [
+        "executing an install or an upgrade",
+        "an installed-solution registry",
+        "the assistant runtime the profile restricts",
+        "SitePack itself"
+      ],
+      "acceptance_covered": [
+        "solution_manifest_validation"
       ]
     }
   ],

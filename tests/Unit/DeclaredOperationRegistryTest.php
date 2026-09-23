@@ -43,7 +43,7 @@ try {
 // proof that the declarations and the descriptors agree.
 $coreRegistry = DeclaredOperationRegistry::fromProviders([new CoreOperationProvider()]);
 $all = $coreRegistry->list();
-assert(count($all) === 26, 'core registers every declared operation, got ' . count($all));
+assert(count($all) === 31, 'core registers every declared operation, got ' . count($all));
 assert($coreRegistry->has('core.scope.create'));
 assert($coreRegistry->has('core.transport.invoke_local'));
 assert($coreRegistry->handlerRefFor('core.scope.create') === 'core.handler.scope');

@@ -1,0 +1,195 @@
+{
+  "schema": "larena.pre_coding_launch_record.v1",
+  "id": "larena.launch.minimal_cms_v1_1.batch_5.wave_c.core_solution_descriptor",
+  "status": "ready_to_code",
+  "verdict": "ready_to_code",
+  "coding_started": false,
+  "created_at": "2026-09-23",
+  "cluster": "minimal_cms_v1_1_alignment",
+  "batch": "batch-5-licensing-environment-solution",
+  "wave": "C",
+  "target_package": "larena/core",
+  "target_repo": "simai/larena-core",
+  "expected_repository": "simai/larena-core",
+  "target_repository_path": "/Users/rim/Documents/GitHub/larena-workspace/packages/core",
+  "base_commit": "8883757",
+  "base_branch": "feature/minimal-cms-v1-1-batch-5-core-environment-profile",
+  "base_branch_rationale": "Wave C validates a topology against the environment profile wave B shipped, so it branches from wave B.",
+  "target_repository_state": {
+    "workspace_path_exists": true,
+    "is_git_repository": true,
+    "independent_repository": true,
+    "default_branch": "main",
+    "clean_at_record_time": true
+  },
+  "branch": "feature/minimal-cms-v1-1-batch-5-core-solution-descriptor",
+  "specs_commit": "10dadb75",
+  "larena_specs_commit": "def788cf",
+  "target_ref": "specs/project-management/larena-minimal-cms-v1-1-owner-amendment-target-state.json",
+  "target_semantic_digest": "sha256:cbbfa628327f11f1f2c958c9b24cc10334fba965b9cce232e40884a6f37a1d3f",
+  "package_repo_enforcement_ref": "specs/implementation-planning/repository-preparation/larena-core-enforcement-kit.json",
+  "pre_codegen_freeze_ref": "specs/implementation-planning/minimal-cms-v1-1-batch-5-pre-codegen-freeze.json",
+  "implementation_tz_ref": "docs/implementation-planning/minimal-cms-v1-1-alignment-batch-5-licensing-environment-solution.md",
+  "plan_ref": "docs/implementation-planning/minimal-cms-v1-1-alignment-cluster-plan.md",
+  "depends_on_batch": {
+    "batch": "batch-5-licensing-environment-solution",
+    "waves": [
+      "A",
+      "B"
+    ],
+    "core_commit": "8883757",
+    "licensing_commit": "024237f",
+    "state": "implemented_verified_pending_independent_review"
+  },
+  "owner_start_signal": {
+    "kind": "federation_goal",
+    "recorded_at": "2026-09-23",
+    "detail": "The owner set the goal to implement the whole cluster plan in batch order; this record bounds Batch 3 wave A."
+  },
+  "spec_refs": [
+    "specs/packages/core/package.json",
+    "specs/packages/core/features/solution-descriptor/feature.json"
+  ],
+  "dna_refs": [
+    "specs/packages/core/dna.json",
+    "specs/standards/larena-dna-standard.json"
+  ],
+  "feature_refs": [
+    "core.solution_descriptor"
+  ],
+  "selected_features": [
+    "core.solution_descriptor"
+  ],
+  "implementation_scope": {
+    "cluster": "minimal_cms_v1_1_alignment",
+    "batch": "batch-5-licensing-environment-solution",
+    "wave": "C",
+    "generation_mode": "interface-first",
+    "summary": "A validated solution manifest with a closed key set, an edition that changes only capabilities, offline validation and planning, conflict reporting over scopes, planes, structure roles and packages before any mutation, a topology validated against the distributed entitlement and the environment profile, an assistant profile that may only narrow, and the Docara and Tracker manifests as fixtures."
+  },
+  "allowed_files": [
+    ".larena/launch-context.json",
+    "CHANGELOG.md",
+    "access.yaml",
+    "audit.yaml",
+    "composer.json",
+    "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/*",
+    "docs/project-management/launch-records/minimal-cms-v1-1-batch-5-wave-c-core-solution-descriptor.json",
+    "docs/solution-descriptor.md",
+    "module.yaml",
+    "operations.yaml",
+    "phpstan.neon.dist",
+    "source/output/action-gates/*",
+    "src/Contracts/SolutionConflict.php",
+    "src/Contracts/SolutionEdition.php",
+    "src/Contracts/SolutionManifest.php",
+    "src/Contracts/SolutionPlan.php",
+    "src/Contracts/SolutionTopologyNode.php",
+    "src/Enums/SolutionConflictClass.php",
+    "src/Enums/SolutionDistribution.php",
+    "src/Exceptions/SolutionRejected.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Registry/CoreOperationProvider.php",
+    "src/Runtime/SolutionManifestValidator.php",
+    "src/Runtime/SolutionOperationHandlers.php",
+    "src/Runtime/SolutionPlanner.php",
+    "tests/Unit/DeclaredOperationRegistryTest.php",
+    "tests/Unit/OperationCoverageReportTest.php",
+    "tests/Unit/SolutionFailsClosedTest.php",
+    "tests/Unit/SolutionManifestValidationTest.php",
+    "tests/Unit/SolutionPlannerConflictTest.php",
+    "tests/Unit/SolutionTopologyTest.php",
+    "tests/fixtures/solutions/docara.json",
+    "tests/fixtures/solutions/tracker.json",
+    "tests/support/solution-fixtures.php"
+  ],
+  "forbidden_files": [
+    "src/Contracts/OperationDescriptor.php",
+    "src/Runtime/SyncOperationRuntime.php",
+    "src/FirstRun/*",
+    "src/Http/*",
+    "routes/*",
+    "api.yaml",
+    "mcp.yaml",
+    "database/migrations/*"
+  ],
+  "forbidden_files_note": "OperationDescriptor and SyncOperationRuntime are forbidden on purpose: the freeze enforces the v2 policy at registration precisely so that neither has to change.",
+  "forbidden_behavior": [
+    "executing an install or an upgrade",
+    "any network access from a validator or a planner",
+    "letting an edition change packages, scopes, planes or roles",
+    "letting an assistant profile add an operation or raise a risk class",
+    "accepting a manifest that declares raw SQL or a direct table write",
+    "accepting a multi-node topology without the distributed entitlement",
+    "adding a table or a migration",
+    "adding a public HTTP, REST or MCP surface",
+    "changing larena/licensing, larena/storage or any package other than larena/core",
+    "touching larena.test or any live environment",
+    "push, release or deployment without a separate owner request"
+  ],
+  "test_plan": "Plain-PHP package tests in the existing core style; no database.",
+  "required_tests": [
+    "a manifest validates offline and an unknown top-level key is refused",
+    "an edition that changes only the capability set is accepted and one that changes packages, scopes, planes or roles is refused",
+    "two solutions conflicting on a scope, a plane, a structure role and a package are each reported before any mutation",
+    "an upgrade that would move the base solution outside its declared range is refused",
+    "a manifest declaring raw SQL or a direct table write is refused",
+    "an assistant profile that adds an operation or raises a risk class is refused, and one that narrows is accepted",
+    "a single-node topology needs no entitlement; a two-node topology is refused without distributed.remote_operations and accepted with it",
+    "a node with no public surface is marked headless and the marker is declared rather than inferred",
+    "a topology whose node requires a capability the environment profile lacks is refused naming the capability",
+    "the Docara and Tracker fixtures both validate and plan"
+  ],
+  "smoke_plan": "Validation, planning and topology validation executed with no network available, and core:operations:coverage showing the solution codes as covered.",
+  "evidence_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/",
+  "required_evidence_files": [
+    "implementation-summary.md",
+    "tests.md",
+    "smoke.md",
+    "file-map.json",
+    "deviations.json",
+    "graph-sync-proposal.json",
+    "code-review-feedback.md"
+  ],
+  "graph_sync_proposal_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/graph-sync-proposal.json",
+  "dependency_revisions": {
+    "larena_specs": "10dadb75",
+    "larena_core": "8883757",
+    "larena_licensing": "024237f",
+    "larena_storage": "e37e7f2",
+    "larena_root": "eb828879"
+  },
+  "action_gate_summary": {
+    "phase": "preflight",
+    "status": "pending",
+    "note": "Re-run the action gate inside the core package repository at coding start."
+  },
+  "required_before_ready_to_code": [
+    "pre_codegen_freeze_accepted",
+    "implementation_tz_present",
+    "batch_3_verified_against_the_root_baseline",
+    "allowed_file_boundary_present",
+    "evidence_path_defined",
+    "graph_sync_proposal_path_defined"
+  ],
+  "required_before_coding_started": [
+    "batch_branch_created_in_storage",
+    "storage_package_repo_clean_at_launch",
+    "php_8_3_runtime_available",
+    "owner_start_signal"
+  ],
+  "stop_conditions": [
+    "a frozen manifest key set, conflict class, reason code or topology rule would have to change",
+    "a validator or planner would need network access",
+    "an install or upgrade would have to execute",
+    "a table or migration would be required",
+    "a file outside the allowed boundary would have to change",
+    "an unrecorded product or architecture decision is required"
+  ],
+  "not_a_release_authorization": true,
+  "nonclaims": [
+    "A launch record authorizes a bounded coding wave; it does not authorize push, release or deployment.",
+    "Wave C plans and validates. It installs nothing.",
+    "The two manifests it ships are fixtures, not installed solutions."
+  ]
+}

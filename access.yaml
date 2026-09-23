@@ -31,3 +31,6 @@ operations:
   - code: core.environment.declare
     risk: critical
     audit: always
+  - code: core.solution.read
+    risk: high
+    audit: denial

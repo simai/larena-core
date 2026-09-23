@@ -33,6 +33,9 @@ use Larena\Core\Registry\CoreOperationProvider;
 use Larena\Core\Runtime\DeclaredEnvironmentProfile;
 use Larena\Core\Runtime\EnvironmentOperationHandlers;
 use Larena\Core\Runtime\HostEnvironmentDetector;
+use Larena\Core\Runtime\SolutionManifestValidator;
+use Larena\Core\Runtime\SolutionOperationHandlers;
+use Larena\Core\Runtime\SolutionPlanner;
 use Larena\Core\Registry\DeclaredOperationRegistry;
 use Larena\Core\Registry\PackageDescriptorFileValidator;
 use Larena\Core\Contracts\OperationRuntime;
@@ -114,6 +117,23 @@ final class CoreServiceProvider extends ServiceProvider
                 $app->make(HostEnvironmentDetector::class),
             );
         });
+        $this->app->singleton(SolutionManifestValidator::class);
+
+        // No entitlement resolver is bound here, and that is the fail-closed
+        // default: a topology with more than one node is refused until something
+        // outside core says the installation holds the distributed capability.
+        // Planning itself stays free — a single-node plan never asks.
+        $this->app->bindIf(SolutionPlanner::class, static function (Application $app): SolutionPlanner {
+            return new SolutionPlanner(null, $app->make(EnvironmentProfile::class));
+        });
+
+        $this->app->singleton(SolutionOperationHandlers::class, static function (Application $app): SolutionOperationHandlers {
+            return new SolutionOperationHandlers(
+                $app->make(SolutionManifestValidator::class),
+                $app->make(SolutionPlanner::class),
+            );
+        });
+
         $this->app->bindIf(ConfirmationPolicy::class, RiskClassConfirmationPolicy::class);
 
         $this->app->bindIf(TopologyBinding::class, static fn (): TopologyBinding => new StaticTopologyBinding());

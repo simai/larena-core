@@ -1,0 +1,18 @@
+{
+  "schema": "larena.solution_manifest.v1",
+  "solution_id": "tracker",
+  "version": "2.1.0",
+  "title": "Tracker",
+  "author": "SIMAI",
+  "distribution": "simai_product",
+  "base_solution": { "solution_id": "minimal_cms", "min_version": "1.1.0", "max_version": "1.9.9" },
+  "packages": ["larena/core", "larena/access", "larena/storage", "larena/tracker"],
+  "scopes": ["site", "organization"],
+  "planes": ["org_chart"],
+  "structure_roles": ["tracker_board", "tracker_item"],
+  "topology": [
+    { "node_id": "web", "packages": ["larena/core", "larena/storage"], "roles": ["http"], "headless": false },
+    { "node_id": "worker", "packages": ["larena/core", "larena/tracker"], "roles": ["queue"], "headless": true }
+  ],
+  "environment_requirements": ["writable_storage_path", "queue_worker"]
+}

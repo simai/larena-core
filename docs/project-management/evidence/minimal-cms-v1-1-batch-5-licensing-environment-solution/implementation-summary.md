@@ -63,3 +63,42 @@ This was found by running the command, not by reading the code.
 `composer quality:gate` passes: lint, PHPStan level 5, 57 package tests including
 four new ones, metadata sync, evidence contract, scope check. The four environment
 operations register in the core registry, bringing it to 26.
+
+---
+
+## Wave C — solution descriptor
+
+Five read operations behind `core.solution.read`: `validate`, `plan_install`,
+`plan_upgrade`, `validate_topology` and `explain`. Core now declares 31
+operations.
+
+`SolutionManifestValidator` turns a document into a `SolutionManifest` or refuses
+it with a reason code. The top-level key set is closed, and so are the bodies of
+`editions`, `seed`, `assistant_profile`, `base_solution` and each topology node —
+each one closed for the same reason: a key this version does not understand would
+be silently ignored, and an installer that ignores a section is worse than one
+that refuses it.
+
+`SolutionPlanner` plans and validates. It writes nothing, reaches nothing, and
+reports every conflict of all four classes in one pass, each naming the key and the
+incumbent that holds it. A plan carries `planning_only: true` in its own output.
+
+Three decisions the freeze left to the implementation, all now explicit:
+
+- **More than two nodes is a cluster.** A pair is the web-and-worker split and
+  needs `distributed.remote_operations`; three or more is a topology somebody has
+  to operate, which is what `distributed.cluster` is for.
+- **A node whose environment requirement is unmet is refused** with
+  `environment_requirement_unmet`, listing the missing capabilities. The freeze
+  required the behaviour and named no code for it.
+- **The installed set is a plain map keyed by solution id.** Nothing owns an
+  installed-solution registry in this batch, and inventing a contract for one would
+  have been a table in disguise.
+
+Core binds no entitlement resolver, so the default composition refuses a
+multi-node topology — the same fail-closed posture Batch 3 gave the network
+transport. Planning itself stays free: a single-node plan never asks.
+
+The Docara and Tracker manifests ship as fixtures. Docara is the single-node
+product with editions and a SitePack seed; Tracker is the two-node case with a base
+solution and a version range. Neither is installed.
