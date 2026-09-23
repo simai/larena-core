@@ -86,7 +86,7 @@ branches:
 | --- | --- | --- | --- |
 | baseline (`main` + `main`) | 1257 | 958 | 208 |
 | batch branches, first attempt | 1260 | 960 | 209 |
-| batch branches, after the fix | see below | | |
+| batch branches, after the fix | 1260 | 961 | 208 |
 
 The comparison showed exactly **one** new failure and no fixed ones:
 
@@ -106,9 +106,20 @@ The installer path again holds exactly its two bootstrap migrations. After the
 fix the test passes and a fresh `php artisan migrate` still applies all four
 platform migrations.
 
-The other 208 failures are pre-existing on `main` and unrelated to this batch
-(auth identity lifecycle, composition workspace, admin diagnostics and other
-areas).
+After the fix the branch failure set is **identical to the baseline**: 208
+failures, zero new, zero fixed, and three more passing tests (the new root
+membership tests). The 208 are pre-existing on `main` and unrelated to this
+batch (auth identity lifecycle, composition workspace, admin diagnostics and
+other areas).
+
+Commands:
+
+```
+git -C larena-workspace/packages/core checkout main && git -C larena checkout main
+php vendor/bin/phpunit            # baseline: 1257 tests, 958 passed, 208 failed
+git checkout feature/minimal-cms-v1-1-batch-1-core-scopes-planes  # both repos
+php vendor/bin/phpunit            # branch:   1260 tests, 961 passed, 208 failed
+```
 
 ## Not covered by this batch
 
