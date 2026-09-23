@@ -93,6 +93,7 @@
     "scripts": {
         "test": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/CatalogOperationExecutionTest.php",
             "@php tests/Unit/OperationRuntimeFailsClosedTest.php",
             "@php tests/Unit/SyncOperationRuntimeTest.php",
             "@php tests/Unit/SyncOperationRuntimeFailsClosedTest.php",
@@ -152,6 +153,7 @@
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/CatalogOperationExecutionTest.php",
             "@php tests/Unit/OperationRuntimeFailsClosedTest.php",
             "@php tests/Unit/SyncOperationRuntimeTest.php",
             "@php tests/Unit/SyncOperationRuntimeFailsClosedTest.php",

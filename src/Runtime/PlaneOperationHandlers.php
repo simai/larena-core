@@ -7,6 +7,7 @@ namespace Larena\Core\Runtime;
 use Larena\Core\Contracts\OperationContext;
 use Larena\Core\Contracts\OperationDescriptor;
 use Larena\Core\Contracts\OperationHandler;
+use Larena\Core\Contracts\OperationProposalHandler;
 use Larena\Core\Enums\OperationExecutionMode;
 use Larena\Core\Enums\OperationRiskClass;
 use Larena\Core\Enums\PlaneKind;
@@ -20,7 +21,7 @@ use Larena\Core\Scope\ScopeRef;
  * Declared plane, node and membership operations. Core stores and resolves
  * them; products and solutions decide what a plane means.
  */
-final class PlaneOperationHandlers implements OperationHandler
+final class PlaneOperationHandlers implements OperationHandler, OperationProposalHandler
 {
     public function __construct(
         private readonly DatabasePlaneRegistry $planes,
@@ -153,6 +154,41 @@ final class PlaneOperationHandlers implements OperationHandler
             'core.plane.resolve_ancestry' => $this->resolveAncestry($context),
             'core.plane.explain' => $this->planes->explain($this->string($context, 'plane_id')),
             default => throw new ScopeBoundaryViolation('unknown_operation', sprintf('Operation "%s" is not a plane operation.', $descriptor->name)),
+        };
+    }
+
+    /**
+     * What a plane change would do, read without making it. A move names the
+     * node's current ancestry, so an approver sees where it leaves from.
+     *
+     * @return array<string, mixed>
+     */
+    public function propose(OperationDescriptor $descriptor, OperationContext $context): array
+    {
+        return match ($descriptor->name) {
+            'core.plane.node.create' => [
+                'kind' => 'create_node',
+                'plane_id' => $this->string($context, 'plane_id'),
+                'node_key' => $this->string($context, 'node_key'),
+                'parent_node_id' => $this->optionalString($context, 'parent_node_id'),
+            ],
+            'core.plane.node.move' => [
+                'kind' => 'move_node',
+                'node_id' => $this->string($context, 'node_id'),
+                'parent_node_id' => $this->optionalString($context, 'parent_node_id'),
+                'order_index' => $this->optionalInt($context, 'order_index'),
+                'current_ancestry' => array_map(
+                    static fn ($node): string => $node->nodeId,
+                    $this->memberships->ancestryOf($this->string($context, 'node_id')),
+                ),
+            ],
+            'core.plane.node.archive' => ['kind' => 'archive_node', 'node_id' => $this->string($context, 'node_id')],
+            'core.plane.membership.assign', 'core.plane.membership.revoke' => [
+                'kind' => $descriptor->name === 'core.plane.membership.assign' ? 'assign_membership' : 'revoke_membership',
+                'node_id' => $this->string($context, 'node_id'),
+                'subject_ref' => $this->string($context, 'subject_ref'),
+            ],
+            default => throw new \Larena\Core\Exceptions\OperationProposalUnsupported($descriptor->name),
         };
     }
 

@@ -1,0 +1,45 @@
+{
+  "schema": "larena.batch_evidence.v1",
+  "batch": "batch-7-admin-headless",
+  "wave": "D1",
+  "package": "larena/core",
+  "status": "evidence",
+  "files": [
+    {
+      "path": "src/Runtime/OperationHandlerCatalog.php",
+      "change": "new: handler reference to lazily built handler"
+    },
+    {
+      "path": "src/Runtime/CatalogOperationHandler.php",
+      "change": "new: dispatches by the registry's handler reference; proposals too"
+    },
+    {
+      "path": "src/Runtime/ConnectionOperationTransactionBoundary.php",
+      "change": "new: one transaction per transactional operation, no ambient one"
+    },
+    {
+      "path": "src/Runtime/UndeclaredCapabilityGate.php",
+      "change": "new: fails closed on a required capability"
+    },
+    {
+      "path": "src/Exceptions/OperationProposalUnsupported.php",
+      "change": "new"
+    },
+    {
+      "path": "src/Runtime/RegistryOperationRuntime.php",
+      "change": "an unsupported proposal is a proposal_unsupported rejection, not an exception"
+    },
+    {
+      "path": "src/Runtime/PlaneOperationHandlers.php",
+      "change": "implements OperationProposalHandler for node create, move, archive and membership"
+    },
+    {
+      "path": "src/Providers/CoreServiceProvider.php",
+      "change": "binds the catalog with core's scope, plane, operation-registry, environment and solution handlers, and CatalogOperationHandler"
+    },
+    {
+      "path": "tests/Unit/CatalogOperationExecutionTest.php",
+      "change": "new"
+    }
+  ]
+}

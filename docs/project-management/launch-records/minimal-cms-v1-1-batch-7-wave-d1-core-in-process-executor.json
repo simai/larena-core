@@ -1,0 +1,42 @@
+{
+  "schema": "larena.pre_coding_launch_record.v1",
+  "id": "larena.launch.minimal_cms_v1_1.batch_7.wave_d1.core_in_process_executor",
+  "status": "coding_started",
+  "coding_started": true,
+  "created_at": "2026-09-23",
+  "cluster": "minimal_cms_v1_1_alignment",
+  "batch": "batch-7-admin-headless",
+  "wave": "D1",
+  "target_package": "larena/core",
+  "branch": "feature/minimal-cms-v1-1-batch-7-d1-in-process-executor",
+  "base_commit": "4f293edc",
+  "owner_decision": "batch 7 wave D full scope (2026-09-23)",
+  "plan_ref": "simai/larena-specs:docs/implementation-planning/minimal-cms-v1-1-batch-7-wave-d-full-scope.md",
+  "reason": "Registry operations had no runtime outside REST. Core now serves every registered operation by the handler its declaration names (OperationHandlerCatalog + CatalogOperationHandler), wraps transactional operations in its own ConnectionOperationTransactionBoundary, denies any required capability through UndeclaredCapabilityGate, and plane operations describe their change before making it, so a bulk node move can be proposed and approved.",
+  "allowed_files": [
+    ".larena/launch-context.json",
+    "CHANGELOG.md",
+    "composer.json",
+    "docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless/*",
+    "docs/project-management/launch-records/minimal-cms-v1-1-batch-7-wave-d1-core-in-process-executor.json",
+    "module.yaml",
+    "src/Exceptions/OperationProposalUnsupported.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Runtime/CatalogOperationHandler.php",
+    "src/Runtime/ConnectionOperationTransactionBoundary.php",
+    "src/Runtime/OperationHandlerCatalog.php",
+    "src/Runtime/PlaneOperationHandlers.php",
+    "src/Runtime/RegistryOperationRuntime.php",
+    "src/Runtime/UndeclaredCapabilityGate.php",
+    "tests/Unit/CatalogOperationExecutionTest.php"
+  ],
+  "forbidden_behavior": [
+    "changing an operation declaration, key, risk class or handler reference",
+    "joining an ambient transaction",
+    "waving through a required capability",
+    "registering the transport handler (network transport is out of scope)"
+  ],
+  "nonclaims": [
+    "A launch record authorizes a bounded coding wave; it does not authorize release or deployment."
+  ]
+}

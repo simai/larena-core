@@ -2,7 +2,7 @@ package: larena/core
 title: Larena Core
 status: coding_started
 cluster: platform-api
-batch: minimal-cms-v1-1-batch-6-wave-a-core-first-run-site
+batch: minimal-cms-v1-1-batch-7-wave-d1-core-in-process-executor
 features:
   - core.assets.activation_contract
   - core.assets.verified_immutable_distribution_publication
@@ -70,4 +70,4 @@ runtime:
   php: "^8.3"
   laravel: "^13.0"
 evidence:
-  path: docs/project-management/evidence/minimal-cms-v1-1-batch-6-content-retirement
+  path: docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless

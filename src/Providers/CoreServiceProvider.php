@@ -47,6 +47,11 @@ use Larena\Core\Scope\DatabaseScopeRegistry;
 use Larena\Core\Starter\ScopeBaselineInstaller;
 use Larena\Core\WebInstall\WebInstallCoordinator;
 use Larena\Core\WebInstall\LaravelWebInstallDatabaseLifecycle;
+use Larena\Core\Runtime\CatalogOperationHandler;
+use Larena\Core\Runtime\OperationHandlerCatalog;
+use Larena\Core\Runtime\OperationRegistryOperationHandlers;
+use Larena\Core\Runtime\PlaneOperationHandlers;
+use Larena\Core\Runtime\ScopeOperationHandlers;
 use Larena\Core\WebInstall\NullWebInstallPostMigrationHook;
 use Larena\Core\WebInstall\WebInstallDatabaseLifecycle;
 use Larena\Core\WebInstall\WebInstallPostMigrationHook;
@@ -97,6 +102,27 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->alias(DeclaredOperationRegistry::class, OperationRegistry::class);
 
         $this->app->singleton(PackageDescriptorFileValidator::class);
+
+        // Handler references to handlers, for executing registry operations
+        // inside the application. Each package registers the references it
+        // owns; core registers its own here.
+        $this->app->singleton(OperationHandlerCatalog::class, static function (Application $app): OperationHandlerCatalog {
+            $catalog = new OperationHandlerCatalog();
+            $catalog->register('core.handler.scope', static fn (): ScopeOperationHandlers => new ScopeOperationHandlers($app->make(DatabaseScopeRegistry::class)));
+            $catalog->register('core.handler.plane', static fn (): PlaneOperationHandlers => new PlaneOperationHandlers(
+                $app->make(DatabasePlaneRegistry::class),
+                $app->make(DatabaseMembershipResolver::class),
+            ));
+            $catalog->register('core.handler.operation_registry', static fn (): OperationRegistryOperationHandlers => new OperationRegistryOperationHandlers($app->make(OperationRegistry::class)));
+            $catalog->register('core.handler.environment', static fn (): EnvironmentOperationHandlers => $app->make(EnvironmentOperationHandlers::class));
+            $catalog->register('core.handler.solution', static fn (): SolutionOperationHandlers => $app->make(SolutionOperationHandlers::class));
+
+            return $catalog;
+        });
+        $this->app->bind(CatalogOperationHandler::class, static fn (Application $app): CatalogOperationHandler => new CatalogOperationHandler(
+            $app->make(OperationRegistry::class),
+            $app->make(OperationHandlerCatalog::class),
+        ));
 
         // Ordinary hosting is the default because it is the profile this platform
         // targets: no worker, no Redis, no search engine. An installation that has

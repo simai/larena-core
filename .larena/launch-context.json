@@ -3,23 +3,31 @@
   "package": "larena/core",
   "repository_class": "continuation_repository",
   "repository_contains_prior_implementation": true,
-  "launch_record_ref": "docs/project-management/launch-records/minimal-cms-v1-1-batch-6-wave-a-core-first-run-site.json",
+  "launch_record_ref": "docs/project-management/launch-records/minimal-cms-v1-1-batch-7-wave-d1-core-in-process-executor.json",
   "specs_repo": "simai/larena-specs",
-  "specs_commit": "94f6d9cc",
+  "specs_commit": "5393018b",
   "target_id": "larena.target.minimal_cms_v1_1",
   "semantic_digest": "sha256:cbbfa628327f11f1f2c958c9b24cc10334fba965b9cce232e40884a6f37a1d3f",
-  "base_commit": "7e44838",
+  "base_commit": "4f293edc",
   "selected_features": [
     "core.scope_model"
   ],
   "allowed_files": [
     ".larena/launch-context.json",
     "CHANGELOG.md",
-    "docs/project-management/evidence/minimal-cms-v1-1-batch-6-content-retirement/*",
-    "docs/project-management/launch-records/minimal-cms-v1-1-batch-6-wave-a-core-first-run-site.json",
+    "composer.json",
+    "docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless/*",
+    "docs/project-management/launch-records/minimal-cms-v1-1-batch-7-wave-d1-core-in-process-executor.json",
     "module.yaml",
-    "src/FirstRun/FirstRunCoordinator.php",
-    "tests/Unit/FirstRunCoordinatorTest.php"
+    "src/Exceptions/OperationProposalUnsupported.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Runtime/CatalogOperationHandler.php",
+    "src/Runtime/ConnectionOperationTransactionBoundary.php",
+    "src/Runtime/OperationHandlerCatalog.php",
+    "src/Runtime/PlaneOperationHandlers.php",
+    "src/Runtime/RegistryOperationRuntime.php",
+    "src/Runtime/UndeclaredCapabilityGate.php",
+    "tests/Unit/CatalogOperationExecutionTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
@@ -32,13 +40,10 @@
     "database/migrations/*"
   ],
   "forbidden_behavior": [
-    "letting detection overwrite a declared value",
-    "treating unknown as present",
-    "putting a path, a credential, a host name or any secret into a diagnostic",
-    "adding a table or a migration",
-    "changing OperationDescriptor or SyncOperationRuntime",
-    "adding a public HTTP, REST or MCP surface",
-    "changing larena/licensing, larena/storage or any package other than larena/core",
+    "changing an operation declaration, key, risk class or handler reference",
+    "joining an ambient transaction",
+    "waving through a required capability",
+    "registering the transport handler (network transport is out of scope)",
     "touching larena.test or any live environment",
     "push, release or deployment without a separate owner request"
   ],
@@ -51,13 +56,13 @@
     "graph-sync-proposal.json",
     "code-review-feedback.md"
   ],
-  "evidence_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-6-content-retirement",
-  "graph_sync_proposal_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-6-content-retirement/graph-sync-proposal.json",
+  "evidence_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless",
+  "graph_sync_proposal_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless/graph-sync-proposal.json",
   "status": "coding_started",
   "coding_allowed": true,
   "coding_started": true,
   "repository_enforcement_installed": true,
   "review_completed": false,
   "next_transition": "package_commit",
-  "coding_branch": "feature/minimal-cms-v1-1-batch-6-core-first-run-site"
+  "coding_branch": "feature/minimal-cms-v1-1-batch-7-d1-in-process-executor"
 }

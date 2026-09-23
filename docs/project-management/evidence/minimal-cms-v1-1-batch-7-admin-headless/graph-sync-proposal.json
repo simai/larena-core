@@ -1,0 +1,15 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "batch": "batch-7-admin-headless",
+  "wave": "D1",
+  "package": "larena/core",
+  "status": "evidence",
+  "canonical_update_allowed": false,
+  "canonical_update_reason": "a package coding wave never writes the canonical graph",
+  "feature_observations": [
+    {
+      "feature": "core.operation_registry",
+      "observation": "Registry operations had no runtime outside REST. Core now serves every registered operation by the handler its declaration names (OperationHandlerCatalog + CatalogOperationHandler), wraps transactional operations in its own ConnectionOperationTransactionBoundary, denies any required capability through UndeclaredCapabilityGate, and plane operations describe their change before making it, so a bulk node move can be proposed and approved."
+    }
+  ]
+}

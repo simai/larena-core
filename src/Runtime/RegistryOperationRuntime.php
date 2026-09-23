@@ -16,6 +16,7 @@ use Larena\Core\Contracts\OperationResult;
 use Larena\Core\Contracts\OperationRuntime;
 use Larena\Core\Enums\OperationDecisionStatus;
 use Larena\Core\Enums\OperationInvocationMode;
+use Larena\Core\Exceptions\OperationProposalUnsupported;
 
 /**
  * Entry point for a registered operation.
@@ -59,7 +60,14 @@ final readonly class RegistryOperationRuntime
             // A read has nothing to propose: running it *is* the preview.
             $intendedChange = ['kind' => 'read', 'reads' => $operationName];
         } elseif ($this->handler instanceof OperationProposalHandler) {
-            $intendedChange = $this->handler->propose($descriptor, $context);
+            try {
+                $intendedChange = $this->handler->propose($descriptor, $context);
+            } catch (OperationProposalUnsupported) {
+                return $this->rejected(
+                    'proposal_unsupported',
+                    'The handler for this operation cannot describe a change without making it.',
+                );
+            }
         } else {
             return $this->rejected(
                 'proposal_unsupported',
