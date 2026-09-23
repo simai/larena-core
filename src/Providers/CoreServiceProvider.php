@@ -19,6 +19,7 @@ use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
 use Larena\Core\FirstRun\FirstRunPreflightService;
 use Larena\Core\Contracts\ConfirmationPolicy;
+use Larena\Core\Contracts\EnvironmentProfile;
 use Larena\Core\Contracts\MembershipResolver;
 use Larena\Core\Contracts\OperationRegistry;
 use Larena\Core\Contracts\TopologyBinding;
@@ -29,6 +30,9 @@ use Larena\Core\Contracts\ScopeRegistry;
 use Larena\Core\Plane\DatabaseMembershipResolver;
 use Larena\Core\Plane\DatabasePlaneRegistry;
 use Larena\Core\Registry\CoreOperationProvider;
+use Larena\Core\Runtime\DeclaredEnvironmentProfile;
+use Larena\Core\Runtime\EnvironmentOperationHandlers;
+use Larena\Core\Runtime\HostEnvironmentDetector;
 use Larena\Core\Registry\DeclaredOperationRegistry;
 use Larena\Core\Registry\PackageDescriptorFileValidator;
 use Larena\Core\Contracts\OperationRuntime;
@@ -90,6 +94,26 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->alias(DeclaredOperationRegistry::class, OperationRegistry::class);
 
         $this->app->singleton(PackageDescriptorFileValidator::class);
+
+        // Ordinary hosting is the default because it is the profile this platform
+        // targets: no worker, no Redis, no search engine. An installation that has
+        // more says so by declaring its own profile, rather than the platform
+        // assuming capabilities it cannot see.
+        $this->app->bindIf(
+            EnvironmentProfile::class,
+            static fn (): EnvironmentProfile => DeclaredEnvironmentProfile::ordinaryHosting(),
+        );
+
+        $this->app->singleton(HostEnvironmentDetector::class, static function (Application $app): HostEnvironmentDetector {
+            return HostEnvironmentDetector::forHost($app->storagePath());
+        });
+
+        $this->app->singleton(EnvironmentOperationHandlers::class, static function (Application $app): EnvironmentOperationHandlers {
+            return new EnvironmentOperationHandlers(
+                $app->make(EnvironmentProfile::class),
+                $app->make(HostEnvironmentDetector::class),
+            );
+        });
         $this->app->bindIf(ConfirmationPolicy::class, RiskClassConfirmationPolicy::class);
 
         $this->app->bindIf(TopologyBinding::class, static fn (): TopologyBinding => new StaticTopologyBinding());

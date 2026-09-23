@@ -1,0 +1,198 @@
+{
+  "schema": "larena.pre_coding_launch_record.v1",
+  "id": "larena.launch.minimal_cms_v1_1.batch_5.wave_b.core_environment_profile",
+  "status": "ready_to_code",
+  "verdict": "ready_to_code",
+  "coding_started": false,
+  "created_at": "2026-09-23",
+  "cluster": "minimal_cms_v1_1_alignment",
+  "batch": "batch-5-licensing-environment-solution",
+  "wave": "B",
+  "target_package": "larena/core",
+  "target_repo": "simai/larena-core",
+  "expected_repository": "simai/larena-core",
+  "target_repository_path": "/Users/rim/Documents/GitHub/larena-workspace/packages/core",
+  "base_commit": "af09e6e",
+  "base_branch": "feature/minimal-cms-v1-1-batch-3-operation-registry",
+  "base_branch_rationale": "Wave B branches from the Batch 3 branch because core has no other open line and the operation registry it registers into lives there.",
+  "target_repository_state": {
+    "workspace_path_exists": true,
+    "is_git_repository": true,
+    "independent_repository": true,
+    "default_branch": "main",
+    "clean_at_record_time": true
+  },
+  "branch": "feature/minimal-cms-v1-1-batch-5-core-environment-profile",
+  "secondary_repositories": [
+    {
+      "repository": "simai/larena-specs",
+      "purpose": "declare the two distributed capabilities in the G4.1 contract and regenerate specs/capabilities/registry.json",
+      "allowed_files": [
+        "specs/project-management/larena-g4-1-commercial-capability-contract.json",
+        "specs/capabilities/registry.json",
+        "generated/reports/commercial-capability-adapter-ecosystem.json",
+        "generated/reports/commercial-capability-adapter-ecosystem.md"
+      ]
+    }
+  ],
+  "specs_commit": "def788cf",
+  "larena_specs_commit": "def788cf",
+  "target_ref": "specs/project-management/larena-minimal-cms-v1-1-owner-amendment-target-state.json",
+  "target_semantic_digest": "sha256:cbbfa628327f11f1f2c958c9b24cc10334fba965b9cce232e40884a6f37a1d3f",
+  "package_repo_enforcement_ref": "specs/implementation-planning/repository-preparation/larena-core-enforcement-kit.json",
+  "pre_codegen_freeze_ref": "specs/implementation-planning/minimal-cms-v1-1-batch-5-pre-codegen-freeze.json",
+  "implementation_tz_ref": "docs/implementation-planning/minimal-cms-v1-1-alignment-batch-5-licensing-environment-solution.md",
+  "plan_ref": "docs/implementation-planning/minimal-cms-v1-1-alignment-cluster-plan.md",
+  "depends_on_batch": {
+    "batch": "batch-5-licensing-environment-solution",
+    "wave": "A",
+    "licensing_commit": "024237f",
+    "state": "implemented_verified_pending_independent_review"
+  },
+  "owner_start_signal": {
+    "kind": "federation_goal",
+    "recorded_at": "2026-09-23",
+    "detail": "The owner set the goal to implement the whole cluster plan in batch order; this record bounds Batch 3 wave A."
+  },
+  "spec_refs": [
+    "specs/packages/core/package.json",
+    "specs/packages/core/features/environment-profile/feature.json"
+  ],
+  "dna_refs": [
+    "specs/packages/core/dna.json",
+    "specs/standards/larena-dna-standard.json"
+  ],
+  "feature_refs": [
+    "core.environment_profile"
+  ],
+  "selected_features": [
+    "core.environment_profile"
+  ],
+  "implementation_scope": {
+    "cluster": "minimal_cms_v1_1_alignment",
+    "batch": "batch-5-licensing-environment-solution",
+    "wave": "B",
+    "generation_mode": "interface-first",
+    "summary": "A declared, versioned environment profile listing host capabilities as present, absent or unknown, where unknown is absent; detection that reports a mismatch as a diagnostic and never overwrites a declaration; verification that fails closed naming every missing capability; the ordinary-hosting profile as first class; and diagnostics that name capabilities and never a path, a credential or a host."
+  },
+  "allowed_files": [
+    ".larena/launch-context.json",
+    "CHANGELOG.md",
+    "access.yaml",
+    "audit.yaml",
+    "composer.json",
+    "docs/environment-profile.md",
+    "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/*",
+    "docs/project-management/launch-records/minimal-cms-v1-1-batch-5-wave-b-core-environment-profile.json",
+    "module.yaml",
+    "operations.yaml",
+    "phpstan.neon.dist",
+    "source/output/action-gates/*",
+    "src/Console/Commands/DoctorCommand.php",
+    "src/Contracts/EnvironmentCapabilityState.php",
+    "src/Contracts/EnvironmentDiagnostic.php",
+    "src/Contracts/EnvironmentProfile.php",
+    "src/Contracts/EnvironmentVerification.php",
+    "src/Enums/CapabilityPresence.php",
+    "src/Enums/EnvironmentCapability.php",
+    "src/Exceptions/EnvironmentProfileRejected.php",
+    "src/Providers/CoreServiceProvider.php",
+    "src/Registry/CoreOperationProvider.php",
+    "src/Runtime/DeclaredEnvironmentProfile.php",
+    "src/Runtime/EnvironmentFingerprint.php",
+    "src/Runtime/EnvironmentOperationHandlers.php",
+    "src/Runtime/HostEnvironmentDetector.php",
+    "tests/Unit/DeclaredOperationRegistryTest.php",
+    "tests/Unit/EnvironmentDetectionTest.php",
+    "tests/Unit/EnvironmentFailsClosedTest.php",
+    "tests/Unit/EnvironmentProfileTest.php",
+    "tests/Unit/EnvironmentVerificationTest.php",
+    "tests/Unit/OperationDeclarationLoaderTest.php",
+    "tests/support/environment-profile-fixtures.php"
+  ],
+  "forbidden_files": [
+    "src/Contracts/OperationDescriptor.php",
+    "src/Runtime/SyncOperationRuntime.php",
+    "src/FirstRun/*",
+    "src/Http/*",
+    "routes/*",
+    "api.yaml",
+    "mcp.yaml",
+    "database/migrations/*"
+  ],
+  "forbidden_files_note": "OperationDescriptor and SyncOperationRuntime are forbidden on purpose: the freeze enforces the v2 policy at registration precisely so that neither has to change.",
+  "forbidden_behavior": [
+    "letting detection overwrite a declared value",
+    "treating unknown as present",
+    "putting a path, a credential, a host name or any secret into a diagnostic",
+    "adding a table or a migration",
+    "changing OperationDescriptor or SyncOperationRuntime",
+    "adding a public HTTP, REST or MCP surface",
+    "changing larena/licensing, larena/storage or any package other than larena/core",
+    "touching larena.test or any live environment",
+    "push, release or deployment without a separate owner request"
+  ],
+  "test_plan": "Plain-PHP package tests in the existing core style; no database.",
+  "required_tests": [
+    "a profile with unknown behaves exactly as with absent",
+    "detection reports a mismatch as a diagnostic carrying both values and changes no declared value",
+    "the ordinary-hosting profile validates and is marked first class",
+    "a package requiring a capability the profile lacks fails closed naming the capability",
+    "a package requiring a capability the profile declares unknown fails closed the same way",
+    "a diagnostic payload contains no path, credential, host name or secret",
+    "the environment fingerprint is stable for the same profile and differs for a different one",
+    "the four environment operations register in the core registry with no descriptor mismatch"
+  ],
+  "smoke_plan": "The doctor command reporting the environment profile on sqlite and mysql, and core:operations:coverage showing the environment codes as covered.",
+  "evidence_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/",
+  "required_evidence_files": [
+    "implementation-summary.md",
+    "tests.md",
+    "smoke.md",
+    "file-map.json",
+    "deviations.json",
+    "graph-sync-proposal.json",
+    "code-review-feedback.md"
+  ],
+  "graph_sync_proposal_path": "docs/project-management/evidence/minimal-cms-v1-1-batch-5-licensing-environment-solution/graph-sync-proposal.json",
+  "dependency_revisions": {
+    "larena_specs": "def788cf",
+    "larena_core": "af09e6e",
+    "larena_licensing": "024237f",
+    "larena_storage": "e37e7f2",
+    "larena_root": "0d328ea1"
+  },
+  "action_gate_summary": {
+    "phase": "preflight",
+    "status": "pending",
+    "note": "Re-run the action gate inside the core package repository at coding start."
+  },
+  "required_before_ready_to_code": [
+    "pre_codegen_freeze_accepted",
+    "implementation_tz_present",
+    "batch_3_verified_against_the_root_baseline",
+    "allowed_file_boundary_present",
+    "evidence_path_defined",
+    "graph_sync_proposal_path_defined"
+  ],
+  "required_before_coding_started": [
+    "batch_branch_created_in_storage",
+    "storage_package_repo_clean_at_launch",
+    "php_8_3_runtime_available",
+    "owner_start_signal"
+  ],
+  "stop_conditions": [
+    "a frozen capability key set, presence enum, profile shape or reason code would have to change",
+    "detection would have to write a declaration",
+    "a table or migration would be required",
+    "a file outside the allowed boundary would have to change",
+    "an unrecorded product or architecture decision is required"
+  ],
+  "not_a_release_authorization": true,
+  "nonclaims": [
+    "A launch record authorizes a bounded coding wave; it does not authorize push, release or deployment.",
+    "The profile describes a host; it does not configure one.",
+    "The fingerprint this wave computes is what node admission compares, and nothing here admits a node."
+  ],
+  "amendments": []
+}

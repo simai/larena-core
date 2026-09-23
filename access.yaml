@@ -25,3 +25,9 @@ operations:
   - code: core.transport.invoke
     risk: critical
     audit: always
+  - code: core.environment.read
+    risk: high
+    audit: denial
+  - code: core.environment.declare
+    risk: critical
+    audit: always

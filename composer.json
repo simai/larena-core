@@ -140,7 +140,11 @@
             "@php tests/Unit/TransportResolutionTest.php",
             "@php tests/Unit/TransportGateMatrixTest.php",
             "@php tests/Unit/PackageDescriptorFileValidatorTest.php",
-            "@php tests/Unit/OperationCoverageReportTest.php"
+            "@php tests/Unit/OperationCoverageReportTest.php",
+            "@php tests/Unit/EnvironmentProfileTest.php",
+            "@php tests/Unit/EnvironmentDetectionTest.php",
+            "@php tests/Unit/EnvironmentVerificationTest.php",
+            "@php tests/Unit/EnvironmentFailsClosedTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",

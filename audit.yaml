@@ -34,3 +34,7 @@ events:
   - type: core.transport.invoked
     category: core_transport
     severity: operational
+
+  - type: core.environment.declared
+    category: core_environment
+    severity: operational

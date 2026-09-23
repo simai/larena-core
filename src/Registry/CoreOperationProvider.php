@@ -8,6 +8,7 @@ use Larena\Core\Contracts\OperationDeclaration;
 use Larena\Core\Contracts\OperationDescriptor;
 use Larena\Core\Contracts\OperationProvider;
 use Larena\Core\Exceptions\OperationDeclarationInvalid;
+use Larena\Core\Runtime\EnvironmentOperationHandlers;
 use Larena\Core\Runtime\OperationRegistryOperationHandlers;
 use Larena\Core\Runtime\PlaneOperationHandlers;
 use Larena\Core\Runtime\ScopeOperationHandlers;
@@ -74,6 +75,7 @@ final class CoreOperationProvider implements OperationProvider
             ...PlaneOperationHandlers::descriptors(),
             ...OperationRegistryOperationHandlers::descriptors(),
             ...TransportOperationHandlers::descriptors(),
+            ...EnvironmentOperationHandlers::descriptors(),
         ];
     }
 
@@ -98,6 +100,10 @@ final class CoreOperationProvider implements OperationProvider
 
         foreach (array_keys(TransportOperationHandlers::descriptors()) as $name) {
             $refs[$name] = 'core.handler.transport';
+        }
+
+        foreach (array_keys(EnvironmentOperationHandlers::descriptors()) as $name) {
+            $refs[$name] = 'core.handler.environment';
         }
 
         return $refs;

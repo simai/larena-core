@@ -1,0 +1,42 @@
+{
+  "schema": "larena.graph_sync_proposal.v1",
+  "batch": "minimal-cms-v1-1-batch-5-licensing-environment-solution",
+  "wave": "B",
+  "package": "larena/core",
+  "canonical_update_allowed": false,
+  "canonical_update_reason": "a package coding wave never writes the canonical graph",
+  "target_semantic_digest": "sha256:cbbfa628327f11f1f2c958c9b24cc10334fba965b9cce232e40884a6f37a1d3f",
+  "feature_observations": [
+    {
+      "feature": "core.environment_profile",
+      "observed_state": "implemented",
+      "implemented": [
+        "a declared, versioned profile listing eleven host capabilities as present, absent or unknown",
+        "unknown treated as absent everywhere",
+        "detection that reports a mismatch and never overrides a declaration",
+        "verification that fails closed naming every missing capability",
+        "the ordinary-hosting profile as the first-class default",
+        "a fingerprint computed from the profile alone, which node admission compares",
+        "four operations registered in the core registry and an environment section in the doctor report"
+      ],
+      "not_implemented": [
+        "persistence of a declared profile",
+        "install-time or activation-time enforcement"
+      ],
+      "acceptance_covered": [
+        "an environment profile is a declared, versioned document that lists host capabilities as present, absent or unknown; unknown is treated as absent",
+        "core.environment.detect never overrides a declaration silently; a mismatch between declared and detected values is a diagnostic, not an automatic change",
+        "the ordinary-hosting profile with no queue worker, no Redis and no search engine is a valid first-class profile",
+        "environment diagnostics expose no secrets, credentials or absolute private paths"
+      ],
+      "acceptance_not_covered": [
+        "a package that needs a capability the profile does not provide fails closed at install or activation: verify() answers the question and nothing calls it from the installer yet",
+        "every core package must run on the ordinary-hosting profile: asserted for larena/core, not yet for every package",
+        "the environment profile is the input a solution topology is validated against: wave C"
+      ]
+    }
+  ],
+  "nonclaims": [
+    "A profile describes a host. It configures nothing and installs nothing."
+  ]
+}

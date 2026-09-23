@@ -43,13 +43,14 @@ try {
 // proof that the declarations and the descriptors agree.
 $coreRegistry = DeclaredOperationRegistry::fromProviders([new CoreOperationProvider()]);
 $all = $coreRegistry->list();
-assert(count($all) === 22, 'core registers every declared operation, got ' . count($all));
+assert(count($all) === 26, 'core registers every declared operation, got ' . count($all));
 assert($coreRegistry->has('core.scope.create'));
 assert($coreRegistry->has('core.transport.invoke_local'));
 assert($coreRegistry->handlerRefFor('core.scope.create') === 'core.handler.scope');
 assert($coreRegistry->handlerRefFor('core.plane.node.move') === 'core.handler.plane');
 assert($coreRegistry->handlerRefFor('core.transport.resolve') === 'core.handler.transport');
 assert($coreRegistry->handlerRefFor('core.operation_registry.list') === 'core.handler.operation_registry');
+assert($coreRegistry->handlerRefFor('core.environment.verify') === 'core.handler.environment');
 
 // list() is sorted and filterable.
 $names = array_map(static fn ($d): string => $d->name, $all);

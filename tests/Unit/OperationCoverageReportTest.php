@@ -23,8 +23,9 @@ assert($coreOnly['registered_without_declared_access_code'] === []);
 assert($coreOnly['descriptor_file_violations'] === []);
 assert($coreOnly['descriptor_file_notices'] === []);
 assert($coreOnly['gap_counts']['scheduled_gap'] === 0 && $coreOnly['gap_counts']['unscheduled_gap'] === 0);
-assert(count($coreOnly['registered_operations']) === 22);
+assert(count($coreOnly['registered_operations']) === 26);
 assert(in_array('core.transport.invoke', $coreOnly['declared_access_operation_codes'], true));
+assert(in_array('core.environment.declare', $coreOnly['declared_access_operation_codes'], true));
 
 $coveredCodes = array_column($coreOnly['covered'], 'access_operation_code');
 assert(in_array('core.scope.manage', $coveredCodes, true));

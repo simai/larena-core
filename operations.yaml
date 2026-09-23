@@ -1376,3 +1376,262 @@ operations:
         - 'local_node_id'
         - 'missing_gates'
         - 'reason_code'
+  - name: 'core.environment.declare'
+    execution_mode: 'sync'
+    risk: 'change'
+    reversible: true
+    access_scope: 'core.environment.declare'
+    audit_event: 'core.environment.declared'
+    idempotency_key: 'profile_id'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        profile_id:
+          type: 'string'
+          pattern: '^[a-z][a-z0-9_]{0,62}$'
+          maxLength: 63
+        version:
+          type: 'integer'
+        capabilities:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+        notes:
+          type: 'string'
+          maxLength: 512
+      required:
+        - 'profile_id'
+        - 'capabilities'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        profile:
+          type: 'object'
+          additionalProperties: false
+          properties:
+            schema:
+              type: 'string'
+              maxLength: 64
+            profile_id:
+              type: 'string'
+              pattern: '^[a-z][a-z0-9_]{0,62}$'
+              maxLength: 63
+            version:
+              type: 'integer'
+            capabilities:
+              type: 'object'
+              additionalProperties: true
+              properties: {}
+              required: []
+            declared_by:
+              type: 'string'
+              maxLength: 191
+            notes:
+              type: 'string'
+              maxLength: 512
+          required:
+            - 'schema'
+            - 'profile_id'
+            - 'version'
+            - 'capabilities'
+            - 'declared_by'
+        fingerprint:
+          type: 'string'
+          maxLength: 96
+      required:
+        - 'profile'
+        - 'fingerprint'
+    receipt:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        operation:
+          type: 'string'
+          maxLength: 120
+        target_ref:
+          type: 'string'
+          maxLength: 190
+        change:
+          type: 'string'
+          minLength: 1
+          maxLength: 191
+      required:
+        - 'operation'
+        - 'change'
+  - name: 'core.environment.detect'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.environment.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties: {}
+      required: []
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        declared_profile:
+          type: 'string'
+          maxLength: 63
+        detected:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+        mismatches:
+          type: 'array'
+          items:
+            type: 'object'
+            additionalProperties: false
+            properties:
+              capability:
+                type: 'string'
+                enum:
+                  - 'queue_worker'
+                  - 'scheduler'
+                  - 'redis'
+                  - 'search_engine'
+                  - 'object_storage'
+                  - 'image_processing'
+                  - 'mail_transport'
+                  - 'outbound_http'
+                  - 'writable_storage_path'
+                  - 'opcache'
+                  - 'process_control'
+              declared:
+                type: 'string'
+                enum:
+                  - 'present'
+                  - 'absent'
+                  - 'unknown'
+              detected:
+                type: 'string'
+                enum:
+                  - 'present'
+                  - 'absent'
+                  - 'unknown'
+            required:
+              - 'capability'
+              - 'declared'
+              - 'detected'
+        mismatch_count:
+          type: 'integer'
+        declaration_changed:
+          type: 'boolean'
+      required:
+        - 'declared_profile'
+        - 'detected'
+        - 'mismatches'
+        - 'mismatch_count'
+        - 'declaration_changed'
+  - name: 'core.environment.verify'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.environment.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        required_by:
+          type: 'string'
+          maxLength: 120
+        required:
+          type: 'array'
+          items:
+            type: 'string'
+            enum:
+              - 'queue_worker'
+              - 'scheduler'
+              - 'redis'
+              - 'search_engine'
+              - 'object_storage'
+              - 'image_processing'
+              - 'mail_transport'
+              - 'outbound_http'
+              - 'writable_storage_path'
+              - 'opcache'
+              - 'process_control'
+      required:
+        - 'required_by'
+        - 'required'
+    output:
+      type: 'object'
+      additionalProperties: false
+      properties:
+        required_by:
+          type: 'string'
+          maxLength: 120
+        satisfied:
+          type: 'boolean'
+        missing:
+          type: 'array'
+          items:
+            type: 'string'
+            enum:
+              - 'queue_worker'
+              - 'scheduler'
+              - 'redis'
+              - 'search_engine'
+              - 'object_storage'
+              - 'image_processing'
+              - 'mail_transport'
+              - 'outbound_http'
+              - 'writable_storage_path'
+              - 'opcache'
+              - 'process_control'
+      required:
+        - 'required_by'
+        - 'satisfied'
+        - 'missing'
+  - name: 'core.environment.explain'
+    execution_mode: 'sync'
+    risk: 'read'
+    reversible: true
+    access_scope: 'core.environment.read'
+    transports:
+      - 'local'
+    input:
+      type: 'object'
+      additionalProperties: false
+      properties: {}
+      required: []
+    output:
+      type: 'object'
+      additionalProperties: true
+      properties:
+        schema:
+          type: 'string'
+          maxLength: 64
+        profile_id:
+          type: 'string'
+          maxLength: 63
+        version:
+          type: 'integer'
+        capabilities:
+          type: 'object'
+          additionalProperties: true
+          properties: {}
+          required: []
+        fingerprint:
+          type: 'string'
+          maxLength: 96
+        unknown_is_absent:
+          type: 'boolean'
+      required:
+        - 'schema'
+        - 'profile_id'
+        - 'capabilities'
+        - 'fingerprint'
+        - 'unknown_is_absent'

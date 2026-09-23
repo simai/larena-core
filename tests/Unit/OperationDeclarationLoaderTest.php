@@ -29,11 +29,13 @@ foreach ([
     assert(isset($byName[$expected]), $expected . ' must be declared');
 }
 
-// And so are the operations this batch introduces.
+// And so are the operations the registry and environment batches introduce.
 foreach ([
     'core.operation_registry.describe', 'core.operation_registry.list',
     'core.transport.resolve', 'core.transport.invoke_local',
     'core.transport.verify_node_trust', 'core.transport.explain',
+    'core.environment.declare', 'core.environment.detect',
+    'core.environment.verify', 'core.environment.explain',
 ] as $expected) {
     assert(isset($byName[$expected]), $expected . ' must be declared');
 }
