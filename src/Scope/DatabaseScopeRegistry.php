@@ -16,9 +16,11 @@ use Larena\Core\Exceptions\ScopeBoundaryViolation;
  * Core-owned scope storage. Scopes are fixed-shape system records: no package
  * may duplicate them in Storage or in its own tables.
  */
-final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver
+final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \Larena\Core\Contracts\ScopeLegacyAliases
 {
     public const TABLE = 'larena_core_scopes';
+    /** The older references stored data uses for scopes (owner decision 2026-10-12). */
+    public const LEGACY_PATTERN = '/\\Ascope:[a-z][a-z0-9_.:-]{1,119}\\z/D';
 
     public function __construct(private readonly ConnectionInterface $connection)
     {
@@ -143,7 +145,41 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver
     {
         $ref = ScopeRef::tryParse($reference);
 
-        return $ref === null ? null : $this->read($ref);
+        return $ref === null ? $this->resolveLegacy($reference) : $this->read($ref);
+    }
+
+    /** @phpstan-impure */
+    public function resolveLegacy(string $legacyRef): ?ScopeRecord
+    {
+        if (preg_match(self::LEGACY_PATTERN, $legacyRef) !== 1) {
+            return null;
+        }
+        $row = $this->connection->table(self::TABLE)->where('legacy_ref', $legacyRef)->first();
+
+        return is_object($row) ? $this->hydrate($row) : null;
+    }
+
+    /** @phpstan-impure */
+    public function assignLegacyRef(ScopeRef $ref, string $legacyRef): ScopeRecord
+    {
+        if (preg_match(self::LEGACY_PATTERN, $legacyRef) !== 1) {
+            throw ScopeBoundaryViolation::invalidParent('The legacy scope reference "'.$legacyRef.'" is not of the form scope:<id>.');
+        }
+        $record = $this->read($ref);
+        if ($record === null) {
+            throw ScopeBoundaryViolation::unknownScope($ref->toString());
+        }
+        if ($record->legacyRef === $legacyRef) {
+            return $record;
+        }
+        $holder = $this->resolveLegacy($legacyRef);
+        if ($holder !== null || $record->legacyRef !== null) {
+            throw ScopeBoundaryViolation::duplicate('legacy scope reference', $legacyRef);
+        }
+        $this->connection->table(self::TABLE)->where('scope_ref', $ref->toString())
+            ->update(['legacy_ref' => $legacyRef, 'updated_at' => $this->now()]);
+
+        return $this->read($ref) ?? $record;
     }
 
     /** @phpstan-impure */
@@ -188,6 +224,7 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver
             ScopeStatus::from((string) $row->status),
             (string) $row->created_by,
             $row->correlation_id === null ? null : (string) $row->correlation_id,
+            isset($row->legacy_ref) && is_string($row->legacy_ref) ? $row->legacy_ref : null,
         );
     }
 

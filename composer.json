@@ -123,6 +123,7 @@
             "@php tests/Unit/ScopeRefTest.php",
             "@php tests/Unit/ScopeRegistryTest.php",
             "@php tests/Unit/ScopeRegistryFailsClosedTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/ScopeMembershipRegistryTest.php",
             "@php tests/Unit/PlaneRegistryTest.php",
             "@php tests/Unit/PlaneNodeMoveTest.php",
             "@php tests/Unit/PlaneNodeMoveFailsClosedTest.php",

@@ -74,6 +74,18 @@ final class CoreServiceProvider extends ServiceProvider
         ));
         $this->app->alias(DatabaseScopeRegistry::class, ScopeRegistry::class);
         $this->app->alias(DatabaseScopeRegistry::class, ScopeRefResolver::class);
+        $this->app->alias(DatabaseScopeRegistry::class, \Larena\Core\Contracts\ScopeLegacyAliases::class);
+        // Which scopes a subject works in, and which resources belong to a scope (core scope-model).
+        $this->app->singleton(\Larena\Core\Scope\DatabaseScopeMembershipRegistry::class, static fn (Application $app): \Larena\Core\Scope\DatabaseScopeMembershipRegistry => new \Larena\Core\Scope\DatabaseScopeMembershipRegistry(
+            $app->make(DatabaseManager::class)->connection(),
+            $app->make(DatabaseScopeRegistry::class),
+        ));
+        $this->app->alias(\Larena\Core\Scope\DatabaseScopeMembershipRegistry::class, \Larena\Core\Contracts\ScopeMembershipRegistry::class);
+        $this->app->singleton(\Larena\Core\Scope\DatabaseScopeResourceBindings::class, static fn (Application $app): \Larena\Core\Scope\DatabaseScopeResourceBindings => new \Larena\Core\Scope\DatabaseScopeResourceBindings(
+            $app->make(DatabaseManager::class)->connection(),
+            $app->make(DatabaseScopeRegistry::class),
+        ));
+        $this->app->alias(\Larena\Core\Scope\DatabaseScopeResourceBindings::class, \Larena\Core\Contracts\ScopeResourceBindings::class);
 
         $this->app->singleton(DatabasePlaneRegistry::class, static fn (Application $app): DatabasePlaneRegistry => new DatabasePlaneRegistry(
             $app->make(DatabaseManager::class)->connection(),

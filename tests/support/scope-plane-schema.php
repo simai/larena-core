@@ -27,7 +27,32 @@ function larena_core_scope_plane_connection(): Connection
         $table->string('created_by', 191);
         $table->string('correlation_id', 191)->nullable();
         $table->timestamps();
+        $table->string('legacy_ref', 128)->nullable()->unique();
         $table->unique(['kind', 'identifier']);
+    });
+
+    $schema->create('larena_core_scope_memberships', static function (Blueprint $table): void {
+        $table->string('scope_ref', 80);
+        $table->string('subject_ref', 191);
+        $table->string('status', 16)->default('active');
+        $table->string('created_by', 191);
+        $table->string('correlation_id', 191)->nullable();
+        $table->timestamps();
+        $table->primary(['scope_ref', 'subject_ref']);
+    });
+
+    $schema->create('larena_core_subject_default_scopes', static function (Blueprint $table): void {
+        $table->string('subject_ref', 191)->primary();
+        $table->string('scope_ref', 80);
+        $table->timestamps();
+    });
+
+    $schema->create('larena_core_scope_resources', static function (Blueprint $table): void {
+        $table->string('resource_type', 64);
+        $table->string('resource_ref', 191);
+        $table->string('scope_ref', 80);
+        $table->timestamp('created_at')->nullable();
+        $table->primary(['resource_type', 'resource_ref']);
     });
 
     $schema->create('larena_core_planes', static function (Blueprint $table): void {

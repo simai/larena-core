@@ -27,7 +27,20 @@
     "src/Runtime/PlaneOperationHandlers.php",
     "src/Runtime/RegistryOperationRuntime.php",
     "src/Runtime/UndeclaredCapabilityGate.php",
-    "tests/Unit/CatalogOperationExecutionTest.php"
+    "tests/Unit/CatalogOperationExecutionTest.php",
+    "src/Contracts/ScopeRecord.php",
+    "src/Scope/DatabaseScopeRegistry.php",
+    "tests/support/scope-plane-schema.php",
+    "database/migrations/platform/2026_10_12_000001_create_larena_core_scope_memberships_table.php",
+    "database/migrations/platform/2026_10_12_000002_create_larena_core_subject_default_scopes_table.php",
+    "database/migrations/platform/2026_10_12_000003_create_larena_core_scope_resources_table.php",
+    "database/migrations/platform/2026_10_12_000004_add_legacy_ref_to_larena_core_scopes_table.php",
+    "src/Contracts/ScopeLegacyAliases.php",
+    "src/Contracts/ScopeMembershipRegistry.php",
+    "src/Contracts/ScopeResourceBindings.php",
+    "src/Scope/DatabaseScopeMembershipRegistry.php",
+    "src/Scope/DatabaseScopeResourceBindings.php",
+    "tests/Unit/ScopeMembershipRegistryTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
