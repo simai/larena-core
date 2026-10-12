@@ -15,4 +15,10 @@ interface ScopeLegacyAliases
     public function resolveLegacy(string $legacyRef): ?ScopeRecord;
 
     public function assignLegacyRef(ScopeRef $ref, string $legacyRef): ScopeRecord;
+
+    /**
+     * The site an older reference names, made when there is none: the given site, or `site:<id>` for `scope:<id>`
+     * with `.` and `:` written as `-`.
+     */
+    public function siteForLegacyRef(string $legacyRef, string $actorId, ?ScopeRef $site = null): ScopeRecord;
 }

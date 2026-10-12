@@ -88,4 +88,11 @@ assert($first === ['items' => ['file-a'], 'next_cursor' => 'file-a']);
 assert($resources->listRefs($main, 'filesystem.logical_file', $first['next_cursor'], 1) === ['items' => ['file-b'], 'next_cursor' => null]);
 assert($fails(static fn () => $resources->bind('Bad Type', 'x', $main)));
 
+// An older reference gets its site: the one given (an alias already held resolves to it), else one of its own.
+assert($scopes->siteForLegacyRef('scope:minimal-cms', 'actor:test', $shop)->ref->equals($main));
+$made = $scopes->siteForLegacyRef('scope:tenant.alpha', 'actor:test');
+assert($made->ref->toString() === 'site:tenant-alpha' && $made->dataRef() === 'scope:tenant.alpha');
+assert($scopes->siteForLegacyRef('scope:tenant.alpha', 'actor:test')->ref->equals($made->ref));
+assert($fails(static fn () => $scopes->siteForLegacyRef('site:other', 'actor:test')));
+
 echo "ScopeMembershipRegistryTest passed.\n";

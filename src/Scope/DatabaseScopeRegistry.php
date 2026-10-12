@@ -160,6 +160,28 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \L
     }
 
     /** @phpstan-impure */
+    public function siteForLegacyRef(string $legacyRef, string $actorId, ?ScopeRef $site = null): ScopeRecord
+    {
+        $known = $this->resolveLegacy($legacyRef);
+        if ($known !== null) {
+            return $known;
+        }
+        if (preg_match('/\\Ascope:([a-z][a-z0-9_.:-]{1,119})\\z/D', $legacyRef, $match) !== 1) {
+            throw ScopeBoundaryViolation::unknownScope($legacyRef);
+        }
+        $identifier = str_replace(['.', ':'], '-', $match[1]);
+        if ($site === null && strlen($identifier) > 63) {
+            throw ScopeBoundaryViolation::unknownScope($legacyRef);
+        }
+        $ref = $site ?? ScopeRef::of(\Larena\Core\Enums\ScopeKind::Site, $identifier);
+        if ($this->read($ref) === null) {
+            $this->create($ref, $match[1], $actorId);
+        }
+
+        return $this->assignLegacyRef($ref, $legacyRef);
+    }
+
+    /** @phpstan-impure */
     public function assignLegacyRef(ScopeRef $ref, string $legacyRef): ScopeRecord
     {
         if (preg_match(self::LEGACY_PATTERN, $legacyRef) !== 1) {
