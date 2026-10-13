@@ -42,8 +42,8 @@ final class VerifiedAssetBundleInspector
 
         $contract = $this->normalizeExpectedContract($expectedContract);
         $requestedFiles = self::normalizeRequestedFiles($requestedFiles);
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $contract['bundle_id'];
         $resolvedBundlePath = realpath($bundlePath);
         $stateSha256 = hash_file('sha256', $stateFile);
@@ -97,8 +97,8 @@ final class VerifiedAssetBundleInspector
     ): array {
         $contract = $this->normalizeExpectedContract($expectedContract);
         $requestedFiles = self::normalizeRequestedFiles($requestedFiles);
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $requiredFileSetHash = self::requiredFileSetSha256($requestedFiles);
         $manifestHash = null;
         $verifiedFiles = [];
@@ -127,7 +127,7 @@ final class VerifiedAssetBundleInspector
         }
 
         try {
-            $state = $this->readJson($stateFile);
+            $state = AssetContractFields::readJson($stateFile);
         } catch (Throwable) {
             $problems[] = 'state_invalid';
             return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
@@ -212,8 +212,8 @@ final class VerifiedAssetBundleInspector
     ): array {
         $contract = $this->normalizeExpectedContract($expectedContract);
         $requestedFiles = self::normalizeRequestedFiles($requestedFiles);
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $requiredFileSetHash = self::requiredFileSetSha256($requestedFiles);
         $bundleId = $contract['bundle_id'];
 
@@ -233,7 +233,7 @@ final class VerifiedAssetBundleInspector
         }
 
         try {
-            $state = $this->readJson($stateFile);
+            $state = AssetContractFields::readJson($stateFile);
         } catch (Throwable) {
             $problems[] = 'state_invalid';
 
@@ -287,7 +287,7 @@ final class VerifiedAssetBundleInspector
         }
 
         try {
-            $manifest = $this->readJson($manifestPath);
+            $manifest = AssetContractFields::readJson($manifestPath);
         } catch (Throwable) {
             $problems[] = 'manifest_invalid';
 
@@ -441,15 +441,15 @@ final class VerifiedAssetBundleInspector
      */
     private function normalizeExpectedContract(array $expected): array
     {
-        $schema = $this->aliasedString(
+        $schema = AssetContractFields::aliasedString(
             $expected,
             'schema',
             'artifact_schema',
             'core_assets_artifact_schema_invalid',
             'core_assets_artifact_schema_conflict',
         );
-        $profile = $this->stableSegment((string) ($expected['publication_profile'] ?? ''), 'core_assets_publication_profile_invalid');
-        $bundleId = $this->stableSegment((string) ($expected['bundle_id'] ?? ''), 'core_assets_bundle_id_invalid');
+        $profile = AssetPathRules::stableSegment((string) ($expected['publication_profile'] ?? ''), 'core_assets_publication_profile_invalid');
+        $bundleId = AssetPathRules::stableSegment((string) ($expected['bundle_id'] ?? ''), 'core_assets_bundle_id_invalid');
         if ($schema === '' || preg_match('/^[a-z][a-z0-9._-]{2,191}$/', $schema) !== 1) {
             throw new InvalidArgumentException('core_assets_artifact_schema_invalid');
         }
@@ -465,8 +465,8 @@ final class VerifiedAssetBundleInspector
             }
             $commit = strtolower(trim((string) ($source['commit'] ?? '')));
             $tree = trim((string) ($source['tree'] ?? ''));
-            $mount = $this->stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
-            $sha256 = $this->sourceArchiveChecksum($source);
+            $mount = AssetPathRules::stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
+            $sha256 = AssetContractFields::sourceArchiveChecksum($source);
             $files = $source['files'] ?? null;
             if (preg_match('/^[a-f0-9]{40}$/', $commit) !== 1) {
                 throw new InvalidArgumentException('core_assets_source_commit_invalid');
@@ -495,53 +495,8 @@ final class VerifiedAssetBundleInspector
         ];
     }
 
-    /** @param array<string, mixed> $values */
-    private function aliasedString(
-        array $values,
-        string $canonicalKey,
-        string $legacyKey,
-        string $invalidError,
-        string $conflictError,
-    ): string {
-        $canonical = $values[$canonicalKey] ?? null;
-        $legacy = $values[$legacyKey] ?? null;
-        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
-            throw new InvalidArgumentException($invalidError);
-        }
-        $canonical = trim((string) $canonical);
-        $legacy = trim((string) $legacy);
-        if ($canonical !== '' && $legacy !== '' && $canonical !== $legacy) {
-            throw new InvalidArgumentException($conflictError);
-        }
-
-        return $canonical !== '' ? $canonical : $legacy;
-    }
 
     /** @param array<string, mixed> $source */
-    private function sourceArchiveChecksum(array $source): string
-    {
-        $canonical = $source['archive_sha256'] ?? null;
-        $legacy = $source['sha256'] ?? null;
-        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-        $canonical = strtolower(trim((string) $canonical));
-        $legacy = strtolower(trim((string) $legacy));
-        if (($canonical !== '' && preg_match('/^[a-f0-9]{64}$/', $canonical) !== 1)
-            || ($legacy !== '' && preg_match('/^[a-f0-9]{64}$/', $legacy) !== 1)
-        ) {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-        if ($canonical !== '' && $legacy !== '' && !hash_equals($canonical, $legacy)) {
-            throw new InvalidArgumentException('core_assets_source_checksum_conflict');
-        }
-        $checksum = $canonical !== '' ? $canonical : $legacy;
-        if ($checksum === '') {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-
-        return $checksum;
-    }
 
     /**
      * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
@@ -615,7 +570,7 @@ final class VerifiedAssetBundleInspector
                 throw new RuntimeException('core_assets_archive_path_unsafe');
             }
             $mode = ((((int) $item->getPerms()) & 0111) !== 0) ? '100755' : '100644';
-            $object = $this->gitFileHash($item->getPathname(), $objectFormat);
+            $object = GitTreeArchive::gitFileHash($item->getPathname(), $objectFormat);
             $entries[$relative] = ['mode' => $mode, 'object' => $object];
         }
         ksort($entries, SORT_STRING);
@@ -630,34 +585,6 @@ final class VerifiedAssetBundleInspector
         ];
     }
 
-    private function gitFileHash(string $path, string $algorithm): string
-    {
-        $size = filesize($path);
-        $stream = fopen($path, 'rb');
-        if (!is_int($size) || !is_resource($stream)) {
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-            throw new RuntimeException('core_assets_extracted_entry_unreadable');
-        }
-        $context = hash_init($algorithm);
-        hash_update($context, 'blob ' . $size . "\0");
-        hash_update_stream($context, $stream);
-        fclose($stream);
-
-        return hash_final($context);
-    }
-
-    /** @return array<string, mixed> */
-    private function readJson(string $path): array
-    {
-        $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
-        if (!is_array($decoded)) {
-            throw new RuntimeException('core_assets_json_invalid');
-        }
-
-        return $decoded;
-    }
 
     private static function safeRelativePath(string $path): bool
     {
@@ -679,23 +606,4 @@ final class VerifiedAssetBundleInspector
         return true;
     }
 
-    private function absolutePath(string $path, string $error): string
-    {
-        $path = rtrim(trim($path), DIRECTORY_SEPARATOR);
-        if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR || str_contains($path, "\0")) {
-            throw new InvalidArgumentException($error);
-        }
-
-        return $path;
-    }
-
-    private function stableSegment(string $value, string $error): string
-    {
-        $value = trim($value);
-        if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $value)) {
-            throw new InvalidArgumentException($error);
-        }
-
-        return $value;
-    }
 }

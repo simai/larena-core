@@ -48,7 +48,13 @@
     "tests/Unit/WebInstallCoordinatorRecoveryTest.php",
     "src/Assets/AssetPathRules.php",
     "src/Assets/GitTreeArchive.php",
-    "src/Assets/VerifiedAssetBundlePublisher.php"
+    "src/Assets/VerifiedAssetBundlePublisher.php",
+    "src/Assets/AssetContractFields.php",
+    "src/Assets/VerifiedAssetBundleInspector.php",
+    "src/Starter/StarterScenario.php",
+    "src/Starter/DatabaseConnectionDiagnostic.php",
+    "src/Starter/CoreAssetActivationContract.php",
+    "src/Starter/AssetActivationInputs.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

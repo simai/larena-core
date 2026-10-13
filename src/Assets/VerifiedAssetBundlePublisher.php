@@ -341,7 +341,7 @@ final class VerifiedAssetBundlePublisher
      */
     private function normalizeExpectedContract(array $expected, bool $requireRepository): array
     {
-        $schema = $this->aliasedString(
+        $schema = AssetContractFields::aliasedString(
             $expected,
             'schema',
             'artifact_schema',
@@ -372,7 +372,7 @@ final class VerifiedAssetBundlePublisher
             $commit = AssetPathRules::fullSha((string) ($source['commit'] ?? ''));
             $tree = AssetPathRules::stablePath((string) ($source['tree'] ?? ''), 'core_assets_source_tree_invalid');
             $mount = AssetPathRules::stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
-            $sha256 = $this->sourceArchiveChecksum($source);
+            $sha256 = AssetContractFields::sourceArchiveChecksum($source);
             $files = $source['files'] ?? null;
             if (preg_match('/^[a-f0-9]{64}$/', $sha256) !== 1) {
                 throw new InvalidArgumentException('core_assets_source_checksum_invalid');
@@ -403,53 +403,8 @@ final class VerifiedAssetBundlePublisher
         ];
     }
 
-    /** @param array<string, mixed> $values */
-    private function aliasedString(
-        array $values,
-        string $canonicalKey,
-        string $legacyKey,
-        string $invalidError,
-        string $conflictError,
-    ): string {
-        $canonical = $values[$canonicalKey] ?? null;
-        $legacy = $values[$legacyKey] ?? null;
-        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
-            throw new InvalidArgumentException($invalidError);
-        }
-        $canonical = trim((string) $canonical);
-        $legacy = trim((string) $legacy);
-        if ($canonical !== '' && $legacy !== '' && $canonical !== $legacy) {
-            throw new InvalidArgumentException($conflictError);
-        }
-
-        return $canonical !== '' ? $canonical : $legacy;
-    }
 
     /** @param array<string, mixed> $source */
-    private function sourceArchiveChecksum(array $source): string
-    {
-        $canonical = $source['archive_sha256'] ?? null;
-        $legacy = $source['sha256'] ?? null;
-        if (($canonical !== null && !is_string($canonical)) || ($legacy !== null && !is_string($legacy))) {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-        $canonical = strtolower(trim((string) $canonical));
-        $legacy = strtolower(trim((string) $legacy));
-        if (($canonical !== '' && preg_match('/^[a-f0-9]{64}$/', $canonical) !== 1)
-            || ($legacy !== '' && preg_match('/^[a-f0-9]{64}$/', $legacy) !== 1)
-        ) {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-        if ($canonical !== '' && $legacy !== '' && !hash_equals($canonical, $legacy)) {
-            throw new InvalidArgumentException('core_assets_source_checksum_conflict');
-        }
-        $checksum = $canonical !== '' ? $canonical : $legacy;
-        if ($checksum === '') {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-
-        return $checksum;
-    }
 
     /**
      * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
@@ -462,7 +417,7 @@ final class VerifiedAssetBundlePublisher
         if ($artifactRoot === false || !is_dir($artifactRoot) || is_link($artifactDirectory)) {
             throw new RuntimeException('core_assets_artifact_directory_invalid');
         }
-        $manifest = $this->readJson($artifactRoot . DIRECTORY_SEPARATOR . 'manifest.json');
+        $manifest = AssetContractFields::readJson($artifactRoot . DIRECTORY_SEPARATOR . 'manifest.json');
         if (($manifest['schema'] ?? null) !== $contract['schema']
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
             || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
@@ -485,7 +440,7 @@ final class VerifiedAssetBundlePublisher
                 }
             }
             try {
-                $artifactArchiveChecksum = $this->sourceArchiveChecksum($source);
+                $artifactArchiveChecksum = AssetContractFields::sourceArchiveChecksum($source);
             } catch (InvalidArgumentException $exception) {
                 throw new RuntimeException(
                     'core_assets_artifact_source_receipt_invalid:' . $expected['mount'] . ':archive_sha256',
@@ -628,7 +583,7 @@ final class VerifiedAssetBundlePublisher
         ) {
             throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
         }
-        $manifest = $this->readJson($manifestPath);
+        $manifest = AssetContractFields::readJson($manifestPath);
         if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
             || ($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
@@ -846,7 +801,7 @@ final class VerifiedAssetBundlePublisher
     {
         $manifestPath = $artifactDirectory . DIRECTORY_SEPARATOR . 'manifest.json';
         $manifestHash = hash_file('sha256', $manifestPath);
-        $manifest = $this->readJson($manifestPath);
+        $manifest = AssetContractFields::readJson($manifestPath);
         if (!is_string($manifestHash) || !is_array($manifest['sources'] ?? null)) {
             throw new RuntimeException('core_assets_artifact_manifest_checksum_failed');
         }
@@ -915,7 +870,7 @@ final class VerifiedAssetBundlePublisher
      */
     private function validateExistingBundle(string $bundlePath, string $bundleId, array $sources): array
     {
-        $manifest = $this->readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
+        $manifest = AssetContractFields::readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
         if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
             || ($manifest['publication_profile'] ?? null) !== self::PUBLICATION_PROFILE
             || ($manifest['bundle_id'] ?? null) !== $bundleId
@@ -962,7 +917,7 @@ final class VerifiedAssetBundlePublisher
         ) {
             throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
         }
-        $manifest = $this->readJson($manifestPath);
+        $manifest = AssetContractFields::readJson($manifestPath);
         if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
             || !is_string($manifest['publication_profile'] ?? null)
             || preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $manifest['publication_profile']) !== 1
@@ -1064,18 +1019,9 @@ final class VerifiedAssetBundlePublisher
     /** @return array<string, mixed> */
     private function readState(string $stateFile): array
     {
-        return is_file($stateFile) ? $this->readJson($stateFile) : [];
+        return is_file($stateFile) ? AssetContractFields::readJson($stateFile) : [];
     }
 
-    /** @return array<string, mixed> */
-    private function readJson(string $path): array
-    {
-        $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
-        if (!is_array($decoded)) {
-            throw new RuntimeException('core_assets_json_invalid');
-        }
-        return $decoded;
-    }
 
     /** @param array<string, mixed> $value */
     private function writeJson(string $path, array $value): void

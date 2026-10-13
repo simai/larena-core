@@ -266,12 +266,12 @@ final class GitTreeArchive
         return true;
     }
 
-    private function gitBlobHash(string $contents, string $algorithm): string
+    private static function gitBlobHash(string $contents, string $algorithm): string
     {
         return hash($algorithm, 'blob ' . strlen($contents) . "\0" . $contents);
     }
 
-    private function gitFileHash(string $path, string $algorithm): string
+    public static function gitFileHash(string $path, string $algorithm): string
     {
         $size = filesize($path);
         $stream = fopen($path, 'rb');
