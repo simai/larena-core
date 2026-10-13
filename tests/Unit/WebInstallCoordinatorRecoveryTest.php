@@ -65,7 +65,7 @@ function expectRecovery(bool $condition, string $message): void
     }
 }
 
-$providerSource = (string) file_get_contents(__DIR__.'/../../src/Providers/CoreServiceProvider.php');
+$providerSource = (string) file_get_contents(__DIR__.'/../../src/Providers/Registrars/InstallationRegistrar.php');
 expectRecovery(str_contains($providerSource, "environment(['local', 'testing'])"), 'fault hook is not environment-bounded');
 expectRecovery(str_contains($providerSource, "getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED')"), 'fault hook is not explicitly enabled');
 expectRecovery(str_contains($providerSource, "getenv('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT')"), 'fault checkpoint is not process-bound');

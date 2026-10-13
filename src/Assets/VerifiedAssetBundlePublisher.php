@@ -17,33 +17,37 @@ final class VerifiedAssetBundlePublisher
 
     public const PUBLICATION_PROFILE = 'exact-git-tree-v2';
 
+    public function __construct(private readonly GitTreeArchive $archives = new GitTreeArchive())
+    {
+    }
+
     /**
      * @param list<array{repository:string,commit:string,tree:string,mount:string,sha256:string}> $sources
      * @return array<string, mixed>
      */
     public function publish(array $sources, string $destinationRoot, string $stateFile, string $bundleId): array
     {
-        $bundleId = $this->stableSegment($bundleId, 'core_assets_bundle_id_invalid');
+        $bundleId = AssetPathRules::stableSegment($bundleId, 'core_assets_bundle_id_invalid');
         if ($sources === []) {
             throw new InvalidArgumentException('core_assets_bundle_sources_required');
         }
 
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $bundleId;
 
-        $this->ensureDirectory($destinationRoot);
-        $this->ensureDirectory(dirname($stateFile));
+        AssetPathRules::ensureDirectory($destinationRoot);
+        AssetPathRules::ensureDirectory(dirname($stateFile));
 
         $bundleAction = 'reused';
         if (!is_dir($bundlePath)) {
             $stage = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId . '.stage-' . bin2hex(random_bytes(6));
-            $this->ensureDirectory($stage);
+            AssetPathRules::ensureDirectory($stage);
 
             try {
                 $receipts = [];
                 foreach ($sources as $source) {
-                    $receipts[] = $this->extractVerifiedSource($source, $stage);
+                    $receipts[] = $this->archives->extractVerifiedSource($source, $stage);
                 }
                 $this->writeJson($stage . DIRECTORY_SEPARATOR . '.larena-bundle.json', [
                     'schema' => self::BUNDLE_SCHEMA,
@@ -88,9 +92,9 @@ final class VerifiedAssetBundlePublisher
     public function buildArtifactDirectory(array $expectedContract, string $artifactDirectory): array
     {
         $contract = $this->normalizeExpectedContract($expectedContract, true);
-        $artifactDirectory = $this->absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
+        $artifactDirectory = AssetPathRules::absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
         $parent = dirname($artifactDirectory);
-        $this->ensureDirectory($parent);
+        AssetPathRules::ensureDirectory($parent);
 
         if (file_exists($artifactDirectory) && !is_dir($artifactDirectory)) {
             throw new RuntimeException('core_assets_artifact_directory_not_directory');
@@ -98,7 +102,7 @@ final class VerifiedAssetBundlePublisher
         if (is_dir($artifactDirectory)) {
             $verificationStage = $parent . DIRECTORY_SEPARATOR . '.' . basename($artifactDirectory)
                 . '.verify-' . bin2hex(random_bytes(6));
-            $this->ensureDirectory($verificationStage);
+            AssetPathRules::ensureDirectory($verificationStage);
             try {
                 $sources = $this->extractArtifactSources($contract, $artifactDirectory, $verificationStage);
             } finally {
@@ -110,27 +114,27 @@ final class VerifiedAssetBundlePublisher
 
         $stage = $parent . DIRECTORY_SEPARATOR . '.' . basename($artifactDirectory)
             . '.stage-' . bin2hex(random_bytes(6));
-        $this->ensureDirectory($stage . DIRECTORY_SEPARATOR . 'sources');
+        AssetPathRules::ensureDirectory($stage . DIRECTORY_SEPARATOR . 'sources');
 
         try {
             $manifestSources = [];
             foreach ($contract['sources'] as $source) {
-                $repository = $this->repositoryPath((string) $source['repository']);
+                $repository = $this->archives->repositoryPath((string) $source['repository']);
                 $mount = $source['mount'];
                 $tar = $stage . DIRECTORY_SEPARATOR . '.' . $mount . '.tar';
                 $verificationRoot = $stage . DIRECTORY_SEPARATOR . '.verify-' . $mount;
                 $archiveRelative = 'sources/' . $mount . '.tar.gz';
                 $archive = $stage . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $archiveRelative);
 
-                $this->runGitArchive($repository, $source['commit'], $source['tree'], $tar);
+                $this->archives->runGitArchive($repository, $source['commit'], $source['tree'], $tar);
                 $rawHash = hash_file('sha256', $tar);
                 if (!is_string($rawHash) || !hash_equals($source['sha256'], $rawHash)) {
                     throw new RuntimeException('core_assets_source_checksum_mismatch:' . $mount);
                 }
-                $this->assertArchiveSafe($tar);
-                $this->ensureDirectory($verificationRoot);
-                $this->extractArchive($tar, $verificationRoot);
-                $verification = $this->verifyExtractedSource(
+                $this->archives->assertArchiveSafe($tar);
+                AssetPathRules::ensureDirectory($verificationRoot);
+                $this->archives->extractArchive($tar, $verificationRoot);
+                $verification = $this->archives->verifyExtractedSource(
                     $repository,
                     $source['commit'],
                     $source['tree'],
@@ -140,7 +144,7 @@ final class VerifiedAssetBundlePublisher
                     throw new RuntimeException('core_assets_source_file_count_mismatch:' . $mount);
                 }
 
-                $this->gzipArchive($tar, $archive);
+                $this->archives->gzipArchive($tar, $archive);
                 $compressedHash = hash_file('sha256', $archive);
                 if (!is_string($compressedHash)) {
                     throw new RuntimeException('core_assets_compressed_archive_checksum_failed:' . $mount);
@@ -247,19 +251,19 @@ final class VerifiedAssetBundlePublisher
         bool $repairPhysicalDamage,
     ): array {
         $contract = $this->normalizeExpectedContract($expectedContract, false);
-        $artifactDirectory = $this->absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
+        $artifactDirectory = AssetPathRules::absolutePath($artifactDirectory, 'core_assets_artifact_directory_invalid');
         if (!is_dir($artifactDirectory)) {
             throw new InvalidArgumentException('core_assets_artifact_directory_missing');
         }
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $bundleId = $contract['bundle_id'];
         $bundlePath = $destinationRoot . DIRECTORY_SEPARATOR . $bundleId;
 
-        $this->ensureDirectory($destinationRoot);
-        $this->ensureDirectory(dirname($stateFile));
+        AssetPathRules::ensureDirectory($destinationRoot);
+        AssetPathRules::ensureDirectory(dirname($stateFile));
         $stage = $destinationRoot . DIRECTORY_SEPARATOR . '.' . $bundleId . '.stage-' . bin2hex(random_bytes(6));
-        $this->ensureDirectory($stage);
+        AssetPathRules::ensureDirectory($stage);
 
         try {
             $artifactReceipts = $this->extractArtifactSources($contract, $artifactDirectory, $stage);
@@ -347,11 +351,11 @@ final class VerifiedAssetBundlePublisher
         if ($schema === '' || preg_match('/^[a-z][a-z0-9._-]{2,191}$/', $schema) !== 1) {
             throw new InvalidArgumentException('core_assets_artifact_schema_invalid');
         }
-        $profile = $this->stableSegment(
+        $profile = AssetPathRules::stableSegment(
             (string) ($expected['publication_profile'] ?? ''),
             'core_assets_publication_profile_invalid',
         );
-        $bundleId = $this->stableSegment(
+        $bundleId = AssetPathRules::stableSegment(
             (string) ($expected['bundle_id'] ?? ''),
             'core_assets_bundle_id_invalid',
         );
@@ -365,9 +369,9 @@ final class VerifiedAssetBundlePublisher
             if (!is_array($source)) {
                 throw new InvalidArgumentException('core_assets_source_contract_invalid');
             }
-            $commit = $this->fullSha((string) ($source['commit'] ?? ''));
-            $tree = $this->stablePath((string) ($source['tree'] ?? ''), 'core_assets_source_tree_invalid');
-            $mount = $this->stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
+            $commit = AssetPathRules::fullSha((string) ($source['commit'] ?? ''));
+            $tree = AssetPathRules::stablePath((string) ($source['tree'] ?? ''), 'core_assets_source_tree_invalid');
+            $mount = AssetPathRules::stableSegment((string) ($source['mount'] ?? ''), 'core_assets_source_mount_invalid');
             $sha256 = $this->sourceArchiveChecksum($source);
             $files = $source['files'] ?? null;
             if (preg_match('/^[a-f0-9]{64}$/', $sha256) !== 1) {
@@ -519,17 +523,17 @@ final class VerifiedAssetBundlePublisher
             }
 
             $tar = $stage . DIRECTORY_SEPARATOR . '.' . $expected['mount'] . '.tar';
-            $this->decompressGzipArchive($archivePath, $tar);
+            $this->archives->decompressGzipArchive($archivePath, $tar);
             try {
                 $rawHash = hash_file('sha256', $tar);
                 if (!is_string($rawHash) || !hash_equals($expected['sha256'], $rawHash)) {
                     throw new RuntimeException('core_assets_artifact_raw_checksum_mismatch:' . $expected['mount']);
                 }
-                $this->assertArchiveSafe($tar);
+                $this->archives->assertArchiveSafe($tar);
                 $mountPath = $stage . DIRECTORY_SEPARATOR . $expected['mount'];
-                $this->ensureDirectory($mountPath);
-                $this->extractArchive($tar, $mountPath);
-                $tree = $this->scanExtractedTree($mountPath, (string) $source['object_format']);
+                AssetPathRules::ensureDirectory($mountPath);
+                $this->archives->extractArchive($tar, $mountPath);
+                $tree = $this->archives->scanExtractedTree($mountPath, (string) $source['object_format']);
                 if ($expected['files'] !== count($tree['entries'])
                     || !hash_equals($source['tree_fingerprint_sha256'], $tree['tree_fingerprint_sha256'])
                 ) {
@@ -863,8 +867,8 @@ final class VerifiedAssetBundlePublisher
     /** @return array<string, mixed> */
     public function rollback(string $destinationRoot, string $stateFile): array
     {
-        $destinationRoot = $this->absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
-        $stateFile = $this->absolutePath($stateFile, 'core_assets_state_file_invalid');
+        $destinationRoot = AssetPathRules::absolutePath($destinationRoot, 'core_assets_destination_root_invalid');
+        $stateFile = AssetPathRules::absolutePath($stateFile, 'core_assets_state_file_invalid');
         $state = $this->readState($stateFile);
         $previous = $state['previous_bundle'] ?? null;
         $previousManifestHash = $state['previous_bundle_manifest_sha256'] ?? null;
@@ -878,7 +882,7 @@ final class VerifiedAssetBundlePublisher
         ) {
             throw new RuntimeException('core_assets_previous_bundle_trust_unavailable');
         }
-        $previous = $this->stableSegment($previous, 'core_assets_previous_bundle_invalid');
+        $previous = AssetPathRules::stableSegment($previous, 'core_assets_previous_bundle_invalid');
         $previousPath = $destinationRoot . DIRECTORY_SEPARATOR . $previous;
         $previousManifestPath = $previousPath . DIRECTORY_SEPARATOR . '.larena-bundle.json';
         if (!is_file($previousManifestPath)) {
@@ -906,382 +910,6 @@ final class VerifiedAssetBundlePublisher
     }
 
     /**
-     * @param array{repository:string,commit:string,tree:string,mount:string,sha256:string} $source
-     * @return array<string, string|int>
-     */
-    private function extractVerifiedSource(array $source, string $stage): array
-    {
-        $repository = $this->repositoryPath($source['repository']);
-        $commit = $this->fullSha($source['commit']);
-        $tree = $this->stablePath($source['tree'], 'core_assets_source_tree_invalid');
-        $mount = $this->stableSegment($source['mount'], 'core_assets_source_mount_invalid');
-        $expected = strtolower($source['sha256']);
-        if (!preg_match('/^[a-f0-9]{64}$/', $expected)) {
-            throw new InvalidArgumentException('core_assets_source_checksum_invalid');
-        }
-
-        $tar = $stage . DIRECTORY_SEPARATOR . '.' . $mount . '.tar';
-        $this->runGitArchive($repository, $commit, $tree, $tar);
-        $actual = hash_file('sha256', $tar);
-        if (!is_string($actual) || !hash_equals($expected, $actual)) {
-            @unlink($tar);
-            throw new RuntimeException('core_assets_source_checksum_mismatch:' . $mount);
-        }
-        $this->assertArchiveSafe($tar);
-
-        $mountPath = $stage . DIRECTORY_SEPARATOR . $mount;
-        $this->ensureDirectory($mountPath);
-        try {
-            $this->extractArchive($tar, $mountPath);
-            $verification = $this->verifyExtractedSource($repository, $commit, $tree, $mountPath);
-        } finally {
-            @unlink($tar);
-        }
-
-        return [
-            'commit' => $commit,
-            'tree' => $tree,
-            'mount' => $mount,
-            'sha256' => $actual,
-            'file_count' => $verification['file_count'],
-            'tree_fingerprint_sha256' => $verification['tree_fingerprint_sha256'],
-            'object_format' => $verification['object_format'],
-        ];
-    }
-
-    private function extractArchive(string $tar, string $destination): void
-    {
-        $process = proc_open(
-            ['tar', '-xf', $tar, '-C', $destination],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-        );
-        if (!is_resource($process)) {
-            throw new RuntimeException('core_assets_archive_extract_start_failed');
-        }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0) {
-            throw new RuntimeException('core_assets_archive_extract_failed:' . trim((string) ($stderr ?: $stdout)));
-        }
-    }
-
-    /** @return array{file_count:int,tree_fingerprint_sha256:string,object_format:string} */
-    private function verifyExtractedSource(
-        string $repository,
-        string $commit,
-        string $tree,
-        string $mountPath,
-    ): array {
-        $expected = $this->gitTreeEntries($repository, $commit, $tree);
-        $first = reset($expected);
-        $objectFormat = is_array($first) ? $first['object_format'] : '';
-        $actual = $this->scanExtractedTree($mountPath, $objectFormat);
-        $expectedPaths = array_keys($expected);
-        sort($expectedPaths, SORT_STRING);
-        if (array_keys($actual['entries']) !== $expectedPaths) {
-            throw new RuntimeException('core_assets_extracted_tree_paths_mismatch');
-        }
-
-        foreach ($expectedPaths as $path) {
-            $entry = $expected[$path];
-            $actualEntry = $actual['entries'][$path];
-            if ($entry['mode'] !== $actualEntry['mode']) {
-                throw new RuntimeException('core_assets_extracted_entry_mode_mismatch:' . $path);
-            }
-            if (!hash_equals($entry['object'], $actualEntry['object'])) {
-                throw new RuntimeException('core_assets_extracted_entry_content_mismatch:' . $path);
-            }
-        }
-
-        return [
-            'file_count' => count($expectedPaths),
-            'tree_fingerprint_sha256' => $actual['tree_fingerprint_sha256'],
-            'object_format' => $objectFormat,
-        ];
-    }
-
-    /**
-     * @return array{
-     *   entries:array<string,array{mode:string,object:string}>,
-     *   tree_fingerprint_sha256:string
-     * }
-     */
-    private function scanExtractedTree(string $mountPath, string $objectFormat): array
-    {
-        if (!in_array($objectFormat, ['sha1', 'sha256'], true) || !is_dir($mountPath)) {
-            throw new RuntimeException('core_assets_extracted_tree_invalid');
-        }
-        $entries = [];
-        $items = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($mountPath, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST,
-        );
-        foreach ($items as $item) {
-            if ($item->isDir() && !$item->isLink()) {
-                continue;
-            }
-            if (!$item->isFile() && !$item->isLink()) {
-                throw new RuntimeException('core_assets_extracted_entry_type_unsupported');
-            }
-            $relative = substr($item->getPathname(), strlen($mountPath) + 1);
-            if ($relative === '' || !$this->safeArchivePath($relative)) {
-                throw new RuntimeException('core_assets_archive_path_unsafe');
-            }
-            if ($item->isLink()) {
-                $target = readlink($item->getPathname());
-                if (!is_string($target)) {
-                    throw new RuntimeException('core_assets_extracted_symlink_unreadable:' . $relative);
-                }
-                $mode = '120000';
-                $object = $this->gitBlobHash($target, $objectFormat);
-            } else {
-                $mode = ((((int) $item->getPerms()) & 0111) !== 0) ? '100755' : '100644';
-                $object = $this->gitFileHash($item->getPathname(), $objectFormat);
-            }
-            $entries[$relative] = ['mode' => $mode, 'object' => $object];
-        }
-        ksort($entries, SORT_STRING);
-        $fingerprint = hash_init('sha256');
-        foreach ($entries as $path => $entry) {
-            hash_update($fingerprint, $entry['mode'] . ' ' . $entry['object'] . "\t" . $path . "\0");
-        }
-
-        return [
-            'entries' => $entries,
-            'tree_fingerprint_sha256' => hash_final($fingerprint),
-        ];
-    }
-
-    /**
-     * @return array<string, array{mode:string,object:string,object_format:string}>
-     */
-    private function gitTreeEntries(string $repository, string $commit, string $tree): array
-    {
-        $objectFormat = $this->gitOutput(
-            ['git', '-C', $repository, 'rev-parse', '--show-object-format'],
-            'core_assets_git_object_format_failed',
-        );
-        $objectFormat = trim($objectFormat);
-        if (!in_array($objectFormat, ['sha1', 'sha256'], true)) {
-            throw new RuntimeException('core_assets_git_object_format_unsupported');
-        }
-        $output = $this->gitOutput(
-            ['git', '-C', $repository, 'ls-tree', '-r', '-z', '--full-tree', $commit, '--', $tree],
-            'core_assets_git_tree_read_failed',
-        );
-        $entries = [];
-        foreach (explode("\0", $output) as $record) {
-            if ($record === '') {
-                continue;
-            }
-            if (preg_match('/^([0-9]{6}) ([a-z]+) ([a-f0-9]+)\t(.+)$/s', $record, $matches) !== 1
-                || $matches[2] !== 'blob'
-                || !$this->safeArchivePath($matches[4])
-            ) {
-                throw new RuntimeException('core_assets_git_tree_entry_invalid');
-            }
-            $entries[$matches[4]] = [
-                'mode' => $matches[1],
-                'object' => $matches[3],
-                'object_format' => $objectFormat,
-            ];
-        }
-        if ($entries === []) {
-            throw new RuntimeException('core_assets_git_tree_empty');
-        }
-        ksort($entries, SORT_STRING);
-
-        return $entries;
-    }
-
-    private function repositoryPath(string $path): string
-    {
-        $path = trim($path);
-        $repository = $path !== '' && !str_contains($path, "\0") ? realpath($path) : false;
-        if ($repository === false || !is_dir($repository)) {
-            throw new InvalidArgumentException('core_assets_source_repository_invalid');
-        }
-        try {
-            $gitDirectory = trim($this->gitOutput(
-                ['git', '-C', $repository, 'rev-parse', '--git-dir'],
-                'core_assets_source_repository_invalid',
-            ));
-        } catch (\Throwable $exception) {
-            throw new InvalidArgumentException('core_assets_source_repository_invalid', 0, $exception);
-        }
-        if ($gitDirectory === '') {
-            throw new InvalidArgumentException('core_assets_source_repository_invalid');
-        }
-
-        return $repository;
-    }
-
-    /** @param list<string> $command */
-    private function gitOutput(array $command, string $error): string
-    {
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-        if (!is_resource($process)) {
-            throw new RuntimeException($error);
-        }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        if (proc_close($process) !== 0) {
-            throw new RuntimeException($error . ':' . trim((string) $stderr));
-        }
-
-        return (string) $stdout;
-    }
-
-    private function safeArchivePath(string $path): bool
-    {
-        if ($path === ''
-            || $path[0] === '/'
-            || str_contains($path, "\0")
-            || str_contains($path, "\\")
-            || str_contains($path, "\n")
-            || str_contains($path, "\r")
-        ) {
-            return false;
-        }
-        foreach (explode('/', $path) as $segment) {
-            if ($segment === '' || $segment === '.' || $segment === '..') {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function gitBlobHash(string $contents, string $algorithm): string
-    {
-        return hash($algorithm, 'blob ' . strlen($contents) . "\0" . $contents);
-    }
-
-    private function gitFileHash(string $path, string $algorithm): string
-    {
-        $size = filesize($path);
-        $stream = fopen($path, 'rb');
-        if (!is_int($size) || !is_resource($stream)) {
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-            throw new RuntimeException('core_assets_extracted_entry_unreadable');
-        }
-        $context = hash_init($algorithm);
-        hash_update($context, 'blob ' . $size . "\0");
-        hash_update_stream($context, $stream);
-        fclose($stream);
-
-        return hash_final($context);
-    }
-
-    private function runGitArchive(string $repository, string $commit, string $tree, string $target): void
-    {
-        $process = proc_open(
-            ['git', '-C', $repository, 'archive', '--format=tar', '--output=' . $target, $commit, $tree],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-        );
-        if (!is_resource($process)) {
-            throw new RuntimeException('core_assets_git_archive_start_failed');
-        }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0 || !is_file($target)) {
-            throw new RuntimeException('core_assets_git_archive_failed:' . trim((string) ($stderr ?: $stdout)));
-        }
-    }
-
-    private function gzipArchive(string $tar, string $target): void
-    {
-        $this->runCommandToFile(
-            ['gzip', '-n', '-9', '-c', $tar],
-            $target,
-            'core_assets_archive_compress_failed',
-        );
-    }
-
-    private function decompressGzipArchive(string $archive, string $target): void
-    {
-        $this->runCommandToFile(
-            ['gzip', '-d', '-c', $archive],
-            $target,
-            'core_assets_archive_decompress_failed',
-        );
-    }
-
-    /** @param list<string> $command */
-    private function runCommandToFile(array $command, string $target, string $error): void
-    {
-        $process = proc_open(
-            $command,
-            [1 => ['file', $target, 'wb'], 2 => ['pipe', 'w']],
-            $pipes,
-        );
-        if (!is_resource($process)) {
-            throw new RuntimeException($error);
-        }
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0 || !is_file($target)) {
-            @unlink($target);
-            throw new RuntimeException($error . ':' . trim((string) $stderr));
-        }
-    }
-
-    private function assertArchiveSafe(string $tar): void
-    {
-        $pathsOutput = $this->gitOutput(
-            ['tar', '-tf', $tar],
-            'core_assets_archive_list_failed',
-        );
-        $verboseOutput = $this->gitOutput(
-            ['tar', '-tvf', $tar],
-            'core_assets_archive_verbose_list_failed',
-        );
-        $paths = $this->archiveOutputLines($pathsOutput);
-        $verbose = $this->archiveOutputLines($verboseOutput);
-        if ($paths === [] || count($paths) !== count($verbose)) {
-            throw new RuntimeException('core_assets_archive_listing_invalid');
-        }
-
-        $seen = [];
-        foreach ($paths as $index => $path) {
-            $type = $verbose[$index][0] ?? '';
-            $normalized = str_ends_with($path, '/') ? substr($path, 0, -1) : $path;
-            if ($normalized === ''
-                || !$this->safeArchivePath($normalized)
-                || !in_array($type, ['-', 'd'], true)
-                || isset($seen[$normalized])
-            ) {
-                throw new RuntimeException('core_assets_archive_entry_unsafe');
-            }
-            $seen[$normalized] = true;
-        }
-    }
-
-    /** @return list<string> */
-    private function archiveOutputLines(string $output): array
-    {
-        $output = rtrim($output, "\r\n");
-        if ($output === '') {
-            return [];
-        }
-
-        return preg_split('/\r?\n/', $output) ?: [];
-    }
-
-    /**
      * @param list<array{repository:string,commit:string,tree:string,mount:string,sha256:string}> $sources
      * @return list<array<string, string|int>>
      */
@@ -1306,12 +934,12 @@ final class VerifiedAssetBundlePublisher
                     throw new RuntimeException('core_assets_existing_bundle_source_mismatch:' . $field);
                 }
             }
-            $repository = $this->repositoryPath($source['repository']);
-            $verification = $this->verifyExtractedSource(
+            $repository = $this->archives->repositoryPath($source['repository']);
+            $verification = $this->archives->verifyExtractedSource(
                 $repository,
-                $this->fullSha($source['commit']),
-                $this->stablePath($source['tree'], 'core_assets_source_tree_invalid'),
-                $bundlePath . DIRECTORY_SEPARATOR . $this->stableSegment($source['mount'], 'core_assets_source_mount_invalid'),
+                AssetPathRules::fullSha($source['commit']),
+                AssetPathRules::stablePath($source['tree'], 'core_assets_source_tree_invalid'),
+                $bundlePath . DIRECTORY_SEPARATOR . AssetPathRules::stableSegment($source['mount'], 'core_assets_source_mount_invalid'),
             );
             foreach (['file_count', 'tree_fingerprint_sha256', 'object_format'] as $field) {
                 if (($receipt[$field] ?? null) !== $verification[$field]) {
@@ -1354,13 +982,13 @@ final class VerifiedAssetBundlePublisher
             ) {
                 throw new RuntimeException('core_assets_existing_bundle_receipt_invalid');
             }
-            $mount = $this->stableSegment($receipt['mount'], 'core_assets_source_mount_invalid');
+            $mount = AssetPathRules::stableSegment($receipt['mount'], 'core_assets_source_mount_invalid');
             $mountPath = $bundlePath . DIRECTORY_SEPARATOR . $mount;
             if (!is_dir($mountPath) || is_link($mountPath)) {
                 throw new RuntimeException('core_assets_existing_bundle_mount_invalid:' . $mount);
             }
             $expectedRootEntries[] = $mount;
-            $verification = $this->scanExtractedTree(
+            $verification = $this->archives->scanExtractedTree(
                 $mountPath,
                 is_string($receipt['object_format'] ?? null) ? $receipt['object_format'] : '',
             );
@@ -1458,49 +1086,6 @@ final class VerifiedAssetBundlePublisher
             @unlink($temporary);
             throw new RuntimeException('core_assets_state_write_failed');
         }
-    }
-
-    private function ensureDirectory(string $path): void
-    {
-        if (!is_dir($path) && !mkdir($path, 0775, true) && !is_dir($path)) {
-            throw new RuntimeException('core_assets_directory_create_failed');
-        }
-    }
-
-    private function absolutePath(string $path, string $error): string
-    {
-        $path = rtrim(trim($path), DIRECTORY_SEPARATOR);
-        if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR || str_contains($path, "\0")) {
-            throw new InvalidArgumentException($error);
-        }
-        return $path;
-    }
-
-    private function fullSha(string $sha): string
-    {
-        $sha = strtolower(trim($sha));
-        if (!preg_match('/^[a-f0-9]{40}$/', $sha)) {
-            throw new InvalidArgumentException('core_assets_source_commit_invalid');
-        }
-        return $sha;
-    }
-
-    private function stableSegment(string $value, string $error): string
-    {
-        $value = trim($value);
-        if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $value)) {
-            throw new InvalidArgumentException($error);
-        }
-        return $value;
-    }
-
-    private function stablePath(string $value, string $error): string
-    {
-        $value = trim($value, '/ ');
-        if ($value === '' || str_contains($value, '..') || !preg_match('#^[a-zA-Z0-9._/-]+$#', $value)) {
-            throw new InvalidArgumentException($error);
-        }
-        return $value;
     }
 
     private function removeTree(string $path): void

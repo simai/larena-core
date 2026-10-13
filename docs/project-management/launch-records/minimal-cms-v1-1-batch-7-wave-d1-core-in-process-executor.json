@@ -28,7 +28,15 @@
     "src/Runtime/PlaneOperationHandlers.php",
     "src/Runtime/RegistryOperationRuntime.php",
     "src/Runtime/UndeclaredCapabilityGate.php",
-    "tests/Unit/CatalogOperationExecutionTest.php"
+    "tests/Unit/CatalogOperationExecutionTest.php",
+    "src/Providers/Registrars/ScopeModelRegistrar.php",
+    "src/Providers/Registrars/OperationRegistrar.php",
+    "src/Providers/Registrars/EnvironmentRegistrar.php",
+    "src/Providers/Registrars/InstallationRegistrar.php",
+    "tests/Unit/WebInstallCoordinatorRecoveryTest.php",
+    "src/Assets/AssetPathRules.php",
+    "src/Assets/GitTreeArchive.php",
+    "src/Assets/VerifiedAssetBundlePublisher.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

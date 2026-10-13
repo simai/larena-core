@@ -40,7 +40,15 @@
     "src/Contracts/ScopeResourceBindings.php",
     "src/Scope/DatabaseScopeMembershipRegistry.php",
     "src/Scope/DatabaseScopeResourceBindings.php",
-    "tests/Unit/ScopeMembershipRegistryTest.php"
+    "tests/Unit/ScopeMembershipRegistryTest.php",
+    "src/Providers/Registrars/ScopeModelRegistrar.php",
+    "src/Providers/Registrars/OperationRegistrar.php",
+    "src/Providers/Registrars/EnvironmentRegistrar.php",
+    "src/Providers/Registrars/InstallationRegistrar.php",
+    "tests/Unit/WebInstallCoordinatorRecoveryTest.php",
+    "src/Assets/AssetPathRules.php",
+    "src/Assets/GitTreeArchive.php",
+    "src/Assets/VerifiedAssetBundlePublisher.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
