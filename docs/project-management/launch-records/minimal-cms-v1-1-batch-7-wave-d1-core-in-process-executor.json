@@ -42,7 +42,10 @@
     "src/Starter/StarterScenario.php",
     "src/Starter/DatabaseConnectionDiagnostic.php",
     "src/Starter/CoreAssetActivationContract.php",
-    "src/Starter/AssetActivationInputs.php"
+    "src/Starter/AssetActivationInputs.php",
+    "src/Support/SchemaName.php",
+    "tests/Unit/SchemaNameTest.php",
+    "tests/Unit/VerifiedAssetBundlePublisherTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

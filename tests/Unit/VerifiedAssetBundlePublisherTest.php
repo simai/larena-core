@@ -114,14 +114,29 @@ assertTrue(glob($public . '/pair-v1/ui/*.data') === [], 'archive extractor leake
 assertTrue($first['sources'][0]['file_count'] === 3, 'file count mismatch');
 assertTrue($first['publication_profile'] === VerifiedAssetBundlePublisher::PUBLICATION_PROFILE, 'publication profile missing');
 $firstMarker = json_decode((string) file_get_contents($public . '/pair-v1/.larena-bundle.json'), true, 512, JSON_THROW_ON_ERROR);
-assertTrue($firstMarker['schema'] === VerifiedAssetBundlePublisher::BUNDLE_SCHEMA, 'bundle schema mismatch');
+assertTrue($firstMarker['schema'] === 'larena.core_assets.immutable_bundle' && $firstMarker['schema_version'] === 2, 'bundle schema mismatch');
 $firstState = json_decode((string) file_get_contents($state), true, 512, JSON_THROW_ON_ERROR);
-assertTrue($firstState['schema'] === 'larena.core_assets.activation_state.v2', 'activation state schema mismatch');
+assertTrue($firstState['schema'] === 'larena.core_assets.activation_state' && $firstState['schema_version'] === 2, 'activation state schema mismatch');
 assertTrue($firstState['previous_bundle'] === null, 'untrusted legacy rollback target retained');
 assertTrue(
     $firstState['active_bundle_manifest_sha256'] === hash_file('sha256', $public . '/pair-v1/.larena-bundle.json'),
     'active manifest checksum not pinned outside bundle',
 );
+
+// A bundle and a state written before the names lost their version (`….v2`, no schema_version) are still read.
+$legacyMarker = $firstMarker;
+$legacyMarker['schema'] = 'larena.core_assets.immutable_bundle.v2';
+unset($legacyMarker['schema_version']);
+file_put_contents($public . '/pair-v1/.larena-bundle.json', json_encode($legacyMarker, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+$legacyState = $firstState;
+$legacyState['schema'] = 'larena.core_assets.activation_state.v2';
+unset($legacyState['schema_version']);
+$legacyState['active_bundle_manifest_sha256'] = hash_file('sha256', $public . '/pair-v1/.larena-bundle.json');
+file_put_contents($state, json_encode($legacyState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+$legacy = $publisher->publish([$source], $public, $state, 'pair-v1');
+assertTrue($legacy['bundle_action'] === 'reused', 'a bundle with the old marker was not reused');
+$rewrittenState = json_decode((string) file_get_contents($state), true, 512, JSON_THROW_ON_ERROR);
+assertTrue($rewrittenState['schema'] === 'larena.core_assets.activation_state' && $rewrittenState['schema_version'] === 2, 'the state was not rewritten in the new form');
 
 $second = $publisher->publish([$source], $public, $state, 'pair-v2');
 assertTrue($second['bundle_action'] === 'created', 'second Git bundle action mismatch');

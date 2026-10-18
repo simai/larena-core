@@ -132,7 +132,7 @@ final class VerifiedAssetBundleInspector
             $problems[] = 'state_invalid';
             return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
         }
-        if (($state['schema'] ?? null) !== 'larena.core_assets.activation_state.v2'
+        if (!VerifiedAssetBundlePublisher::isActivationState($state)
             || ($state['active_bundle'] ?? null) !== $contract['bundle_id']
             || !is_string($state['active_bundle_manifest_sha256'] ?? null)
         ) {
@@ -240,7 +240,7 @@ final class VerifiedAssetBundleInspector
             return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
         }
 
-        if (($state['schema'] ?? null) !== 'larena.core_assets.activation_state.v2') {
+        if (!VerifiedAssetBundlePublisher::isActivationState($state)) {
             $problems[] = 'state_schema_mismatch';
         }
         if (($state['active_bundle'] ?? null) !== $bundleId) {
@@ -294,7 +294,7 @@ final class VerifiedAssetBundleInspector
             return $this->receipt($contract, $manifestHash, $requiredFileSetHash, $verifiedFiles, $problems);
         }
 
-        if (($manifest['schema'] ?? null) !== VerifiedAssetBundlePublisher::BUNDLE_SCHEMA) {
+        if (!VerifiedAssetBundlePublisher::isBundleMarker($manifest)) {
             $problems[] = 'manifest_schema_mismatch';
         }
         if (($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Larena\Core\Assets;
 
 use InvalidArgumentException;
+use Larena\Core\Support\SchemaName;
 use RuntimeException;
 
 /**
@@ -13,9 +14,25 @@ use RuntimeException;
  */
 final class VerifiedAssetBundlePublisher
 {
-    public const BUNDLE_SCHEMA = 'larena.core_assets.immutable_bundle.v2';
+    /** The marker of a published bundle (`.larena-bundle.json`) and the activation state; both stay on disk. */
+    public const BUNDLE_SCHEMA = 'larena.core_assets.immutable_bundle';
+    public const BUNDLE_SCHEMA_VERSION = 2;
+    public const STATE_SCHEMA = 'larena.core_assets.activation_state';
+    public const STATE_SCHEMA_VERSION = 2;
 
     public const PUBLICATION_PROFILE = 'exact-git-tree-v2';
+
+    /** @param array<array-key, mixed> $marker */
+    public static function isBundleMarker(array $marker): bool
+    {
+        return SchemaName::is($marker, self::BUNDLE_SCHEMA, self::BUNDLE_SCHEMA_VERSION);
+    }
+
+    /** @param array<array-key, mixed> $state */
+    public static function isActivationState(array $state): bool
+    {
+        return SchemaName::is($state, self::STATE_SCHEMA, self::STATE_SCHEMA_VERSION);
+    }
 
     public function __construct(private readonly GitTreeArchive $archives = new GitTreeArchive())
     {
@@ -50,7 +67,7 @@ final class VerifiedAssetBundlePublisher
                     $receipts[] = $this->archives->extractVerifiedSource($source, $stage);
                 }
                 $this->writeJson($stage . DIRECTORY_SEPARATOR . '.larena-bundle.json', [
-                    'schema' => self::BUNDLE_SCHEMA,
+                    ...SchemaName::stamp(self::BUNDLE_SCHEMA, self::BUNDLE_SCHEMA_VERSION),
                     'publication_profile' => self::PUBLICATION_PROFILE,
                     'bundle_id' => $bundleId,
                     'sources' => $receipts,
@@ -268,7 +285,7 @@ final class VerifiedAssetBundlePublisher
         try {
             $artifactReceipts = $this->extractArtifactSources($contract, $artifactDirectory, $stage);
             $this->writeJson($stage . DIRECTORY_SEPARATOR . '.larena-bundle.json', [
-                'schema' => self::BUNDLE_SCHEMA,
+                ...SchemaName::stamp(self::BUNDLE_SCHEMA, self::BUNDLE_SCHEMA_VERSION),
                 'artifact_contract_schema' => $contract['schema'],
                 'publication_profile' => $contract['publication_profile'],
                 'bundle_id' => $bundleId,
@@ -584,7 +601,7 @@ final class VerifiedAssetBundlePublisher
             throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
         }
         $manifest = AssetContractFields::readJson($manifestPath);
-        if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
+        if (!self::isBundleMarker($manifest)
             || ($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
             || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
@@ -831,7 +848,7 @@ final class VerifiedAssetBundlePublisher
         if (!is_string($previous) || $previous === '') {
             throw new RuntimeException('core_assets_previous_bundle_unavailable');
         }
-        if (($state['schema'] ?? null) !== 'larena.core_assets.activation_state.v2'
+        if (!self::isActivationState($state)
             || !is_string($previousManifestHash)
             || preg_match('/^[a-f0-9]{64}$/', $previousManifestHash) !== 1
         ) {
@@ -852,7 +869,7 @@ final class VerifiedAssetBundlePublisher
         $rolledBackFrom = $state['active_bundle'] ?? null;
         $rolledBackFromManifestHash = $state['active_bundle_manifest_sha256'] ?? null;
         $this->writeJson($stateFile, [
-            'schema' => 'larena.core_assets.activation_state.v2',
+            ...SchemaName::stamp(self::STATE_SCHEMA, self::STATE_SCHEMA_VERSION),
             'active_bundle' => $previous,
             'active_bundle_manifest_sha256' => $previousManifestHash,
             'previous_bundle' => is_string($rolledBackFrom) ? $rolledBackFrom : null,
@@ -871,7 +888,7 @@ final class VerifiedAssetBundlePublisher
     private function validateExistingBundle(string $bundlePath, string $bundleId, array $sources): array
     {
         $manifest = AssetContractFields::readJson($bundlePath . DIRECTORY_SEPARATOR . '.larena-bundle.json');
-        if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
+        if (!self::isBundleMarker($manifest)
             || ($manifest['publication_profile'] ?? null) !== self::PUBLICATION_PROFILE
             || ($manifest['bundle_id'] ?? null) !== $bundleId
             || !is_array($manifest['sources'] ?? null)
@@ -918,7 +935,7 @@ final class VerifiedAssetBundlePublisher
             throw new RuntimeException('core_assets_existing_bundle_manifest_invalid');
         }
         $manifest = AssetContractFields::readJson($manifestPath);
-        if (($manifest['schema'] ?? null) !== self::BUNDLE_SCHEMA
+        if (!self::isBundleMarker($manifest)
             || !is_string($manifest['publication_profile'] ?? null)
             || preg_match('/^[a-z0-9][a-z0-9._-]{0,127}$/', $manifest['publication_profile']) !== 1
             || ($manifest['bundle_id'] ?? null) !== $bundleId
@@ -989,7 +1006,7 @@ final class VerifiedAssetBundlePublisher
             && is_string($before['active_bundle_manifest_sha256'] ?? null)
             && preg_match('/^[a-f0-9]{64}$/', $before['active_bundle_manifest_sha256']) === 1;
         $state = [
-            'schema' => 'larena.core_assets.activation_state.v2',
+            ...SchemaName::stamp(self::STATE_SCHEMA, self::STATE_SCHEMA_VERSION),
             'active_bundle' => $bundleId,
             'active_bundle_manifest_sha256' => $manifestHash,
             'previous_bundle' => $sameActiveBundle
