@@ -62,7 +62,8 @@
     "src/Starter/PackageRegistryDiagnostics.php",
     "tests/Unit/PackageRegistryDiagnosticsTest.php",
     "tests/Unit/DataContentClusterSmokeTest.php",
-    "tests/Unit/RuntimeSecurityClusterSmokeTest.php"
+    "tests/Unit/RuntimeSecurityClusterSmokeTest.php",
+    "tests/Unit/CoreAssetActivationContractTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

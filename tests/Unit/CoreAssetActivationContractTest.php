@@ -217,7 +217,8 @@ $descriptorGraph = new class {
 };
 
 $assetDescriptor = [
-    'schema' => 'larena.core_assets.set.v1',
+    'schema' => 'larena.core_assets.set',
+    'schema_version' => 1,
     'asset_set' => 'admin.read_only_shell',
     'owner_package' => 'larena/ui',
     'activation_owner' => CoreAssetActivationContract::OWNER,

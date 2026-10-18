@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Larena\Core\Starter;
 
 use InvalidArgumentException;
+use Larena\Core\Support\SchemaName;
 
 /**
  * The inputs an asset activation reads, checked before anything is activated: required fields, safe route
@@ -56,7 +57,8 @@ final class AssetActivationInputs
 
     public static function validateAssetDescriptorPolicy(array $assetDescriptor): void
     {
-        if (self::requiredString($assetDescriptor, 'schema') !== 'larena.core_assets.set.v1') {
+        // A package's asset set (`assets.yaml`); one written before the names lost their version labels it `….v1`.
+        if (!SchemaName::is($assetDescriptor, 'larena.core_assets.set', 1)) {
             throw new InvalidArgumentException('core_assets_descriptor_schema_invalid');
         }
 
