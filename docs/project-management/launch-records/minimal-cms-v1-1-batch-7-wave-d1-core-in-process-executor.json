@@ -45,7 +45,12 @@
     "src/Starter/AssetActivationInputs.php",
     "src/Support/SchemaName.php",
     "tests/Unit/SchemaNameTest.php",
-    "tests/Unit/VerifiedAssetBundlePublisherTest.php"
+    "tests/Unit/VerifiedAssetBundlePublisherTest.php",
+    "src/Starter/PackageRegistrySeed.php",
+    "src/Starter/PackageRegistryDiagnostics.php",
+    "tests/Unit/PackageRegistryDiagnosticsTest.php",
+    "tests/Unit/DataContentClusterSmokeTest.php",
+    "tests/Unit/RuntimeSecurityClusterSmokeTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

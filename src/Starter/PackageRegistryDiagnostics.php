@@ -46,7 +46,7 @@ final class PackageRegistryDiagnostics
         $content = (string) file_get_contents($absolutePath);
         $registry = json_decode($content, true);
 
-        if (!is_array($registry) || ($registry['schema'] ?? null) !== 'larena.package_registry_seed.v1') {
+        if (!is_array($registry) || !PackageRegistrySeed::isRegistry($registry)) {
             return [
                 'schema' => 'larena.package_registry_diagnostics.v1',
                 'status' => 'invalid',

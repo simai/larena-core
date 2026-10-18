@@ -4,8 +4,21 @@ declare(strict_types=1);
 
 namespace Larena\Core\Starter;
 
+use Larena\Core\Support\SchemaName;
+
 final class PackageRegistrySeed
 {
+    /** The package registry file an installation keeps, and the backup written before it is replaced. */
+    public const SCHEMA = 'larena.package_registry_seed';
+    public const BACKUP_SCHEMA = 'larena.package_registry_seed_backup';
+    public const SCHEMA_VERSION = 1;
+
+    /** @param array<array-key, mixed> $registry */
+    public static function isRegistry(array $registry): bool
+    {
+        return SchemaName::is($registry, self::SCHEMA, self::SCHEMA_VERSION);
+    }
+
     /**
      * @param array<string, mixed> $launchRecord
      * @param array<string, array<string, mixed>> $installedPackages
@@ -30,7 +43,7 @@ final class PackageRegistrySeed
 
         if (!is_array($backup)) {
             $backup = [
-                'schema' => 'larena.package_registry_seed_backup.v1',
+                ...SchemaName::stamp(self::BACKUP_SCHEMA, self::SCHEMA_VERSION),
                 'generated_at' => gmdate('c'),
                 'target' => self::relativePath($basePath, $targetPath),
                 'existed' => $before !== null,
@@ -112,7 +125,7 @@ final class PackageRegistrySeed
         }
 
         return [
-            'schema' => 'larena.package_registry_seed.v1',
+            ...SchemaName::stamp(self::SCHEMA, self::SCHEMA_VERSION),
             'source' => 'composer_installed_json',
             'packages' => $packages,
         ];

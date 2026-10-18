@@ -25,7 +25,8 @@ if (($invalid['status'] ?? null) !== 'invalid' || ($invalid['reason'] ?? null) !
 }
 
 file_put_contents($basePath . '/storage/app/larena/package-registry.json', json_encode([
-    'schema' => 'larena.package_registry_seed.v1',
+    'schema' => 'larena.package_registry_seed',
+    'schema_version' => 1,
     'source' => 'composer_installed_json',
     'packages' => [
         [
@@ -51,6 +52,17 @@ if (($passed['status'] ?? null) !== 'passed') {
 
 if (($passed['package_count'] ?? null) !== 2) {
     fwrite(STDERR, 'Registry diagnostics should report package count.' . PHP_EOL);
+    exit(1);
+}
+
+// A registry written before the names lost their version (`….v1`, no schema_version) is still read.
+$registryPath = $basePath . '/storage/app/larena/package-registry.json';
+$legacy = json_decode((string) file_get_contents($registryPath), true, 512, JSON_THROW_ON_ERROR);
+$legacy['schema'] = 'larena.package_registry_seed.v1';
+unset($legacy['schema_version']);
+file_put_contents($registryPath, json_encode($legacy, JSON_PRETTY_PRINT) . PHP_EOL);
+if ((PackageRegistryDiagnostics::inspect($basePath, $required)['status'] ?? null) !== 'passed') {
+    fwrite(STDERR, 'A registry in the old form must still be read.' . PHP_EOL);
     exit(1);
 }
 

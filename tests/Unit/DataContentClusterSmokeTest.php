@@ -26,7 +26,8 @@ file_put_contents($basePath . '/vendor/composer/installed.json', json_encode([
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 
 file_put_contents($basePath . '/storage/app/larena/package-registry.json', json_encode([
-    'schema' => 'larena.package_registry_seed.v1',
+    'schema' => 'larena.package_registry_seed',
+    'schema_version' => 1,
     'source' => 'composer_installed_json',
     'packages' => array_map(
         static fn (string $package): array => [

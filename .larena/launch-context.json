@@ -57,7 +57,12 @@
     "src/Starter/AssetActivationInputs.php",
     "src/Support/SchemaName.php",
     "tests/Unit/SchemaNameTest.php",
-    "tests/Unit/VerifiedAssetBundlePublisherTest.php"
+    "tests/Unit/VerifiedAssetBundlePublisherTest.php",
+    "src/Starter/PackageRegistrySeed.php",
+    "src/Starter/PackageRegistryDiagnostics.php",
+    "tests/Unit/PackageRegistryDiagnosticsTest.php",
+    "tests/Unit/DataContentClusterSmokeTest.php",
+    "tests/Unit/RuntimeSecurityClusterSmokeTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
