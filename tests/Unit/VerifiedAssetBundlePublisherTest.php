@@ -196,7 +196,7 @@ $artifactContract = [
 ];
 
 $build = $publisher->buildArtifactDirectory($artifactContract, $artifactDirectory);
-assertTrue($build['schema'] === 'larena.core_assets.artifact_build_receipt.v1', 'artifact build receipt schema mismatch');
+assertTrue($build['schema'] === 'larena.core_assets.artifact_build_receipt', 'artifact build receipt schema mismatch');
 assertTrue(
     $build['artifact_contract_schema'] === $artifactContract['schema'],
     'artifact contract schema missing from build receipt',

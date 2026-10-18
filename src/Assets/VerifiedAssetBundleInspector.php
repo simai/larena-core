@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Larena\Core\Assets;
 
 use InvalidArgumentException;
+use Larena\Core\Support\SchemaName;
 use RuntimeException;
 use Throwable;
 
@@ -16,8 +17,10 @@ use Throwable;
  */
 final class VerifiedAssetBundleInspector
 {
-    public const INSPECTION_SCHEMA = 'larena.core_assets.bundle_inspection.v1';
-    public const ROUTE_RECEIPT_SCHEMA = 'larena.core_assets.route_receipt.v1';
+    public const INSPECTION_SCHEMA = 'larena.core_assets.bundle_inspection';
+    /** The route receipt stays on disk between syncs; one written before the names lost their version is still read. */
+    public const ROUTE_RECEIPT_SCHEMA = 'larena.core_assets.route_receipt';
+    public const ROUTE_RECEIPT_SCHEMA_VERSION = 1;
 
     /**
      * Build a deployment-time receipt only after the complete immutable bundle
@@ -66,7 +69,7 @@ final class VerifiedAssetBundleInspector
         }
 
         return [
-            'schema' => self::ROUTE_RECEIPT_SCHEMA,
+            ...SchemaName::stamp(self::ROUTE_RECEIPT_SCHEMA, self::ROUTE_RECEIPT_SCHEMA_VERSION),
             'publication_profile' => $contract['publication_profile'],
             'bundle_id' => $contract['bundle_id'],
             'manifest_sha' => $inspection['manifest_sha'],
@@ -104,7 +107,7 @@ final class VerifiedAssetBundleInspector
         $verifiedFiles = [];
         $problems = [];
 
-        if (($routeReceipt['schema'] ?? null) !== self::ROUTE_RECEIPT_SCHEMA
+        if (!SchemaName::is($routeReceipt, self::ROUTE_RECEIPT_SCHEMA, self::ROUTE_RECEIPT_SCHEMA_VERSION)
             || ($routeReceipt['publication_profile'] ?? null) !== $contract['publication_profile']
             || ($routeReceipt['bundle_id'] ?? null) !== $contract['bundle_id']
             || ($routeReceipt['required_file_set_sha256'] ?? null) !== $requiredFileSetHash

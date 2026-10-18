@@ -24,7 +24,7 @@ use Larena\Core\Exceptions\EnvironmentProfileRejected;
  */
 final readonly class DeclaredEnvironmentProfile implements EnvironmentProfile
 {
-    public const SCHEMA = 'larena.environment_profile.v1';
+    public const SCHEMA = 'larena.environment_profile';
 
     public const ORDINARY_HOSTING = 'ordinary_hosting';
 

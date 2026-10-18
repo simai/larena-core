@@ -9,6 +9,7 @@ use Larena\Core\Enums\OperationExecutionMode;
 use Larena\Core\Enums\OperationRiskClass;
 use Larena\Core\Enums\TransportKind;
 use Larena\Core\Exceptions\OperationDeclarationInvalid;
+use Larena\Core\Support\SchemaName;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
@@ -25,9 +26,10 @@ use Throwable;
  */
 final class OperationDeclarationLoader
 {
-    public const CONTRACT_SCHEMA = 'larena.operations.contract.v1';
+    /** A package's `operations.yaml`; one written before the names lost their version labels it `….v1`. */
+    public const CONTRACT_SCHEMA = 'larena.operations.contract';
 
-    private const TOP_LEVEL_FIELDS = ['schema', 'package', 'version', 'operations'];
+    private const TOP_LEVEL_FIELDS = ['schema', 'schema_version', 'package', 'version', 'operations'];
 
     private const OPERATION_FIELDS = [
         'name', 'execution_mode', 'risk', 'reversible', 'access_scope', 'audit_event',
@@ -87,8 +89,7 @@ final class OperationDeclarationLoader
 
         $this->rejectUnknownKeys(array_keys($parsed), self::TOP_LEVEL_FIELDS, $path, 'unknown_top_level_key');
 
-        $schema = $parsed['schema'] ?? null;
-        if ($schema !== self::CONTRACT_SCHEMA) {
+        if (!SchemaName::is($parsed, self::CONTRACT_SCHEMA, 1)) {
             throw new OperationDeclarationInvalid('unknown_schema', $path, 'expected ' . self::CONTRACT_SCHEMA);
         }
 

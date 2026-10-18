@@ -26,7 +26,7 @@ final class RuntimeSecuritySmokeCommand extends Command
         $report = RuntimeSecuritySmoke::run($outputPath, $context);
 
         CommandReportPresenter::render($this, 'Larena runtime/security smoke', [
-            'schema' => 'larena.runtime_security_laravel_smoke.command.v1',
+            'schema' => 'larena.runtime_security_laravel_smoke.command',
             'status' => $report['status'],
             'evidence_path' => $outputPath,
             'generated_at' => gmdate('c'),

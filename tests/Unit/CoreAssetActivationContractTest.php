@@ -22,7 +22,7 @@ $plan = CoreAssetActivationContract::adminSmartResourcePack('admin.smart.resourc
     ],
 ]);
 
-if (($plan['schema'] ?? null) !== 'larena.core_assets.activation_contract.v1') {
+if (($plan['schema'] ?? null) !== 'larena.core_assets.activation_contract') {
     fwrite(STDERR, 'Core asset activation schema mismatch.' . PHP_EOL);
     exit(1);
 }
@@ -605,7 +605,7 @@ foreach ($immutableReady['assets'] ?? [] as $asset) {
 }
 
 $untrustedInspections = [
-    'wrong_schema' => [...$validInspection, 'schema' => 'larena.core_assets.bundle_inspection.v0'],
+    'wrong_schema' => [...$validInspection, 'schema' => 'larena.core_assets.other_inspection'],
     'wrong_bundle' => [...$validInspection, 'bundle_id' => 'framework-v2'],
     'wrong_manifest_sha' => [...$validInspection, 'manifest_sha' => 'invalid'],
     'wrong_file_set' => [...$validInspection, 'required_file_set_sha256' => str_repeat('b', 64)],

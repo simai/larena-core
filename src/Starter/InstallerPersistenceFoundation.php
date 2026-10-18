@@ -25,7 +25,8 @@ final class InstallerPersistenceFoundation
 
         if (!is_array($backup)) {
             $backup = [
-                'schema' => 'larena.installer_persistence_foundation_backup.v1',
+                'schema' => 'larena.installer_persistence_foundation_backup',
+                'schema_version' => 1,
                 'generated_at' => gmdate('c'),
                 'target' => self::relativePath($basePath, $targetPath),
                 'existed' => $before !== null,
@@ -43,7 +44,7 @@ final class InstallerPersistenceFoundation
         self::writeString($targetPath, $manifestJson);
 
         $result = [
-            'schema' => 'larena.installer_persistence_foundation_result.v1',
+            'schema' => 'larena.installer_persistence_foundation_result',
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'mutation' => 'installer_persistence_foundation',
@@ -95,7 +96,8 @@ final class InstallerPersistenceFoundation
     public static function manifestPayload(array $launchRecord, array $applicationContext): array
     {
         return [
-            'schema' => 'larena.installer_persistence_foundation.v1',
+            'schema' => 'larena.installer_persistence_foundation',
+            'schema_version' => 1,
             'source' => 'guarded_install_launch_record',
             'launch_record' => [
                 'id' => $launchRecord['id'] ?? null,

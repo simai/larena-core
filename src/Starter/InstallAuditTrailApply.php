@@ -42,7 +42,8 @@ final class InstallAuditTrailApply
 
         $beforeRows = self::eventRows();
         self::writeJson($backupPath, [
-            'schema' => 'larena.install_audit_trail_apply_backup.v1',
+            'schema' => 'larena.install_audit_trail_apply_backup',
+            'schema_version' => 1,
             'generated_at' => gmdate('c'),
             'target' => self::relativePath($basePath, $targetPath),
             'table' => 'larena_install_events',
@@ -82,7 +83,8 @@ final class InstallAuditTrailApply
         $changed = self::fingerprint($beforeRows) !== self::fingerprint($afterRows);
 
         $state = [
-            'schema' => 'larena.install_audit_trail_state.v1',
+            'schema' => 'larena.install_audit_trail_state',
+            'schema_version' => 1,
             'generated_at' => gmdate('c'),
             'status' => 'developer_testable_foundation',
             'launch_record' => [
@@ -103,7 +105,7 @@ final class InstallAuditTrailApply
         self::writeJson($targetPath, $state);
 
         $result = [
-            'schema' => 'larena.install_audit_trail_apply_result.v1',
+            'schema' => 'larena.install_audit_trail_apply_result',
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'mutation' => 'install_audit_trail_apply',
@@ -253,7 +255,7 @@ final class InstallAuditTrailApply
     private static function blocked(string $applyOutputPath, string $reason, array $payload = []): array
     {
         $result = array_merge([
-            'schema' => 'larena.install_apply_result.v1',
+            'schema' => 'larena.install_apply_result',
             'status' => 'blocked',
             'generated_at' => gmdate('c'),
             'reason' => $reason,
@@ -273,7 +275,7 @@ final class InstallAuditTrailApply
     private static function failed(string $applyOutputPath, string $reason, array $payload = []): array
     {
         $result = array_merge([
-            'schema' => 'larena.install_apply_result.v1',
+            'schema' => 'larena.install_apply_result',
             'status' => 'failed',
             'generated_at' => gmdate('c'),
             'reason' => $reason,

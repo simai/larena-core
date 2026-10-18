@@ -51,7 +51,7 @@ if (($first['mutates_state'] ?? null) !== true) {
     exit(1);
 }
 
-if (($first['persistence_manifest']['schema'] ?? null) !== 'larena.installer_persistence_foundation.v1') {
+if (($first['persistence_manifest']['schema'] ?? null) !== 'larena.installer_persistence_foundation' || ($first['persistence_manifest']['schema_version'] ?? null) !== 1) {
     fwrite(STDERR, 'Expected installer persistence manifest schema.' . PHP_EOL);
     exit(1);
 }

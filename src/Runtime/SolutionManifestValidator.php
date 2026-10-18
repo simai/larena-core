@@ -11,6 +11,7 @@ use Larena\Core\Enums\EnvironmentCapability;
 use Larena\Core\Enums\OperationRiskClass;
 use Larena\Core\Enums\SolutionDistribution;
 use Larena\Core\Exceptions\SolutionRejected;
+use Larena\Core\Support\SchemaName;
 
 /**
  * Turns a manifest document into a validated solution, or refuses it.
@@ -63,7 +64,7 @@ final class SolutionManifestValidator
             }
         }
 
-        if (($document['schema'] ?? null) !== SolutionManifest::SCHEMA) {
+        if (!SchemaName::is($document, SolutionManifest::SCHEMA, SolutionManifest::SCHEMA_VERSION)) {
             throw new SolutionRejected('schema_mismatch', 'A solution manifest must declare ' . SolutionManifest::SCHEMA . '.');
         }
 

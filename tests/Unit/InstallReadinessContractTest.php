@@ -32,7 +32,7 @@ $plan = [
 
 $contract = InstallReadinessContract::fromDryRunPlan($doctor, $plan, '/tmp/doctor.json');
 
-if (($contract['schema'] ?? null) !== 'larena.install_readiness_contract.v1') {
+if (($contract['schema'] ?? null) !== 'larena.install_readiness_contract') {
     fwrite(STDERR, 'Unexpected install readiness contract schema.' . PHP_EOL);
     exit(1);
 }

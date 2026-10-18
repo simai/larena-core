@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Larena\Core\Starter;
 
+use Larena\Core\Support\SchemaName;
+
 final class InstallApplyLaunchRecord
 {
-    private const SCHEMA = 'larena.install_apply_launch_record.v1';
+    private const SCHEMA = 'larena.install_apply_launch_record';
     private const CONFIRMATIONS_BY_TARGET = [
         'package_registry_seed' => 'package_registry_seed',
         'installer_persistence_foundation' => 'installer_persistence_foundation',
@@ -69,7 +71,7 @@ final class InstallApplyLaunchRecord
     {
         $errors = [];
 
-        if (($record['schema'] ?? null) !== self::SCHEMA) {
+        if (!SchemaName::is($record, self::SCHEMA, 1)) {
             $errors[] = 'schema_must_be_' . self::SCHEMA;
         }
 

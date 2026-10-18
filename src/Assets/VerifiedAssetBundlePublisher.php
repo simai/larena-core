@@ -824,7 +824,7 @@ final class VerifiedAssetBundlePublisher
         }
 
         return [
-            'schema' => 'larena.core_assets.artifact_build_receipt.v1',
+            'schema' => 'larena.core_assets.artifact_build_receipt',
             'artifact_contract_schema' => $contract['schema'],
             'publication_profile' => $contract['publication_profile'],
             'bundle_id' => $contract['bundle_id'],
@@ -1019,7 +1019,7 @@ final class VerifiedAssetBundlePublisher
         $this->writeJson($stateFile, $state);
 
         return [
-            'schema' => 'larena.core_assets.publication_receipt.v2',
+            'schema' => 'larena.core_assets.publication_receipt',
             'publication_profile' => $publicationProfile,
             'activation_owner' => 'larena/core:core.assets',
             'bundle_id' => $bundleId,

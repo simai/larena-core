@@ -26,7 +26,8 @@ final class InstallerDbSchemaApply
         $before = self::schemaState();
 
         self::writeJson($backupPath, [
-            'schema' => 'larena.installer_db_schema_apply_backup.v1',
+            'schema' => 'larena.installer_db_schema_apply_backup',
+            'schema_version' => 1,
             'generated_at' => gmdate('c'),
             'target' => self::relativePath($basePath, $targetPath),
             'schema_state_before' => $before,
@@ -48,7 +49,8 @@ final class InstallerDbSchemaApply
         $changed = $before !== $after;
 
         $state = [
-            'schema' => 'larena.installer_db_schema_state.v1',
+            'schema' => 'larena.installer_db_schema_state',
+            'schema_version' => 1,
             'generated_at' => gmdate('c'),
             'status' => $missing === [] ? 'applied' : 'incomplete',
             'launch_record' => [
@@ -70,7 +72,7 @@ final class InstallerDbSchemaApply
         self::writeJson($targetPath, $state);
 
         $result = [
-            'schema' => 'larena.installer_db_schema_apply_result.v1',
+            'schema' => 'larena.installer_db_schema_apply_result',
             'status' => $missing === [] ? 'passed' : 'failed',
             'generated_at' => gmdate('c'),
             'mutation' => 'installer_db_schema_apply',

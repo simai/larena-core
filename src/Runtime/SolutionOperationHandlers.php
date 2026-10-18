@@ -92,6 +92,7 @@ final readonly class SolutionOperationHandlers implements OperationHandler
     {
         return [
             'schema' => SolutionManifest::SCHEMA,
+            'schema_version' => SolutionManifest::SCHEMA_VERSION,
             'top_level_keys' => SolutionManifest::TOP_LEVEL_KEYS,
             'required_keys' => SolutionManifest::REQUIRED_KEYS,
             'distributions' => array_map(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Larena\Core\Registry;
 
+use Larena\Core\Support\SchemaName;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
 
@@ -25,14 +26,14 @@ final class PackageDescriptorFileValidator
      */
     private const CONTRACTS = [
         'access.yaml' => [
-            'schema' => 'larena.access.descriptor.v1',
-            'keys' => ['schema', 'package', 'version', 'operations', 'presets', 'nonclaims'],
+            'schema' => 'larena.access.descriptor',
+            'keys' => ['schema', 'schema_version', 'package', 'version', 'operations', 'presets', 'nonclaims'],
             'lists' => ['operations' => 'map_with_code', 'presets' => 'scalar'],
         ],
         'audit.yaml' => [
-            'schema' => 'larena.audit.package-events.v1',
+            'schema' => 'larena.audit.package-events',
             'keys' => [
-                'schema', 'package', 'version', 'storage_owner', 'retention', 'atomic_completion',
+                'schema', 'schema_version', 'package', 'version', 'storage_owner', 'retention', 'atomic_completion',
                 'events', 'allowed_payload_fields', 'forbidden_payload_fields', 'nonclaims',
             ],
             'lists' => ['events' => 'map_with_type'],
@@ -95,7 +96,7 @@ final class PackageDescriptorFileValidator
                 'reason_code' => 'schema_absent',
                 'detail' => 'the file declares no schema, so only its list shapes are checked',
             ];
-        } elseif ($declaredSchema !== $contract['schema']) {
+        } elseif (!SchemaName::is($parsed, $contract['schema'], 1)) {
             $violations[] = [
                 'file' => $path,
                 'reason_code' => 'unknown_schema',

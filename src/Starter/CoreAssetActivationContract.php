@@ -73,7 +73,7 @@ final class CoreAssetActivationContract
         }
 
         return [
-            'schema' => 'larena.core_assets.activation_contract.v1',
+            'schema' => 'larena.core_assets.activation_contract',
             'status' => $inspectionTrusted ? self::IMMUTABLE_BUNDLE_STATUS : self::IMMUTABLE_BUNDLE_NOT_READY_STATUS,
             'resource_pack_key' => 'immutable.' . $bundleId,
             'activation_owner' => self::OWNER,
@@ -173,7 +173,7 @@ final class CoreAssetActivationContract
         }
 
         return [
-            'schema' => 'larena.core_assets.activation_contract.v1',
+            'schema' => 'larena.core_assets.activation_contract',
             'status' => self::STATUS,
             'resource_pack_key' => $resourcePackKey,
             'activation_owner' => self::OWNER,
@@ -238,7 +238,7 @@ final class CoreAssetActivationContract
         }
 
         return [
-            'schema' => 'larena.core_assets.activation_contract.v1',
+            'schema' => 'larena.core_assets.activation_contract',
             'status' => self::ROUTE_PUBLICATION_STATUS,
             'resource_pack_key' => $resourcePackKey,
             'activation_owner' => self::OWNER,
@@ -343,7 +343,7 @@ final class CoreAssetActivationContract
         }
 
         return [
-            'schema' => 'larena.core_assets.activation_contract.v1',
+            'schema' => 'larena.core_assets.activation_contract',
             'status' => self::FRONTEND_CONVEYOR_STATUS,
             'resource_pack_key' => $resourcePackKey,
             'activation_owner' => self::OWNER,

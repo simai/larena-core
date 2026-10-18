@@ -27,7 +27,7 @@ final class PackageRegistryDiagnostics
 
         if (!is_file($absolutePath)) {
             return [
-                'schema' => 'larena.package_registry_diagnostics.v1',
+                'schema' => 'larena.package_registry_diagnostics',
                 'status' => 'missing',
                 'generated_at' => gmdate('c'),
                 'mutates_state' => false,
@@ -48,7 +48,7 @@ final class PackageRegistryDiagnostics
 
         if (!is_array($registry) || !PackageRegistrySeed::isRegistry($registry)) {
             return [
-                'schema' => 'larena.package_registry_diagnostics.v1',
+                'schema' => 'larena.package_registry_diagnostics',
                 'status' => 'invalid',
                 'generated_at' => gmdate('c'),
                 'mutates_state' => false,
@@ -70,7 +70,7 @@ final class PackageRegistryDiagnostics
         ));
 
         return [
-            'schema' => 'larena.package_registry_diagnostics.v1',
+            'schema' => 'larena.package_registry_diagnostics',
             'status' => $missingRequired === [] ? 'passed' : 'degraded',
             'generated_at' => gmdate('c'),
             'mutates_state' => false,
@@ -134,7 +134,7 @@ final class PackageRegistryDiagnostics
             ));
 
             return [
-                'schema' => 'larena.package_registry_diagnostics.v1',
+                'schema' => 'larena.package_registry_diagnostics',
                 'status' => $missingRequired === [] ? 'passed' : 'degraded',
                 'generated_at' => gmdate('c'),
                 'mutates_state' => false,

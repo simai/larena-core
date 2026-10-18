@@ -18,10 +18,12 @@ use Larena\Core\Enums\SolutionDistribution;
  */
 final readonly class SolutionManifest
 {
-    public const SCHEMA = 'larena.solution_manifest.v1';
+    /** A solution's manifest file; one written before the names lost their version labels it `….v1`. */
+    public const SCHEMA = 'larena.solution_manifest';
+    public const SCHEMA_VERSION = 1;
 
     public const TOP_LEVEL_KEYS = [
-        'schema', 'solution_id', 'version', 'title', 'author', 'distribution',
+        'schema', 'schema_version', 'solution_id', 'version', 'title', 'author', 'distribution',
         'base_solution', 'edition', 'editions', 'packages', 'scopes', 'planes',
         'structure_roles', 'topology', 'seed', 'assistant_profile',
         'environment_requirements',
@@ -105,6 +107,7 @@ final readonly class SolutionManifest
     {
         return [
             'schema' => self::SCHEMA,
+            'schema_version' => self::SCHEMA_VERSION,
             'solution_id' => $this->solutionId,
             'version' => $this->version,
             'title' => $this->title,

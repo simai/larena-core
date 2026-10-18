@@ -48,7 +48,7 @@ final class RuntimeSecuritySmoke
         }
 
         $report = [
-            'schema' => 'larena.runtime_security_laravel_smoke.v1',
+            'schema' => 'larena.runtime_security_laravel_smoke',
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'laravel_version' => $applicationContext['laravel_version'],

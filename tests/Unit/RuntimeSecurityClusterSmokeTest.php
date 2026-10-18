@@ -50,7 +50,7 @@ $report = RuntimeSecurityClusterSmoke::run($outputPath, [
     'laravel_version' => '13.0.0',
 ]);
 
-if (($report['schema'] ?? null) !== 'larena.runtime_security_cluster_smoke.v1') {
+if (($report['schema'] ?? null) !== 'larena.runtime_security_cluster_smoke') {
     fwrite(STDERR, 'Cluster smoke report schema mismatch.' . PHP_EOL);
     exit(1);
 }

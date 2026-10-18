@@ -106,7 +106,7 @@ final class StarterScenario
         ];
 
         $report = [
-            'schema' => 'larena.starter_doctor.v1',
+            'schema' => 'larena.starter_doctor',
             'status' => self::checksPassed($checks) ? 'passed' : 'failed',
             'generated_at' => gmdate('c'),
             'application' => [
@@ -145,7 +145,7 @@ final class StarterScenario
     {
         if (!$dryRun) {
             $report = [
-                'schema' => 'larena.starter_install_plan.v1',
+                'schema' => 'larena.starter_install_plan',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => 'actual_install_requires_launch_record_and_guarded_transition',
@@ -274,7 +274,7 @@ final class StarterScenario
         $readinessContract = InstallReadinessContract::fromDryRunPlan($doctor, $plan, $doctorOutputPath);
 
         $report = [
-            'schema' => 'larena.starter_install_plan.v1',
+            'schema' => 'larena.starter_install_plan',
             'status' => $blocked === [] ? 'passed' : 'failed',
             'generated_at' => gmdate('c'),
             'mode' => 'dry_run',
@@ -315,7 +315,7 @@ final class StarterScenario
         $loaded = InstallApplyLaunchRecord::load($applicationContext['base_path'], $launchRecordPath);
         if (($loaded['status'] ?? null) !== 'passed') {
             return [
-                'schema' => 'larena.install_apply_result.v1',
+                'schema' => 'larena.install_apply_result',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => $loaded['reason'] ?? 'launch_record_not_accepted',
@@ -330,7 +330,7 @@ final class StarterScenario
 
         if ($confirmation !== $expectedConfirmation) {
             return [
-                'schema' => 'larena.install_apply_result.v1',
+                'schema' => 'larena.install_apply_result',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => 'confirmation_must_match_launch_record',
@@ -350,7 +350,7 @@ final class StarterScenario
 
         if (($doctor['status'] ?? null) !== 'passed') {
             return [
-                'schema' => 'larena.install_apply_result.v1',
+                'schema' => 'larena.install_apply_result',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => 'doctor_preflight_failed',
@@ -380,7 +380,7 @@ final class StarterScenario
                     $applicationContext,
                 )
                 : [
-                    'schema' => 'larena.install_apply_result.v1',
+                    'schema' => 'larena.install_apply_result',
                     'status' => 'blocked',
                     'generated_at' => gmdate('c'),
                     'reason' => 'laravel_application_required_for_schema_apply',
@@ -401,7 +401,7 @@ final class StarterScenario
                     $applicationContext,
                 )
                 : [
-                    'schema' => 'larena.install_apply_result.v1',
+                    'schema' => 'larena.install_apply_result',
                     'status' => 'blocked',
                     'generated_at' => gmdate('c'),
                     'reason' => 'laravel_application_required_for_install_audit_trail_apply',
@@ -409,7 +409,7 @@ final class StarterScenario
                     'safe_command' => 'php artisan larena:install --dry-run',
                 ],
             default => [
-                'schema' => 'larena.install_apply_result.v1',
+                'schema' => 'larena.install_apply_result',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => 'target_step_must_be_supported_install_apply_step',

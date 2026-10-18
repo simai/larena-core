@@ -18,7 +18,7 @@ final class InstallReadinessContract
         $environmentReady = ($doctor['status'] ?? null) === 'passed' && $blockedSteps === [];
 
         return [
-            'schema' => 'larena.install_readiness_contract.v1',
+            'schema' => 'larena.install_readiness_contract',
             'status' => $environmentReady ? 'ready_for_guarded_install_planning' : 'blocked',
             'generated_at' => gmdate('c'),
             'mutates_state' => false,

@@ -28,7 +28,7 @@ final class PackageRegistryDbSeed
 
         if (!Schema::hasTable('larena_package_registry')) {
             $result = [
-                'schema' => 'larena.install_apply_result.v1',
+                'schema' => 'larena.install_apply_result',
                 'status' => 'blocked',
                 'generated_at' => gmdate('c'),
                 'reason' => 'package_registry_table_missing',
@@ -45,7 +45,8 @@ final class PackageRegistryDbSeed
 
         $beforeRows = self::registryRows();
         self::writeJson($backupPath, [
-            'schema' => 'larena.package_registry_db_seed_backup.v1',
+            'schema' => 'larena.package_registry_db_seed_backup',
+            'schema_version' => 1,
             'generated_at' => gmdate('c'),
             'table' => 'larena_package_registry',
             'rows' => $beforeRows,
@@ -71,7 +72,7 @@ final class PackageRegistryDbSeed
         $afterRows = self::registryRows();
         $changed = self::fingerprint($beforeRows) !== self::fingerprint($afterRows);
         $result = [
-            'schema' => 'larena.install_apply_result.v1',
+            'schema' => 'larena.install_apply_result',
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'mutation' => 'package_registry_db_seed',
@@ -134,7 +135,8 @@ final class PackageRegistryDbSeed
         }
 
         return [
-            'schema' => 'larena.package_registry_db_seed.v1',
+            'schema' => 'larena.package_registry_db_seed',
+            'schema_version' => 1,
             'source' => 'composer_installed_json',
             'packages' => $packages,
         ];

@@ -45,7 +45,7 @@ $report = DataContentClusterSmoke::run($outputPath, [
     'laravel_version' => '13.0.0',
 ]);
 
-if (($report['schema'] ?? null) !== 'larena.data_content_cluster_smoke.v1') {
+if (($report['schema'] ?? null) !== 'larena.data_content_cluster_smoke') {
     fwrite(STDERR, 'Data/content smoke report schema mismatch.' . PHP_EOL);
     exit(1);
 }

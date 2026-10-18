@@ -15,7 +15,7 @@ $report = new OperationCoverageReport($registry);
 // Core alone: every access operation code core declares is covered by a
 // registered operation, and nothing is left over.
 $coreOnly = $report->build(['larena/core' => $packageRoot], 'test-revision');
-assert($coreOnly['schema'] === 'larena.operation_coverage_report.v1');
+assert($coreOnly['schema'] === 'larena.operation_coverage_report');
 assert($coreOnly['generated_for_revision'] === 'test-revision');
 assert($coreOnly['status'] === 'passed', 'core must cover its own declarations: ' . json_encode($coreOnly['declared_not_registered']));
 assert($coreOnly['declared_not_registered'] === []);

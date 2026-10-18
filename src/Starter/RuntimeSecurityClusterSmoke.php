@@ -53,7 +53,7 @@ final class RuntimeSecurityClusterSmoke
         ];
 
         $report = [
-            'schema' => 'larena.runtime_security_cluster_smoke.v1',
+            'schema' => 'larena.runtime_security_cluster_smoke',
             'status' => self::status($checks),
             'generated_at' => gmdate('c'),
             'mutates_state' => false,

@@ -61,7 +61,7 @@ final class PackageRegistrySeed
         self::writeString($targetPath, $registryJson);
 
         $result = [
-            'schema' => 'larena.install_apply_result.v1',
+            'schema' => 'larena.install_apply_result',
             'status' => 'passed',
             'generated_at' => gmdate('c'),
             'mutation' => 'package_registry_seed',

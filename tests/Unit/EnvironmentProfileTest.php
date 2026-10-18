@@ -60,7 +60,7 @@ foreach ([
         'ordinary hosting has no ' . $capability->value,
     );
 }
-environment_assert($ordinary->toArray()['schema'] === 'larena.environment_profile.v1');
+environment_assert($ordinary->toArray()['schema'] === 'larena.environment_profile');
 environment_assert($ordinary->toArray()['version'] === 1);
 
 // The fingerprint is stable for the same profile and different for a different one.

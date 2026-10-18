@@ -19,7 +19,7 @@ use Larena\Core\Contracts\OperationRegistry;
  */
 final class OperationCoverageReport
 {
-    public const SCHEMA = 'larena.operation_coverage_report.v1';
+    public const SCHEMA = 'larena.operation_coverage_report';
 
     /**
      * Packages whose operations are registered in a later batch of the Minimal

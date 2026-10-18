@@ -86,7 +86,7 @@ $explained = $handlers->handle($descriptors['core.solution.explain'], $context([
 solution_assert($explained['installs'] === false);
 solution_assert($explained['offline'] === true);
 solution_assert($explained['conflict_classes'] === ['scope', 'plane', 'structure_role', 'package']);
-solution_assert(count($explained['top_level_keys']) === 17);
+solution_assert(count($explained['top_level_keys']) === 18);
 
 // Planning through the operation path reaches the same verdict as planning
 // directly, and the default composition gates a second node.
