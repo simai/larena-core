@@ -73,7 +73,8 @@
     "tests/Unit/InstallReadinessContractTest.php",
     "tests/Unit/OperationCoverageReportTest.php",
     "tests/Unit/InstallerPersistenceFoundationTest.php",
-    "tests/Unit/SolutionFailsClosedTest.php"
+    "tests/Unit/SolutionFailsClosedTest.php",
+    "tests/Unit/SolutionManifestValidationTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

@@ -46,10 +46,10 @@ foreach (SolutionManifest::REQUIRED_KEYS as $required) {
 
 // An edition names a capability set and nothing else.
 $editioned = $validator->validate(solution_manifest([
-    'editions' => ['free' => ['capabilities' => []], 'pro' => ['capabilities' => ['larena.capability.x.v1']]],
+    'editions' => ['free' => ['capabilities' => []], 'pro' => ['capabilities' => ['larena.capability.x']]],
     'edition' => 'pro',
 ]));
-solution_assert($editioned->enabledCapabilities() === ['larena.capability.x.v1']);
+solution_assert($editioned->enabledCapabilities() === ['larena.capability.x']);
 solution_assert($editioned->editions['free']->capabilities === []);
 
 foreach ([

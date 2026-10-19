@@ -85,7 +85,8 @@
     "tests/Unit/InstallReadinessContractTest.php",
     "tests/Unit/OperationCoverageReportTest.php",
     "tests/Unit/InstallerPersistenceFoundationTest.php",
-    "tests/Unit/SolutionFailsClosedTest.php"
+    "tests/Unit/SolutionFailsClosedTest.php",
+    "tests/Unit/SolutionManifestValidationTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
