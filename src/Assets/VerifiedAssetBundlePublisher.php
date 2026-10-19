@@ -435,7 +435,7 @@ final class VerifiedAssetBundlePublisher
             throw new RuntimeException('core_assets_artifact_directory_invalid');
         }
         $manifest = AssetContractFields::readJson($artifactRoot . DIRECTORY_SEPARATOR . 'manifest.json');
-        if (($manifest['schema'] ?? null) !== $contract['schema']
+        if (!AssetContractFields::sameSchema($manifest['schema'] ?? null, $contract['schema'])
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
             || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
             || !is_array($manifest['sources'] ?? null)
@@ -602,7 +602,7 @@ final class VerifiedAssetBundlePublisher
         }
         $manifest = AssetContractFields::readJson($manifestPath);
         if (!self::isBundleMarker($manifest)
-            || ($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']
+            || !AssetContractFields::sameSchema($manifest['artifact_contract_schema'] ?? null, $contract['schema'])
             || ($manifest['publication_profile'] ?? null) !== $contract['publication_profile']
             || ($manifest['bundle_id'] ?? null) !== $contract['bundle_id']
             || !is_array($manifest['sources'] ?? null)

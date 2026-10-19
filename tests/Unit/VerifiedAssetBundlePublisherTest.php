@@ -652,4 +652,10 @@ assertTrue(
     'rolled back artifact did not inspect as verified',
 );
 
+// A bundle published before the names lost their version records `<name>.v1`; it is the same contract format.
+assertTrue(\Larena\Core\Assets\AssetContractFields::sameSchema('larena.ui.frontend_runtime_artifact.v1', 'larena.ui.frontend_runtime_artifact'), 'the old artifact name must match');
+assertTrue(\Larena\Core\Assets\AssetContractFields::sameSchema('larena.ui.frontend_runtime_artifact', 'larena.ui.frontend_runtime_artifact'), 'the bare artifact name must match');
+assertTrue(!\Larena\Core\Assets\AssetContractFields::sameSchema('larena.ui.frontend_runtime_artifact.v2', 'larena.ui.frontend_runtime_artifact'), 'another version must not match');
+assertTrue(!\Larena\Core\Assets\AssetContractFields::sameSchema(null, 'larena.ui.frontend_runtime_artifact'), 'a missing name must not match');
+
 echo "VerifiedAssetBundlePublisherTest passed\n";

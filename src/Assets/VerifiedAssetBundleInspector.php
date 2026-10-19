@@ -300,7 +300,7 @@ final class VerifiedAssetBundleInspector
         if (!VerifiedAssetBundlePublisher::isBundleMarker($manifest)) {
             $problems[] = 'manifest_schema_mismatch';
         }
-        if (($manifest['artifact_contract_schema'] ?? null) !== $contract['schema']) {
+        if (!AssetContractFields::sameSchema($manifest['artifact_contract_schema'] ?? null, $contract['schema'])) {
             $problems[] = 'artifact_contract_schema_mismatch';
         }
         if (($manifest['publication_profile'] ?? null) !== $contract['publication_profile']) {

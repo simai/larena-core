@@ -70,4 +70,13 @@ final class AssetContractFields
         }
         return $decoded;
     }
+
+    /**
+     * Two names of one artifact contract format. A bundle published before the names lost their version records
+     * `<name>.v1`; it is the same format as `<name>`, so its marker stays valid.
+     */
+    public static function sameSchema(mixed $recorded, string $expected): bool
+    {
+        return is_string($recorded) && ($recorded === $expected || $recorded === $expected.'.v1' || $recorded.'.v1' === $expected);
+    }
 }
