@@ -17,6 +17,7 @@ use Larena\Core\Providers\Registrars\EnvironmentRegistrar;
 use Larena\Core\Providers\Registrars\InstallationRegistrar;
 use Larena\Core\Providers\Registrars\OperationRegistrar;
 use Larena\Core\Providers\Registrars\ScopeModelRegistrar;
+use Larena\Core\SitePack\SitePackLimits;
 
 final class CoreServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,10 @@ final class CoreServiceProvider extends ServiceProvider
         OperationRegistrar::register($this->app);
         EnvironmentRegistrar::register($this->app);
         InstallationRegistrar::register($this->app);
+        // Config only: SitePack limits touch no database.
+        $this->app->singleton(SitePackLimits::class, static fn ($app): SitePackLimits => SitePackLimits::fromConfig(
+            (array) $app['config']->get('larena-core.sitepack', []),
+        ));
     }
 
     public function boot(): void

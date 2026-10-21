@@ -74,7 +74,19 @@
     "tests/Unit/OperationCoverageReportTest.php",
     "tests/Unit/InstallerPersistenceFoundationTest.php",
     "tests/Unit/SolutionFailsClosedTest.php",
-    "tests/Unit/SolutionManifestValidationTest.php"
+    "tests/Unit/SolutionManifestValidationTest.php",
+    "config/larena-core.php",
+    "src/SitePack/SitePackArchiveReader.php",
+    "src/SitePack/SitePackArchiveWriter.php",
+    "src/SitePack/SitePackCatalogEntry.php",
+    "src/SitePack/SitePackEnvelope.php",
+    "src/SitePack/SitePackLimits.php",
+    "src/SitePack/SitePackPaths.php",
+    "src/SitePack/SitePackRejected.php",
+    "tests/support/sitepack-fixtures.php",
+    "tests/Unit/SitePackArchiveTest.php",
+    "tests/Unit/SitePackArchiveSafetyTest.php",
+    "tests/Unit/SitePackStreamingTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",
