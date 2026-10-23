@@ -98,7 +98,12 @@
     "tests/support/sitepack-fixtures.php",
     "tests/Unit/SitePackArchiveTest.php",
     "tests/Unit/SitePackArchiveSafetyTest.php",
-    "tests/Unit/SitePackStreamingTest.php"
+    "tests/Unit/SitePackStreamingTest.php",
+    "LICENSE",
+    "NOTICE",
+    "AUTHORS",
+    "CITATION.cff",
+    "REUSE.toml"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

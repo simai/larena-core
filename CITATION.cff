@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you refer to Larena Core, please cite it as below."
+title: "Larena Core"
+abstract: "Larena Core: Platform foundation for package registry, operation runtime, compatibility, SitePack portable data standard and shared contracts."
+type: software
+authors:
+  - family-names: "Zabarov"
+    given-names: "Rim"
+    email: "rim@zabarov.com"
+license: Apache-2.0
+repository-code: "https://github.com/simai/larena-core"
