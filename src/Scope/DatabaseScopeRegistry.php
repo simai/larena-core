@@ -22,6 +22,17 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \L
     /** The older references stored data uses for scopes (owner decision 2026-10-12). */
     public const LEGACY_PATTERN = '/\\Ascope:[a-z][a-z0-9_.:-]{1,119}\\z/D';
 
+    /**
+     * Scope rows read in the last second. A list checks the scope of every row; the registry lives as long as the
+     * process (a queue worker runs for hours), so what it read is forgotten after a second, on archiving and on naming
+     * a legacy alias. A scope not found is never remembered.
+     *
+     * @var array<string,object>
+     */
+    private array $rows = [];
+
+    private int $readAt = 0;
+
     public function __construct(private readonly ConnectionInterface $connection)
     {
     }
@@ -113,6 +124,7 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \L
                 'correlation_id' => $correlationId ?? $record->correlationId,
                 'updated_at' => $this->now(),
             ]);
+        $this->rows = [];
 
         return new ScopeRecord(
             $record->ref,
@@ -200,6 +212,7 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \L
         }
         $this->connection->table(self::TABLE)->where('scope_ref', $ref->toString())
             ->update(['legacy_ref' => $legacyRef, 'updated_at' => $this->now()]);
+        $this->rows = [];
 
         return $this->read($ref) ?? $record;
     }
@@ -229,9 +242,16 @@ final class DatabaseScopeRegistry implements ScopeRegistry, ScopeRefResolver, \L
 
     private function row(string $scopeRef): ?object
     {
+        if (hrtime(true) - $this->readAt > 1_000_000_000) {
+            $this->rows = [];
+            $this->readAt = hrtime(true);
+        }
+        if (isset($this->rows[$scopeRef])) {
+            return $this->rows[$scopeRef];
+        }
         $row = $this->connection->table(self::TABLE)->where('scope_ref', $scopeRef)->first();
 
-        return is_object($row) ? $row : null;
+        return is_object($row) ? $this->rows[$scopeRef] = $row : null;
     }
 
     private function hydrate(object $row): ScopeRecord

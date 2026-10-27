@@ -17,6 +17,25 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
     public const DEFAULTS = 'larena_core_subject_default_scopes';
     private const SUBJECT = '/\A[a-z][a-z0-9_]{0,31}:[A-Za-z0-9_.:-]{1,150}\z/D';
 
+    /**
+     * Answers given in the last second: membership by scope and subject, and each subject's default scope. The
+     * registry lives as long as the process, so they are forgotten after a second and on assigning, revoking or
+     * choosing a default.
+     *
+     * @var array<string,bool|string|null>
+     */
+    private array $answers = [];
+
+    private int $answeredAt = 0;
+
+    private function fresh(): void
+    {
+        if (hrtime(true) - $this->answeredAt > 1_000_000_000) {
+            $this->answers = [];
+            $this->answeredAt = hrtime(true);
+        }
+    }
+
     public function __construct(
         private readonly ConnectionInterface $connection,
         private readonly DatabaseScopeRegistry $scopes,
@@ -25,6 +44,7 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
     /** @phpstan-impure */
     public function assign(ScopeRef $scope, string $subjectRef, string $actorId, ?string $correlationId = null): void
     {
+        $this->answers = [];
         $subjectRef = self::subject($subjectRef);
         $this->scopes->requireWritableScope($scope);
         $now = gmdate('Y-m-d H:i:s');
@@ -41,11 +61,13 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
                 $this->connection->table(self::DEFAULTS)->insert(['subject_ref' => $subjectRef, 'scope_ref' => $scope->toString(), 'created_at' => $now, 'updated_at' => $now]);
             }
         });
+        $this->answers = [];
     }
 
     /** @phpstan-impure */
     public function revoke(ScopeRef $scope, string $subjectRef, string $actorId, ?string $correlationId = null): void
     {
+        $this->answers = [];
         $subjectRef = self::subject($subjectRef);
         $now = gmdate('Y-m-d H:i:s');
         $this->connection->transaction(function () use ($scope, $subjectRef, $correlationId, $now): void {
@@ -62,6 +84,7 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
                 }
             }
         });
+        $this->answers = [];
     }
 
     /** @phpstan-impure */
@@ -69,9 +92,12 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
     {
         $record = $this->scopes->read($scope);
 
+        $subjectRef = self::subject($subjectRef);
+        $this->fresh();
+
         return $record !== null && $record->status->acceptsWrite()
-            && $this->connection->table(self::TABLE)->where('scope_ref', $scope->toString())
-                ->where('subject_ref', self::subject($subjectRef))->where('status', 'active')->exists();
+            && ($this->answers['member:'.$scope->toString()."\n".$subjectRef] ??= $this->connection->table(self::TABLE)
+                ->where('scope_ref', $scope->toString())->where('subject_ref', $subjectRef)->where('status', 'active')->exists());
     }
 
     /** @phpstan-impure */
@@ -118,7 +144,10 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
     public function defaultScopeOf(string $subjectRef): ?ScopeRecord
     {
         $subjectRef = self::subject($subjectRef);
-        $ref = $this->connection->table(self::DEFAULTS)->where('subject_ref', $subjectRef)->value('scope_ref');
+        $key = 'default:'.$subjectRef;
+        $this->fresh();
+        $ref = array_key_exists($key, $this->answers) ? $this->answers[$key]
+            : $this->answers[$key] = $this->connection->table(self::DEFAULTS)->where('subject_ref', $subjectRef)->value('scope_ref');
         if (!is_string($ref)) {
             return null;
         }
@@ -130,6 +159,7 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
     /** @phpstan-impure */
     public function setDefault(string $subjectRef, ScopeRef $scope): void
     {
+        $this->answers = [];
         $subjectRef = self::subject($subjectRef);
         if (!$this->isMember($scope, $subjectRef)) {
             throw ScopeBoundaryViolation::unknownScope($scope->toString());
@@ -140,6 +170,7 @@ final class DatabaseScopeMembershipRegistry implements ScopeMembershipRegistry
         } else {
             $this->connection->table(self::DEFAULTS)->insert(['subject_ref' => $subjectRef, 'scope_ref' => $scope->toString(), 'created_at' => $now, 'updated_at' => $now]);
         }
+        $this->answers = [];
     }
 
     private static function subject(string $subjectRef): string
