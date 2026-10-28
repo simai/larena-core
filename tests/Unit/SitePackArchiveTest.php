@@ -53,7 +53,7 @@ for ($index = 0; $index < $zip->numFiles; $index++) {
     $stat = $zip->statIndex($index);
     sitepackAssert($stat !== false, 'entry stat');
     $names[] = $stat['name'];
-    sitepackAssert($stat['mtime'] === (new DateTimeImmutable('1980-01-01 00:00:00'))->getTimestamp(), 'fixed mtime');
+    sitepackAssert($stat['mtime'] === (new DateTimeImmutable('1980-01-01 00:00:00', new DateTimeZone('UTC')))->getTimestamp(), 'fixed mtime');
     $expected = str_starts_with($stat['name'], 'artifacts/assets/blobs/') ? ZipArchive::CM_STORE : ZipArchive::CM_DEFLATE;
     sitepackAssert($stat['comp_method'] === $expected, 'compression for '.$stat['name']);
 }

@@ -155,7 +155,9 @@
             "@php tests/Unit/SolutionFailsClosedTest.php",
             "@php tests/Unit/SitePackArchiveTest.php",
             "@php tests/Unit/SitePackArchiveSafetyTest.php",
-            "@php tests/Unit/SitePackStreamingTest.php"
+            "@php tests/Unit/SitePackStreamingTest.php",
+            "@php tests/Unit/ProcessExecutorTest.php",
+            "@php tests/Unit/GatewayRunnerTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",

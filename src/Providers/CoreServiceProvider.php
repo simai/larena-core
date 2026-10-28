@@ -13,6 +13,8 @@ use Larena\Core\Console\Commands\OperationCoverageCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
 use Larena\Core\Console\Commands\ValidatePackagesCommand;
+use Larena\Core\Process\ProcessExecutor;
+use Larena\Core\Process\ProcOpenProcessExecutor;
 use Larena\Core\Providers\Registrars\EnvironmentRegistrar;
 use Larena\Core\Providers\Registrars\InstallationRegistrar;
 use Larena\Core\Providers\Registrars\OperationRegistrar;
@@ -32,6 +34,8 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(SitePackLimits::class, static fn ($app): SitePackLimits => SitePackLimits::fromConfig(
             (array) $app['config']->get('larena-core.sitepack', []),
         ));
+        // Every package starts external programs through this one shell-free executor.
+        $this->app->singleton(ProcessExecutor::class, ProcOpenProcessExecutor::class);
     }
 
     public function boot(): void
