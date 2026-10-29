@@ -1,5 +1,6 @@
 # Changelog
 
+- A first-run step may offer options beside the form (`Contracts\FirstRunOptions`, owner decision 2026-10-29): `FirstRunCoordinator::options()` lists them in step order and refuses a key offered twice; the person's choices travel in `FirstRunPayload::$options`, read with `option()`, each off unless turned on.
 ## Unreleased
 
 - Each product declares its first run (owner decision 2026-10-29): `larena-core.first_run.steps` (default the Minimal CMS `auth, setting, site`) is the exact contributor list `FirstRunCoordinator` requires, so a product without storage completes its first run with `auth, setting`; `auth` is always a step (`FirstRunCoordinator::declaredSteps()`). `larena-core.first_run.root_scope` and `root_scope_label` (default `site:main`, `Main site`) name the root scope `ScopeBaselineInstaller` creates with its Groups plane and Administrators node. No change for the CMS.

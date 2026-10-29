@@ -14,6 +14,14 @@ final readonly class FirstRunPayload
         public string $siteName,
         public string $locale,
         public string $timezone,
+        /** @var array<string, bool> The options the person turned on (FirstRunOptions), by key. */
+        public array $options = [],
     ) {
+    }
+
+    /** Whether the person turned the first-run option on; an option not offered is off. */
+    public function option(string $key): bool
+    {
+        return ($this->options[$key] ?? false) === true;
     }
 }

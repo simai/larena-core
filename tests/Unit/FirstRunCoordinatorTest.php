@@ -7,6 +7,7 @@ require_once __DIR__ . '/../bootstrap.php';
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
 use Larena\Core\Contracts\FirstRunContributor;
+use Larena\Core\Contracts\FirstRunOptions;
 use Larena\Core\FirstRun\FirstRunAvailability;
 use Larena\Core\FirstRun\FirstRunContext;
 use Larena\Core\FirstRun\FirstRunCoordinator;
@@ -152,5 +153,32 @@ foreach ([[], ['setting'], ['auth', 'auth'], ['auth', ''], ['auth', 7], ['b' => 
     }
 }
 assert(FirstRunCoordinator::declaredSteps(['auth']) === ['auth']);
+
+// A step may offer options beside the form (owner decision 2026-10-29: «Установить демо-данные» of the site step).
+// Each is off unless the person turns it on; the coordinator lists them in step order and refuses a key offered twice.
+$offering = static function (FirstRunContributor $step, array $options): FirstRunContributor {
+    return new class($step, $options) implements FirstRunContributor, FirstRunOptions {
+        /** @param array<string, string> $offered */
+        public function __construct(private FirstRunContributor $step, private array $offered) {}
+        public function id(): string { return $this->step->id(); }
+        public function priority(): int { return $this->step->priority(); }
+        public function validate(FirstRunPayload $payload): array { return $this->step->validate($payload); }
+        public function state(): string { return $this->step->state(); }
+        public function apply(FirstRunPayload $payload, FirstRunContext $context): FirstRunContext { return $this->step->apply($payload, $context); }
+        public function options(): array { return $this->offered; }
+    };
+};
+$withOptions = new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $offering($make('site', 300), ['demo_data' => 'Install demo data'])]);
+assert($withOptions->options() === ['demo_data' => 'Install demo data']);
+assert((new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('site', 300)]))->options() === []);
+foreach ([['Demo' => 'Bad key'], ['demo_data' => 'Twice']] as $bad) {
+    try {
+        (new FirstRunCoordinator($connection, [$offering($make('auth', 100), ['demo_data' => 'Once']), $make('setting', 200), $offering($make('site', 300), $bad)]))->options();
+        throw new RuntimeException('Invalid first-run options must fail closed: ' . json_encode($bad));
+    } catch (LogicException) {
+    }
+}
+assert(!$payload->option('demo_data'));
+assert((new FirstRunPayload('Administrator', 'admin@example.test', 'Strong-password!', 'Starter site', 'en', 'UTC', ['demo_data' => true]))->option('demo_data'));
 
 echo "First-run coordinator contract passed.\n";

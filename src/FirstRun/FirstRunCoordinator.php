@@ -6,6 +6,7 @@ namespace Larena\Core\FirstRun;
 
 use Illuminate\Database\Connection;
 use Larena\Core\Contracts\FirstRunContributor;
+use Larena\Core\Contracts\FirstRunOptions;
 
 final readonly class FirstRunCoordinator
 {
@@ -79,6 +80,30 @@ final readonly class FirstRunCoordinator
     public function steps(): array
     {
         return $this->steps;
+    }
+
+    /**
+     * The options the steps offer (FirstRunOptions), in step order: key => label.
+     * Each is off until the person turns it on. A key is offered by one step only.
+     *
+     * @return array<string, string>
+     */
+    public function options(): array
+    {
+        $options = [];
+        foreach ($this->contributors as $contributor) {
+            if (!$contributor instanceof FirstRunOptions) {
+                continue;
+            }
+            foreach ($contributor->options() as $key => $label) {
+                if (preg_match('/^[a-z][a-z0-9_]*$/', $key) !== 1 || isset($options[$key])) {
+                    throw new \LogicException('First-run options must be distinct option keys.');
+                }
+                $options[$key] = $label;
+            }
+        }
+
+        return $options;
     }
 
     /** @param list<string> $steps */

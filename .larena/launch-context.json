@@ -123,7 +123,9 @@
     "src/FirstRun/FirstRunCoordinator.php",
     "src/Starter/ScopeBaselineInstaller.php",
     "tests/Unit/FirstRunCoordinatorTest.php",
-    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php"
+    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php",
+    "src/Contracts/FirstRunOptions.php",
+    "src/FirstRun/FirstRunPayload.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
