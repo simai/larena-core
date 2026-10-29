@@ -14,13 +14,13 @@ use Larena\Core\Scope\DatabaseScopeRegistry;
 use Larena\Core\Scope\ScopeRef;
 
 /**
- * Creates the Minimal CMS scope and plane baseline.
+ * Creates the product's root scope with its Groups plane and Administrators node.
  *
- * This is an idempotent install step, not a first-run contributor:
- * FirstRunCoordinator accepts the exact contributor list auth, setting and
- * content and throws on any other composition, so the baseline is created on
- * the install/starter path instead. The contributor composition changes in the
- * Content retirement batch.
+ * The product declares the root scope (larena-core.first_run.root_scope, owner
+ * decision 2026-10-29); the default is the Minimal CMS site:main. This is an
+ * idempotent install step, not a first-run contributor: FirstRunCoordinator
+ * accepts exactly the steps the product declares, so the baseline is created on
+ * the install/starter path instead.
  */
 final class ScopeBaselineInstaller
 {
@@ -29,11 +29,18 @@ final class ScopeBaselineInstaller
     public const ADMINISTRATORS_NODE_KEY = 'administrators';
     public const INSTALLER_ACTOR = 'core.install';
 
+    public const DEFAULT_ROOT_SCOPE_LABEL = 'Main site';
+
+    private readonly ScopeRef $rootScope;
+
     public function __construct(
         private readonly Connection $connection,
         private readonly DatabaseScopeRegistry $scopes,
         private readonly DatabasePlaneRegistry $planes,
+        ?ScopeRef $rootScope = null,
+        private readonly string $rootScopeLabel = self::DEFAULT_ROOT_SCOPE_LABEL,
     ) {
+        $this->rootScope = $rootScope ?? ScopeRef::of(ScopeKind::Site, self::DEFAULT_SITE_IDENTIFIER);
     }
 
     /** @phpstan-impure */
@@ -62,7 +69,7 @@ final class ScopeBaselineInstaller
         $siteRef = $this->defaultSiteRef();
 
         if ($this->scopes->read($siteRef) === null) {
-            $this->scopes->create($siteRef, 'Main site', self::INSTALLER_ACTOR, null, $correlationId);
+            $this->scopes->create($siteRef, $this->rootScopeLabel, self::INSTALLER_ACTOR, null, $correlationId);
             $created[] = $siteRef->toString();
         }
 
@@ -102,9 +109,10 @@ final class ScopeBaselineInstaller
         ];
     }
 
+    /** The product's root scope (site:main for the Minimal CMS). */
     public function defaultSiteRef(): ScopeRef
     {
-        return ScopeRef::of(ScopeKind::Site, self::DEFAULT_SITE_IDENTIFIER);
+        return $this->rootScope;
     }
 
     public function groupsPlaneId(): string

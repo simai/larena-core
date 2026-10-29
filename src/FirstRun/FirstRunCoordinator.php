@@ -10,30 +10,83 @@ use Larena\Core\Contracts\FirstRunContributor;
 final readonly class FirstRunCoordinator
 {
     private const STATE_KEY = 'first_run_site';
+
     /**
-     * The exact first-run composition, in order. It stays exact on purpose: an
-     * install that can be configured into an incomplete state eventually is one,
-     * and the failure would surface later as missing data rather than as a
-     * refusal here. The third step writes the starter site, which Storage owns
-     * since Content left the runtime.
+     * The Minimal CMS first run: the first administrator, the settings and the
+     * starter site (Storage writes it). A product that declares no steps of its
+     * own gets these (larena-core.first_run.steps).
      */
-    private const REQUIRED_CONTRIBUTORS = ['auth', 'setting', 'site'];
+    public const DEFAULT_STEPS = ['auth', 'setting', 'site'];
 
     /** @var list<FirstRunContributor> */
     private array $contributors;
 
-    /** @param iterable<FirstRunContributor> $contributors */
-    public function __construct(private Connection $connection, iterable $contributors)
+    /** @var list<string> */
+    private array $steps;
+
+    /**
+     * The product declares its first-run steps, in order (owner decision 2026-10-29:
+     * a hosting panel runs auth and setting, the CMS adds site). The installed
+     * contributors must match them exactly: an install that can be configured into
+     * an incomplete state eventually is one, and the failure would surface later as
+     * missing data rather than as a refusal here. The first administrator (auth) is
+     * always a step.
+     *
+     * @param iterable<FirstRunContributor> $contributors
+     * @param list<string> $steps
+     */
+    public function __construct(private Connection $connection, iterable $contributors, array $steps = self::DEFAULT_STEPS)
     {
+        $this->steps = self::declaredSteps($steps);
+
         $resolved = is_array($contributors) ? $contributors : iterator_to_array($contributors, false);
         usort($resolved, static fn (FirstRunContributor $left, FirstRunContributor $right): int => $left->priority() <=> $right->priority());
 
         $ids = array_map(static fn (FirstRunContributor $contributor): string => $contributor->id(), $resolved);
-        if ($ids !== self::REQUIRED_CONTRIBUTORS || count($ids) !== count(array_unique($ids))) {
-            throw new \LogicException('First-run composition requires the exact auth, setting and site contributors.');
+        if ($ids !== $this->steps) {
+            throw new \LogicException('First-run composition requires the exact ' . self::sentence($this->steps) . ' contributors.');
         }
 
         $this->contributors = $resolved;
+    }
+
+    /**
+     * The steps a product declares (larena-core.first_run.steps): a list of distinct
+     * step ids that names auth. Anything else is refused.
+     *
+     * @return list<string>
+     */
+    public static function declaredSteps(mixed $steps): array
+    {
+        if (!is_array($steps) || !array_is_list($steps) || $steps === []) {
+            throw new \LogicException('First-run steps must be a non-empty list of step ids.');
+        }
+        $declared = [];
+        foreach ($steps as $step) {
+            if (!is_string($step) || preg_match('/^[a-z][a-z0-9_]*$/', $step) !== 1 || in_array($step, $declared, true)) {
+                throw new \LogicException('First-run steps must be distinct step ids.');
+            }
+            $declared[] = $step;
+        }
+        if (!in_array('auth', $declared, true)) {
+            throw new \LogicException('First-run steps must include auth: the first administrator.');
+        }
+
+        return $declared;
+    }
+
+    /** @return list<string> */
+    public function steps(): array
+    {
+        return $this->steps;
+    }
+
+    /** @param list<string> $steps */
+    private static function sentence(array $steps): string
+    {
+        $last = array_pop($steps) ?? '';
+
+        return $steps === [] ? $last : implode(', ', $steps) . ' and ' . $last;
     }
 
     public function availability(): FirstRunAvailability
@@ -93,7 +146,7 @@ final readonly class FirstRunCoordinator
                 'state_status' => 'initializing',
                 'launch_record_id' => $attempt,
                 'evidence_path' => null,
-                'payload' => json_encode(['contributors' => self::REQUIRED_CONTRIBUTORS], JSON_THROW_ON_ERROR),
+                'payload' => json_encode(['contributors' => $this->steps], JSON_THROW_ON_ERROR),
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

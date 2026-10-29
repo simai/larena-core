@@ -3,6 +3,14 @@
 declare(strict_types=1);
 
 return [
+    // What the product's first run sets up (owner decision 2026-10-29: each product declares its own). The defaults
+    // are the Minimal CMS: the first administrator, the settings and the starter site, under the site:main root
+    // scope. A product without storage declares ['auth', 'setting'] and its own root scope.
+    'first_run' => [
+        'steps' => ['auth', 'setting', 'site'],
+        'root_scope' => 'site:main',
+        'root_scope_label' => 'Main site',
+    ],
     'web_install' => [
         'test_faults_enabled' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED', false),
         'test_fault_checkpoint' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT'),

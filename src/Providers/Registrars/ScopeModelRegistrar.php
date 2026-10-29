@@ -13,6 +13,7 @@ use Larena\Core\Contracts\ScopeRegistry;
 use Larena\Core\Plane\DatabaseMembershipResolver;
 use Larena\Core\Plane\DatabasePlaneRegistry;
 use Larena\Core\Scope\DatabaseScopeRegistry;
+use Larena\Core\Scope\ScopeRef;
 use Larena\Core\Starter\ScopeBaselineInstaller;
 
 /**
@@ -52,10 +53,22 @@ final class ScopeModelRegistrar
         ));
         $app->alias(DatabaseMembershipResolver::class, MembershipResolver::class);
 
-        $app->singleton(ScopeBaselineInstaller::class, static fn (Application $app): ScopeBaselineInstaller => new ScopeBaselineInstaller(
-            $app->make(DatabaseManager::class)->connection(),
-            $app->make(DatabaseScopeRegistry::class),
-            $app->make(DatabasePlaneRegistry::class),
-        ));
+        // The product declares its root scope (larena-core.first_run.root_scope); the default is the Minimal CMS site:main.
+        $app->singleton(ScopeBaselineInstaller::class, static function (Application $app): ScopeBaselineInstaller {
+            $config = $app->make('config');
+            $rootScope = $config->get('larena-core.first_run.root_scope', 'site:main');
+            $label = $config->get('larena-core.first_run.root_scope_label', ScopeBaselineInstaller::DEFAULT_ROOT_SCOPE_LABEL);
+            if (!is_string($rootScope) || !is_string($label) || trim($label) === '') {
+                throw new \LogicException('The product root scope must be a scope reference with a label.');
+            }
+
+            return new ScopeBaselineInstaller(
+                $app->make(DatabaseManager::class)->connection(),
+                $app->make(DatabaseScopeRegistry::class),
+                $app->make(DatabasePlaneRegistry::class),
+                ScopeRef::parse($rootScope),
+                $label,
+            );
+        });
     }
 }

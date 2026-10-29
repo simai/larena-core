@@ -9,6 +9,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Larena\Core\Enums\PlaneKind;
 use Larena\Core\Plane\DatabasePlaneRegistry;
 use Larena\Core\Scope\DatabaseScopeRegistry;
+use Larena\Core\Scope\ScopeRef;
 use Larena\Core\Starter\ScopeBaselineInstaller;
 
 $connection = larena_core_scope_plane_connection();
@@ -47,5 +48,18 @@ $bareScopes = new DatabaseScopeRegistry($bareConnection);
 $bareInstaller = new ScopeBaselineInstaller($bareConnection, $bareScopes, new DatabasePlaneRegistry($bareConnection, $bareScopes));
 assert(!$bareInstaller->isApplied());
 assert($bareInstaller->apply()['status'] === 'schema_missing');
+
+// The product declares its root scope (owner decision 2026-10-29); the Minimal CMS
+// default above is site:main. Another product's baseline sits under its own scope.
+$productConnection = larena_core_scope_plane_connection();
+$productScopes = new DatabaseScopeRegistry($productConnection);
+$productPlanes = new DatabasePlaneRegistry($productConnection, $productScopes);
+$product = new ScopeBaselineInstaller($productConnection, $productScopes, $productPlanes, ScopeRef::parse('organization:server'), 'Server');
+$applied = $product->apply('corr-product');
+assert($applied['site_scope_ref'] === 'organization:server');
+assert($applied['groups_plane_id'] === 'organization:server/groups');
+assert($applied['administrators_node_id'] === 'organization:server/groups#administrators');
+assert($productScopes->list()[0]->name === 'Server' && count($productScopes->list()) === 1);
+assert($product->defaultSiteRef()->toString() === 'organization:server' && $product->isApplied());
 
 echo "Scope baseline installer is idempotent.\n";

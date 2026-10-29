@@ -86,7 +86,11 @@
     "tests/support/sitepack-fixtures.php",
     "tests/Unit/SitePackArchiveTest.php",
     "tests/Unit/SitePackArchiveSafetyTest.php",
-    "tests/Unit/SitePackStreamingTest.php"
+    "tests/Unit/SitePackStreamingTest.php",
+    "src/FirstRun/FirstRunCoordinator.php",
+    "src/Starter/ScopeBaselineInstaller.php",
+    "tests/Unit/FirstRunCoordinatorTest.php",
+    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

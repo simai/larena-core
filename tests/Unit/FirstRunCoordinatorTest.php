@@ -111,4 +111,46 @@ try {
     assert(str_contains($exception->getMessage(), 'auth, setting and site'));
 }
 
+// The product declares its steps (owner decision 2026-10-29). The default is the
+// Minimal CMS composition, which still needs the starter site.
+assert((new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('site', 300)]))->steps() === ['auth', 'setting', 'site']);
+try {
+    new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200)], FirstRunCoordinator::DEFAULT_STEPS);
+    throw new RuntimeException('The CMS composition without site must fail closed.');
+} catch (LogicException $exception) {
+    assert(str_contains($exception->getMessage(), 'auth, setting and site'));
+}
+
+// A product without storage (a hosting panel) declares auth and setting and
+// completes its first run with those two steps only.
+$connection->table('larena_install_state')->delete();
+$connection->table('first_run_test_steps')->delete();
+$panel = new FirstRunCoordinator($connection, [$make('setting', 200), $make('auth', 100)], ['auth', 'setting']);
+assert($panel->steps() === ['auth', 'setting']);
+assert(first_run_availability($panel) === FirstRunAvailability::AVAILABLE);
+$panelResult = $panel->bootstrap($payload);
+assert($panelResult->integer('auth.done') === 1 && $panelResult->integer('setting.done') === 1);
+assert($connection->table('first_run_test_steps')->orderByRaw('rowid')->pluck('step')->all() === ['auth', 'setting']);
+assert(first_run_availability($panel) === FirstRunAvailability::COMPLETED);
+$marker = $connection->table('larena_install_state')->where('state_key', 'first_run_site')->first();
+assert($marker !== null && json_decode((string) $marker->payload, true) === ['contributors' => ['auth', 'setting']]);
+
+// Its set is exact too: an installed site step it did not declare is refused.
+try {
+    new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('site', 300)], ['auth', 'setting']);
+    throw new RuntimeException('An undeclared installed step must fail closed.');
+} catch (LogicException $exception) {
+    assert(str_contains($exception->getMessage(), 'exact auth and setting contributors'));
+}
+
+// Declared steps are distinct ids and always include the first administrator.
+foreach ([[], ['setting'], ['auth', 'auth'], ['auth', ''], ['auth', 7], ['b' => 'auth'], 'auth'] as $declared) {
+    try {
+        FirstRunCoordinator::declaredSteps($declared);
+        throw new RuntimeException('Invalid declared steps must fail closed: ' . json_encode($declared));
+    } catch (LogicException) {
+    }
+}
+assert(FirstRunCoordinator::declaredSteps(['auth']) === ['auth']);
+
 echo "First-run coordinator contract passed.\n";

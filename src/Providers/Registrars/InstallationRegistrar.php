@@ -24,9 +24,13 @@ final class InstallationRegistrar
     public static function register(Application $app): void
     {
         $app->bind(FirstRunCoordinator::class, static function (Application $app): FirstRunCoordinator {
+            // The product declares its steps (larena-core.first_run.steps); the default is the Minimal CMS one.
             return new FirstRunCoordinator(
                 $app->make(DatabaseManager::class)->connection(),
                 $app->tagged(FirstRunContributor::class),
+                FirstRunCoordinator::declaredSteps(
+                    $app->make('config')->get('larena-core.first_run.steps', FirstRunCoordinator::DEFAULT_STEPS),
+                ),
             );
         });
 

@@ -119,7 +119,11 @@
     "src/Gateway/GatewayRequest.php",
     "src/Gateway/GatewayRunner.php",
     "tests/Unit/ProcessExecutorTest.php",
-    "tests/Unit/GatewayRunnerTest.php"
+    "tests/Unit/GatewayRunnerTest.php",
+    "src/FirstRun/FirstRunCoordinator.php",
+    "src/Starter/ScopeBaselineInstaller.php",
+    "tests/Unit/FirstRunCoordinatorTest.php",
+    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
