@@ -31,6 +31,29 @@ interface SiteBindings
      */
     public function replace(ScopeRef $site, array $bindings, string $actorId): array;
 
+    /**
+     * The list the site would have with these entries added, nothing written; the site need not exist yet. What the
+     * site lists stays as it is: an entry it lists already is left out, and an entry marked main where the site has its
+     * main for that language and environment comes in as an alias. The whole list is checked as replace() checks it
+     * (site_binding_taken carries the domain in `host`). A site moved with its domains and «Создать сайт» ask this.
+     *
+     * @param array<mixed> $entries a list of entries as replace() takes them
+     * @return list<SiteBinding>
+     *
+     * @throws \Larena\Core\Exceptions\SiteBindingRejected
+     */
+    public function planAdd(ScopeRef $site, array $entries): array;
+
+    /**
+     * Adds the entries as planAdd() says, in one validated write; inside the caller's transaction when there is one.
+     *
+     * @param array<mixed> $entries
+     * @return list<SiteBinding>
+     *
+     * @throws \Larena\Core\Exceptions\SiteBindingRejected
+     */
+    public function add(ScopeRef $site, array $entries, string $actorId): array;
+
     /** The site marked default, or null when none is marked. */
     public function defaultSite(): ?ScopeRef;
 

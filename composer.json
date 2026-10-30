@@ -160,6 +160,7 @@
             "@php tests/Unit/ProcessExecutorTest.php",
             "@php tests/Unit/GatewayRunnerTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteBindingsTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteCreationAndAddedDomainsTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteResolverTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/ResolveSiteMiddlewareTest.php"
         ],

@@ -148,7 +148,11 @@
     "tests/Unit/ResolveSiteMiddlewareTest.php",
     "tests/Unit/SiteBindingsTest.php",
     "tests/Unit/SiteResolverTest.php",
-    "tests/support/http-runtime.php"
+    "tests/support/http-runtime.php",
+    "src/Exceptions/SiteCreationRejected.php",
+    "src/Site/SiteBindingsArtifact.php",
+    "src/Site/SiteScopes.php",
+    "tests/Unit/SiteCreationAndAddedDomainsTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

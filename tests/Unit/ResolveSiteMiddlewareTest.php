@@ -99,4 +99,15 @@ assert(!$cache->has(SiteMapStore::CACHE_KEY.'production'), 'a write clears the c
 $later = new SiteResolver($storeFor(), $root);
 assert($later->resolve('store.example.ru', '/')->site->equals($shop) && $later->resolve('shop.example.ru', '/')->site->equals($root));
 
+// What the container keeps for a request goes when another site comes, and stays while the site is the same.
+$scopedContainer = new Container();
+$scopedContainer->scoped('kept', static fn (): stdClass => new stdClass());
+$scopedMiddleware = new ResolveSite(new SiteResolver($storeFor(), $root), $scopedContainer);
+$scopedMiddleware->handle(Request::create('http://example.ru/'), $next);
+$kept = $scopedContainer->make('kept');
+$scopedMiddleware->handle(Request::create('http://example.ru/page'), $next);
+assert($scopedContainer->make('kept') === $kept, 'the same site keeps it');
+$scopedMiddleware->handle(Request::create('http://store.example.ru/'), $next);
+assert($scopedContainer->make('kept') !== $kept, 'another site does not');
+
 echo "ResolveSiteMiddlewareTest passed.\n";

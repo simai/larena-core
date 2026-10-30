@@ -90,7 +90,18 @@
     "src/FirstRun/FirstRunCoordinator.php",
     "src/Starter/ScopeBaselineInstaller.php",
     "tests/Unit/FirstRunCoordinatorTest.php",
-    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php"
+    "tests/Unit/ScopeBaselineInstallerIdempotencyTest.php",
+    "src/Contracts/SiteBindings.php",
+    "src/Exceptions/SiteBindingRejected.php",
+    "src/Providers/Registrars/SiteRegistrar.php",
+    "src/Site/DatabaseSiteBindings.php",
+    "src/Site/ResolveSite.php",
+    "src/Site/SiteResolver.php",
+    "tests/Unit/ResolveSiteMiddlewareTest.php",
+    "src/Exceptions/SiteCreationRejected.php",
+    "src/Site/SiteBindingsArtifact.php",
+    "src/Site/SiteScopes.php",
+    "tests/Unit/SiteCreationAndAddedDomainsTest.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",

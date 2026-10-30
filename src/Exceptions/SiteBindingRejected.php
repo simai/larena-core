@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 /**
  * A site's domain list was refused. The code (`site_binding_*`) is stable and safe to show; `position` names the
- * entry at fault when there is one.
+ * entry at fault when there is one, `host` the domain another site holds (site_binding_taken).
  */
 final class SiteBindingRejected extends InvalidArgumentException
 {
@@ -28,6 +28,7 @@ final class SiteBindingRejected extends InvalidArgumentException
     public function __construct(
         public readonly string $reasonCode,
         public readonly ?int $position = null,
+        public readonly ?string $host = null,
     ) {
         parent::__construct($position === null ? $reasonCode : $reasonCode.' at '.$position);
     }

@@ -15,6 +15,7 @@ use Larena\Core\Site\DatabaseSiteBindings;
 use Larena\Core\Site\ResolveSite;
 use Larena\Core\Site\SiteMapStore;
 use Larena\Core\Site\SiteResolver;
+use Larena\Core\Site\SiteScopes;
 use Larena\Core\Starter\ScopeBaselineInstaller;
 
 /**
@@ -48,6 +49,10 @@ final class SiteRegistrar
             $app->make(SiteMapStore::class),
         ));
         $app->alias(DatabaseSiteBindings::class, SiteBindings::class);
+        $app->singleton(SiteScopes::class, static fn (Application $app): SiteScopes => new SiteScopes(
+            $app->make(DatabaseScopeRegistry::class),
+            $app->make(DatabaseManager::class)->connection(),
+        ));
         $app->singleton(SiteResolver::class, static function (Application $app): SiteResolver {
             $scheme = $app->make('config')->get('larena-core.sites.scheme');
 

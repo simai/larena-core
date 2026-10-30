@@ -65,6 +65,38 @@ final class DatabaseSiteBindings implements SiteBindings
     }
 
     /** @phpstan-impure */
+    public function planAdd(ScopeRef $site, array $entries): array
+    {
+        $merged = SiteBindingRules::normalize($site, $this->merged($site, $entries));
+        $this->assertFree($site, $merged);
+
+        return $merged;
+    }
+
+    /** @phpstan-impure */
+    public function add(ScopeRef $site, array $entries, string $actorId): array
+    {
+        $this->requireSite($site);
+        $merged = SiteBindingRules::normalize($site, $this->merged($site, $entries));
+        try {
+            $this->connection->transaction(function () use ($site, $merged, $actorId): void {
+                $this->write($site, $merged, $actorId);
+            });
+        } catch (UniqueConstraintViolationException) {
+            throw new SiteBindingRejected(SiteBindingRejected::TAKEN);
+        }
+        $map = $this->map;
+        if ($map !== null && $this->connection->transactionLevel() > 0) {
+            // The map is compiled again only from what the caller's transaction committed.
+            $this->connection->afterCommit(static fn () => $map->forget());
+        } else {
+            $map?->forget();
+        }
+
+        return $this->list($site);
+    }
+
+    /** @phpstan-impure */
     public function defaultSite(): ?ScopeRef
     {
         $ref = $this->connection->table(self::DEFAULT_TABLE)->where('slot', self::DEFAULT_SLOT)->value('site_ref');
@@ -103,8 +135,62 @@ final class DatabaseSiteBindings implements SiteBindings
         return SiteMap::compile($environment, $this->all($environment), $schema->hasTable(self::DEFAULT_TABLE) ? $this->defaultSite() : null);
     }
 
-    /** @param list<SiteBinding> $bindings */
-    private function write(ScopeRef $site, array $bindings, string $actorId): void
+    /**
+     * The site's list with the new entries after it, as entries for SiteBindingRules::normalize().
+     *
+     * @param array<mixed> $entries
+     * @return list<array<string, string|null>>
+     */
+    private function merged(ScopeRef $site, array $entries): array
+    {
+        $merged = [];
+        $addresses = [];
+        $mains = [];
+        foreach ($this->list($site) as $binding) {
+            $merged[] = self::entry($binding);
+            $addresses[SiteBindingRules::address($binding)] = true;
+            if ($binding->role === SiteBindingRole::Main) {
+                $mains[$binding->environment->value.' '.($binding->locale ?? '')] = true;
+            }
+        }
+        foreach (SiteBindingRules::normalize($site, $entries) as $binding) {
+            if (isset($addresses[SiteBindingRules::address($binding)])) {
+                continue;
+            }
+            $entry = self::entry($binding);
+            if ($binding->role === SiteBindingRole::Main && isset($mains[$binding->environment->value.' '.($binding->locale ?? '')])) {
+                $entry['role'] = SiteBindingRole::Alias->value;
+            }
+            $merged[] = $entry;
+        }
+
+        return $merged;
+    }
+
+    /** @return array<string, string|null> */
+    private static function entry(SiteBinding $binding): array
+    {
+        return ['host' => $binding->host, 'folder' => $binding->folder, 'locale' => $binding->locale,
+            'role' => $binding->role->value, 'environment' => $binding->environment->value];
+    }
+
+    /**
+     * Refuses the first domain another site holds.
+     *
+     * @param list<SiteBinding> $bindings
+     */
+    private function assertFree(ScopeRef $site, array $bindings): void
+    {
+        $this->addressesHeld($site, $bindings);
+    }
+
+    /**
+     * Who created each address the site holds already; refuses the first domain another site holds.
+     *
+     * @param list<SiteBinding> $bindings
+     * @return array<string, array{0: string, 1: mixed}>
+     */
+    private function addressesHeld(ScopeRef $site, array $bindings): array
     {
         $hosts = array_values(array_unique(array_map(static fn (SiteBinding $binding): string => $binding->host, $bindings)));
         $created = [];
@@ -117,13 +203,23 @@ final class DatabaseSiteBindings implements SiteBindings
                 $taken[$address] = true;
             }
         }
+        foreach ($bindings as $binding) {
+            if (isset($taken[SiteBindingRules::address($binding)])) {
+                throw new SiteBindingRejected(SiteBindingRejected::TAKEN, $binding->position, $binding->host);
+            }
+        }
+
+        return $created;
+    }
+
+    /** @param list<SiteBinding> $bindings */
+    private function write(ScopeRef $site, array $bindings, string $actorId): void
+    {
+        $created = $this->addressesHeld($site, $bindings);
         $now = gmdate('Y-m-d H:i:s');
         $rows = [];
         foreach ($bindings as $binding) {
             $address = SiteBindingRules::address($binding);
-            if (isset($taken[$address])) {
-                throw new SiteBindingRejected(SiteBindingRejected::TAKEN, $binding->position);
-            }
             $rows[] = [
                 'site_ref' => $site->toString(),
                 'position' => $binding->position,

@@ -43,6 +43,12 @@ final class SiteResolver
         return $this->store->get()->defaultSite() ?? $this->fallbackSite;
     }
 
+    /** @phpstan-impure the site marked default, null while none is: then defaultSite() is the product's root scope */
+    public function markedDefault(): ?ScopeRef
+    {
+        return $this->store->get()->defaultSite();
+    }
+
     /**
      * Where a request on a redirect domain goes: the site's main domain for the same language (or for every
      * language) in this environment, the folder swapped, the rest of the path and the query kept. Null when the

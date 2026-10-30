@@ -37,10 +37,24 @@ final class ResolveSite
                 return new RedirectResponse($target, 301);
             }
         }
-        $this->container->instance(CurrentSite::class, $current);
+        $this->enter($current);
         $request->attributes->set(CurrentSite::ATTRIBUTE, $current);
 
         return $next($request);
+    }
+
+    /**
+     * Makes it the current site. What the container keeps for a request was built for the site it found then, so it
+     * goes when another site comes: a process that serves several requests never answers one site with another's.
+     */
+    private function enter(CurrentSite $current): void
+    {
+        $before = $this->container->bound(CurrentSite::class) ? $this->container->make(CurrentSite::class) : null;
+        $this->container->instance(CurrentSite::class, $current);
+        if ($before instanceof CurrentSite && $this->container instanceof \Illuminate\Container\Container
+            && (!$before->site->equals($current->site) || ($before->binding === null) !== ($current->binding === null))) {
+            $this->container->forgetScopedInstances();
+        }
     }
 
     private function excepted(string $path): bool
