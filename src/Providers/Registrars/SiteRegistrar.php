@@ -8,11 +8,16 @@ use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Larena\Core\Contracts\SiteBindings;
+use Larena\Core\Contracts\SiteLanguages;
 use Larena\Core\Enums\SiteEnvironment;
 use Larena\Core\Scope\DatabaseScopeRegistry;
+use Larena\Core\Site\ConfiguredSiteLanguages;
+use Larena\Core\Site\CurrentLanguage;
 use Larena\Core\Site\CurrentSite;
 use Larena\Core\Site\DatabaseSiteBindings;
 use Larena\Core\Site\ResolveSite;
+use Larena\Core\Site\ResolveSiteLanguage;
+use Larena\Core\Site\SiteLanguageFolders;
 use Larena\Core\Site\SiteMapStore;
 use Larena\Core\Site\SiteResolver;
 use Larena\Core\Site\SiteScopes;
@@ -71,6 +76,24 @@ final class SiteRegistrar
                 array_values(array_filter(is_array($except) ? $except : [], 'is_string')),
             );
         });
+        // A site's languages: the configuration's until whoever keeps the site's settings answers (the application).
+        if (!$app->bound(SiteLanguages::class)) {
+            $app->singleton(SiteLanguages::class, static function (Application $app): SiteLanguages {
+                $config = $app->make('config');
+                $languages = $config->get('larena-core.sites.languages', []);
+                $main = $config->get('app.locale');
+
+                return new ConfiguredSiteLanguages(array_values(array_filter(is_array($languages) ? $languages : [], 'is_string')), is_string($main) && $main !== '' ? $main : 'en');
+            });
+        }
+        $app->singleton(SiteLanguageFolders::class);
+        $app->bind(ResolveSiteLanguage::class, static fn (Application $app): ResolveSiteLanguage => new ResolveSiteLanguage($app->make(SiteLanguages::class), $app));
+        // Outside a request (console, queue) the language is the default site's main one.
+        $app->bind(CurrentLanguage::class, static function (Application $app): CurrentLanguage {
+            $site = $app->make(CurrentSite::class)->site->toString();
+
+            return new CurrentLanguage(null, '/', '', static fn (): string => $app->make(SiteLanguages::class)->main($site));
+        });
         // Outside a request (console, queue) the site is the default one; ResolveSite replaces this per request.
         $app->bind(CurrentSite::class, static fn (Application $app): CurrentSite => CurrentSite::byDefault(
             $app->make(SiteResolver::class)->defaultSite(),
@@ -79,7 +102,8 @@ final class SiteRegistrar
 
     /**
      * Every request finds its site before routing: ResolveSite is global HTTP middleware, so an old domain is sent to
-     * the main one for any path, not only for paths a route answers (the router answers 404 before a group runs).
+     * the main one for any path, not only for paths a route answers (the router answers 404 before a group runs). Its
+     * language follows, before the redirects, which the application adds later.
      */
     public static function boot(Application $app): void
     {
@@ -89,6 +113,7 @@ final class SiteRegistrar
         $kernel = $app->bound(\Illuminate\Contracts\Http\Kernel::class) ? $app->make(\Illuminate\Contracts\Http\Kernel::class) : null;
         if (is_object($kernel) && method_exists($kernel, 'pushMiddleware')) {
             $kernel->pushMiddleware(ResolveSite::class);
+            $kernel->pushMiddleware(ResolveSiteLanguage::class);
         }
     }
 

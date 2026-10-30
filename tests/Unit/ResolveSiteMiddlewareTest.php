@@ -18,9 +18,14 @@ use Larena\Core\Enums\SiteEnvironment;
 use Larena\Core\Enums\SiteMatch;
 use Larena\Core\Scope\DatabaseScopeRegistry;
 use Larena\Core\Scope\ScopeRef;
+use Larena\Core\Contracts\SiteLanguages;
+use Larena\Core\Site\ConfiguredSiteLanguages;
+use Larena\Core\Site\CurrentLanguage;
 use Larena\Core\Site\CurrentSite;
 use Larena\Core\Site\DatabaseSiteBindings;
 use Larena\Core\Site\ResolveSite;
+use Larena\Core\Site\ResolveSiteLanguage;
+use Larena\Core\Site\SiteLanguageFolders;
 use Larena\Core\Site\SiteMap;
 use Larena\Core\Site\SiteMapStore;
 use Larena\Core\Site\SiteResolver;
@@ -109,5 +114,68 @@ $scopedMiddleware->handle(Request::create('http://example.ru/page'), $next);
 assert($scopedContainer->make('kept') === $kept, 'the same site keeps it');
 $scopedMiddleware->handle(Request::create('http://store.example.ru/'), $next);
 assert($scopedContainer->make('kept') !== $kept, 'another site does not');
+
+// The request's language (sites plan, step 4.4): the domain's, else a language's folder, else the main one.
+$languages = new class implements SiteLanguages {
+    public int $asked = 0;
+
+    public function languages(string $siteRef): array
+    {
+        ++$this->asked;
+
+        return ['ru', 'en', 'pt-BR'];
+    }
+
+    public function main(string $siteRef): string
+    {
+        ++$this->asked;
+
+        return 'ru';
+    }
+
+    public function mainInFolder(string $siteRef): bool
+    {
+        return false;
+    }
+};
+$languageContainer = new Container();
+$resolveLanguage = new ResolveSiteLanguage($languages, $languageContainer);
+$of = static fn (string $path, ?string $locale = null, string $folder = ''): CurrentLanguage => $resolveLanguage->of(
+    new CurrentSite($root, null, $locale, $folder, SiteMatch::Exact), $path);
+$language = $of('/about');
+assert($languages->asked === 0, 'an ordinary address reads no setting');
+assert($language->address() === '/about' && $language->folder() === '' && $language->locale() === 'ru');
+$language = $of('/en/about');
+assert($language->locale() === 'en' && $language->address() === '/about' && $language->folder() === '/en');
+$language = $of('/en');
+assert($language->locale() === 'en' && $language->address() === '/');
+$language = $of('/en/');
+assert($language->locale() === 'en' && $language->address() === '/');
+$language = $of('/pt-BR/a/b');
+assert($language->locale() === 'pt-BR' && $language->address() === '/a/b');
+// The main language has no folder; a code that is not the site's is an ordinary address.
+$language = $of('/ru/about');
+assert($language->locale() === 'ru' && $language->address() === '/ru/about' && $language->folder() === '');
+$language = $of('/de/about');
+assert($language->locale() === 'ru' && $language->address() === '/de/about');
+// A domain's language wins, and its addresses have no folder.
+$language = $of('/en/about', 'en');
+assert($language->locale() === 'en' && $language->address() === '/en/about' && $language->folder() === '');
+// The site's folder comes off first.
+$language = $of('/shop/en/about', null, '/shop');
+assert($language->locale() === 'en' && $language->address() === '/about');
+$language = $of('/shop', null, '/shop');
+assert($language->locale() === 'ru' && $language->address() === '/');
+// The middleware leaves it in the request and the container, after the site.
+$request = Request::create('http://example.ru/en/page');
+$request->attributes->set(CurrentSite::ATTRIBUTE, new CurrentSite($root, null, null, '', SiteMatch::Default));
+$resolveLanguage->handle($request, $next);
+assert($request->attributes->get(CurrentLanguage::ATTRIBUTE) === $languageContainer->make(CurrentLanguage::class) && $languageContainer->make(CurrentLanguage::class)->address() === '/page');
+// Where a language's addresses stand, for whatever writes one.
+$folders = new SiteLanguageFolders($languages);
+assert($folders->prefix('site:main', 'ru') === '' && $folders->prefix('site:main', 'en') === '/en');
+assert($folders->address('site:main', 'en', '/about') === '/en/about' && $folders->address('site:main', 'en', '/') === '/en' && $folders->address('site:main', 'ru', '/') === '/');
+$configured = new ConfiguredSiteLanguages(['en'], 'ru');
+assert($configured->languages('site:main') === ['ru', 'en'] && $configured->main('site:main') === 'ru' && $configured->mainInFolder('site:main') === false);
 
 echo "ResolveSiteMiddlewareTest passed.\n";

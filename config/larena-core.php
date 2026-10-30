@@ -25,6 +25,8 @@ return [
         'scheme' => env('LARENA_SITES_SCHEME'),
         // Paths a redirect domain still serves itself, so the admin stays reachable on every domain.
         'redirect_except' => ['admin'],
+        // A site's languages when no site setting answers for them (Contracts\SiteLanguages).
+        'languages' => [],
     ],
     'web_install' => [
         'test_faults_enabled' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED', false),

@@ -152,7 +152,12 @@
     "src/Exceptions/SiteCreationRejected.php",
     "src/Site/SiteBindingsArtifact.php",
     "src/Site/SiteScopes.php",
-    "tests/Unit/SiteCreationAndAddedDomainsTest.php"
+    "tests/Unit/SiteCreationAndAddedDomainsTest.php",
+    "src/Contracts/SiteLanguages.php",
+    "src/Site/ConfiguredSiteLanguages.php",
+    "src/Site/CurrentLanguage.php",
+    "src/Site/ResolveSiteLanguage.php",
+    "src/Site/SiteLanguageFolders.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
