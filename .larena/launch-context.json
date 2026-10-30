@@ -158,7 +158,8 @@
     "src/Site/CurrentLanguage.php",
     "src/Site/ResolveSiteLanguage.php",
     "src/Site/SiteLanguageFolders.php",
-    "src/Contracts/SiteLanguageStructure.php"
+    "src/Contracts/SiteLanguageStructure.php",
+    "src/Contracts/SiteFavicon.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

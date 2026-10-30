@@ -101,7 +101,8 @@
     "src/Exceptions/SiteCreationRejected.php",
     "src/Site/SiteBindingsArtifact.php",
     "src/Site/SiteScopes.php",
-    "tests/Unit/SiteCreationAndAddedDomainsTest.php"
+    "tests/Unit/SiteCreationAndAddedDomainsTest.php",
+    "src/Contracts/SiteFavicon.php"
   ],
   "forbidden_behavior": [
     "changing an operation declaration, key, risk class or handler reference",
