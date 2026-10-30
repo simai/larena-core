@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use Larena\Core\Contracts\SiteLanguages;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -17,13 +18,14 @@ use Symfony\Component\HttpFoundation\Response;
  * a language of the site with a folder; else the site's main language.
  *
  * The site's languages are read only for a first segment shaped like a language code, so an ordinary request reads no
- * setting here.
+ * setting here. A language with a domain of its own (step 4.7) has one address: its folder on another domain leads there
+ * with a 301.
  */
 final class ResolveSiteLanguage
 {
     private const CODE = '/\A[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?\z/D';
 
-    public function __construct(private readonly SiteLanguages $languages, private readonly Container $container)
+    public function __construct(private readonly SiteLanguages $languages, private readonly Container $container, private readonly ?SiteMapStore $maps = null)
     {
     }
 
@@ -34,9 +36,29 @@ final class ResolveSiteLanguage
             $language = $this->of($current, $request->getPathInfo());
             $this->container->instance(CurrentLanguage::class, $language);
             $request->attributes->set(CurrentLanguage::ATTRIBUTE, $language);
+            $moved = $this->ownDomain($request, $current, $language);
+            if ($moved !== null) {
+                return $moved;
+            }
         }
 
         return $next($request);
+    }
+
+    /** Where a request through a language's folder belongs when that language has its own domain; null when it is there. */
+    private function ownDomain(Request $request, CurrentSite $current, CurrentLanguage $language): ?Response
+    {
+        if ($language->folder() === '' || $this->maps === null || (!$request->isMethod('GET') && !$request->isMethod('HEAD'))) {
+            return null;
+        }
+        $binding = $this->maps->get()->mainOf($current->site, $language->locale());
+        if ($binding === null || $binding->locale !== $language->locale() || $binding->isWildcard()) {
+            return null;
+        }
+        $query = $request->getQueryString();
+
+        return new RedirectResponse($request->getScheme() . '://' . $binding->host . ($binding->folder ?? '') . ($language->address() === '/' ? '/' : $language->address())
+            . ($query === null || $query === '' ? '' : '?' . $query), 301);
     }
 
     public function of(CurrentSite $current, string $path): CurrentLanguage

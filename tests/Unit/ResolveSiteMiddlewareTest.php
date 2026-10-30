@@ -137,6 +137,11 @@ $languages = new class implements SiteLanguages {
     {
         return false;
     }
+
+    public function ownStructure(string $siteRef): bool
+    {
+        return false;
+    }
 };
 $languageContainer = new Container();
 $resolveLanguage = new ResolveSiteLanguage($languages, $languageContainer);

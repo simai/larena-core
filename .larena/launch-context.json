@@ -157,7 +157,8 @@
     "src/Site/ConfiguredSiteLanguages.php",
     "src/Site/CurrentLanguage.php",
     "src/Site/ResolveSiteLanguage.php",
-    "src/Site/SiteLanguageFolders.php"
+    "src/Site/SiteLanguageFolders.php",
+    "src/Contracts/SiteLanguageStructure.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

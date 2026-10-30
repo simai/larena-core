@@ -22,4 +22,10 @@ interface SiteLanguages
 
     /** Whether the main language has its folder too («Основной язык тоже в папке», step 4.9). */
     public function mainInFolder(string $siteRef): bool;
+
+    /**
+     * Whether a language shows only the pages filled in on it («своя структура», step 4.8); otherwise a page out in the
+     * main language is seen on every language with its source text.
+     */
+    public function ownStructure(string $siteRef): bool;
 }

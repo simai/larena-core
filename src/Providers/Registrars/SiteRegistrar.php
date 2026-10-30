@@ -87,7 +87,7 @@ final class SiteRegistrar
             });
         }
         $app->singleton(SiteLanguageFolders::class);
-        $app->bind(ResolveSiteLanguage::class, static fn (Application $app): ResolveSiteLanguage => new ResolveSiteLanguage($app->make(SiteLanguages::class), $app));
+        $app->bind(ResolveSiteLanguage::class, static fn (Application $app): ResolveSiteLanguage => new ResolveSiteLanguage($app->make(SiteLanguages::class), $app, $app->make(SiteMapStore::class)));
         // Outside a request (console, queue) the language is the default site's main one.
         $app->bind(CurrentLanguage::class, static function (Application $app): CurrentLanguage {
             $site = $app->make(CurrentSite::class)->site->toString();

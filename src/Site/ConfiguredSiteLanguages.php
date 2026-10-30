@@ -28,4 +28,9 @@ final readonly class ConfiguredSiteLanguages implements SiteLanguages
     {
         return false;
     }
+
+    public function ownStructure(string $siteRef): bool
+    {
+        return false;
+    }
 }
