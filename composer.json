@@ -14,6 +14,7 @@
         "php": "^8.3",
         "illuminate/console": "^13.0",
         "illuminate/database": "^13.0",
+        "illuminate/http": "^13.0",
         "illuminate/support": "^13.0",
         "symfony/yaml": "^7.4|^8.0"
     },
@@ -157,7 +158,10 @@
             "@php tests/Unit/SitePackArchiveSafetyTest.php",
             "@php tests/Unit/SitePackStreamingTest.php",
             "@php tests/Unit/ProcessExecutorTest.php",
-            "@php tests/Unit/GatewayRunnerTest.php"
+            "@php tests/Unit/GatewayRunnerTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteBindingsTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteResolverTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/ResolveSiteMiddlewareTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",

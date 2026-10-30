@@ -9,5 +9,10 @@ parameters:
   # package vendor tree has no symfony/yaml even though composer.json requires
   # it. The entry application installs it; point the analyser there, exactly as
   # larena/access points at ../core/src for the same reason.
+  # The same holds for the HTTP and cache parts of Laravel the site middleware uses (illuminate/http is a
+  # requirement; illuminate/cache appears in its test only).
   scanDirectories:
     - ../../app/vendor/symfony/yaml
+    - ../../app/vendor/symfony/http-foundation
+    - ../../app/vendor/laravel/framework/src/Illuminate/Http
+    - ../../app/vendor/laravel/framework/src/Illuminate/Cache

@@ -12,6 +12,7 @@ use Larena\Core\Console\Commands\InstallCommand;
 use Larena\Core\Console\Commands\OperationCoverageCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
+use Larena\Core\Console\Commands\SitesCacheCommand;
 use Larena\Core\Console\Commands\ValidatePackagesCommand;
 use Larena\Core\Process\ProcessExecutor;
 use Larena\Core\Process\ProcOpenProcessExecutor;
@@ -19,6 +20,7 @@ use Larena\Core\Providers\Registrars\EnvironmentRegistrar;
 use Larena\Core\Providers\Registrars\InstallationRegistrar;
 use Larena\Core\Providers\Registrars\OperationRegistrar;
 use Larena\Core\Providers\Registrars\ScopeModelRegistrar;
+use Larena\Core\Providers\Registrars\SiteRegistrar;
 use Larena\Core\SitePack\SitePackLimits;
 
 final class CoreServiceProvider extends ServiceProvider
@@ -30,6 +32,7 @@ final class CoreServiceProvider extends ServiceProvider
         OperationRegistrar::register($this->app);
         EnvironmentRegistrar::register($this->app);
         InstallationRegistrar::register($this->app);
+        SiteRegistrar::register($this->app);
         // Config only: SitePack limits touch no database.
         $this->app->singleton(SitePackLimits::class, static fn ($app): SitePackLimits => SitePackLimits::fromConfig(
             (array) $app['config']->get('larena-core.sitepack', []),
@@ -45,6 +48,7 @@ final class CoreServiceProvider extends ServiceProvider
         // of the installer bootstrap lives in its own registered path.
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations/platform');
+        SiteRegistrar::boot($this->app);
 
         if (!$this->app->runningInConsole()) {
             return;
@@ -58,6 +62,7 @@ final class CoreServiceProvider extends ServiceProvider
             OperationCoverageCommand::class,
             PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,
+            SitesCacheCommand::class,
             ValidatePackagesCommand::class,
         ]);
     }

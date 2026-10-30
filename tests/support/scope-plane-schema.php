@@ -96,5 +96,38 @@ function larena_core_scope_plane_connection(): Connection
         $table->unique(['node_id', 'subject_ref']);
     });
 
+    $schema->create('larena_core_site_bindings', static function (Blueprint $table): void {
+        $table->id();
+        $table->string('site_ref', 80);
+        $table->unsignedInteger('position');
+        $table->string('host', 253);
+        $table->string('folder', 191)->default('');
+        $table->string('locale', 16)->nullable();
+        $table->string('role', 16);
+        $table->string('environment', 16);
+        $table->string('created_by', 191);
+        $table->string('updated_by', 191);
+        $table->timestamps();
+        $table->unique(['host', 'folder', 'environment']);
+        $table->index(['site_ref', 'position']);
+    });
+
+    $schema->create('larena_core_default_site', static function (Blueprint $table): void {
+        $table->string('slot', 16)->primary();
+        $table->string('site_ref', 80);
+        $table->string('updated_by', 191);
+        $table->timestamps();
+    });
+
+    return $connection;
+}
+
+/** An in-memory connection from before the site migrations ran. */
+function larena_core_scope_plane_connection_without_sites(): Connection
+{
+    $connection = larena_core_scope_plane_connection();
+    $connection->getSchemaBuilder()->drop('larena_core_site_bindings');
+    $connection->getSchemaBuilder()->drop('larena_core_default_site');
+
     return $connection;
 }

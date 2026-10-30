@@ -1,5 +1,6 @@
 # Changelog
 
+- Sites and domains (sites plan, stages 2.1 and 2.2; `docs/sites.md`): `Contracts\SiteBindings` keeps each site's domains (`larena_core_site_bindings`: host with `*.` allowed, optional folder, language, role main/alias/redirect, environment) and the default site (`larena_core_default_site`), replaced as one validated list with `site_binding_*` codes. `Site\SiteResolver` finds a request's site from a compiled map (exact host, then `*.` host, longest folder on a segment boundary, then the default site, else the root scope), kept in the process, the configured cache and `bootstrap/cache/larena-sites.php` (`larena:sites:cache`, `--clear`), cleared by every write. `Site\ResolveSite` is global HTTP middleware (before routing, so any path of an old domain is redirected), binds `Site\CurrentSite` and answers 301 from redirect domains to the main one (GET/HEAD, not under `/admin`). `larena-core.environment` follows APP_ENV when empty. Without domains nothing changes.
 - A first-run step may offer options beside the form (`Contracts\FirstRunOptions`, owner decision 2026-10-29): `FirstRunCoordinator::options()` lists them in step order and refuses a key offered twice; the person's choices travel in `FirstRunPayload::$options`, read with `option()`, each off unless turned on.
 ## Unreleased
 

@@ -11,6 +11,21 @@ return [
         'root_scope' => 'site:main',
         'root_scope_label' => 'Main site',
     ],
+    // Where this installation runs: production, staging or development. A site's domains are kept per environment
+    // and only this one's are served. Empty follows APP_ENV: production is production, local and testing are
+    // development, anything else is staging.
+    'environment' => env('LARENA_ENVIRONMENT'),
+    // Finding a request's site by its domain (sites plan, stage 2).
+    'sites' => [
+        // ResolveSite joins the `web` middleware group; false leaves adding it to the application.
+        'middleware' => true,
+        // The cache store of the compiled domain map; empty is the default store.
+        'cache_store' => env('LARENA_SITES_CACHE_STORE'),
+        // The scheme of redirect targets (http or https); empty follows the request.
+        'scheme' => env('LARENA_SITES_SCHEME'),
+        // Paths a redirect domain still serves itself, so the admin stays reachable on every domain.
+        'redirect_except' => ['admin'],
+    ],
     'web_install' => [
         'test_faults_enabled' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED', false),
         'test_fault_checkpoint' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT'),
