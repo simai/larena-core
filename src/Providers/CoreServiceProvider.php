@@ -14,6 +14,7 @@ use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
 use Larena\Core\Console\Commands\SitesCacheCommand;
 use Larena\Core\Console\Commands\ValidatePackagesCommand;
+use Larena\Core\Features\FeatureSet;
 use Larena\Core\Process\ProcessExecutor;
 use Larena\Core\Process\ProcOpenProcessExecutor;
 use Larena\Core\Providers\Registrars\EnvironmentRegistrar;
@@ -39,6 +40,10 @@ final class CoreServiceProvider extends ServiceProvider
         ));
         // Every package starts external programs through this one shell-free executor.
         $this->app->singleton(ProcessExecutor::class, ProcOpenProcessExecutor::class);
+        // The features the product chose (config/larena-product.php); packages declare theirs as they boot.
+        $this->app->singleton(FeatureSet::class, static fn ($app): FeatureSet => FeatureSet::fromConfig(
+            $app['config']->get(FeatureSet::CONFIG_KEY),
+        ));
     }
 
     public function boot(): void
@@ -49,6 +54,10 @@ final class CoreServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations/platform');
         SiteRegistrar::boot($this->app);
+        // Once every package has declared its features, the product's choice is checked against them.
+        $this->app->booted(static function ($app): void {
+            $app->make(FeatureSet::class)->validate();
+        });
 
         if (!$this->app->runningInConsole()) {
             return;

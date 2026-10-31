@@ -94,6 +94,7 @@
     ],
     "scripts": {
         "test": [
+            "@php tests/Unit/FeatureSetTest.php",
             "@php tests/Unit/OperationRuntimeContractTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/CatalogOperationExecutionTest.php",
             "@php tests/Unit/OperationRuntimeFailsClosedTest.php",

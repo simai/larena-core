@@ -168,7 +168,9 @@
     "tests/Unit/PlaneRegistryTest.php",
     "tests/Unit/ScopeRegistryTest.php",
     "tests/Unit/SolutionPlannerConflictTest.php",
-    "tests/fixtures/solutions/tracker.json"
+    "tests/fixtures/solutions/tracker.json",
+    "src/Features/FeatureSet.php",
+    "tests/Unit/FeatureSetTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
