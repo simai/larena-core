@@ -43,13 +43,13 @@ assert($scopes->resolve('scope:shop')?->ref->toString() === 'site:shop');
 
 // What may not be a site, nothing written.
 $scopes->create(ScopeRef::of(ScopeKind::Site, 'main'), 'Main', 'actor:installer');
-$scopes->assignLegacyRef(ScopeRef::of(ScopeKind::Site, 'main'), 'scope:minimal-cms');
+$scopes->assignLegacyRef(ScopeRef::of(ScopeKind::Site, 'main'), 'scope:site-main');
 $before = count($scopes->list(ScopeKind::Site));
 foreach (['1bad', 'x', 'Bad', 'a b', 'site'] as $key) {
     assert($refused(static fn () => $sites->create($key, 'Name', 'actor:admin')) === SiteCreationRejected::KEY_INVALID, $key);
 }
 assert($refused(static fn () => $sites->create('shop', 'Again', 'actor:admin')) === SiteCreationRejected::KEY_TAKEN);
-assert($refused(static fn () => $sites->create('minimal-cms', 'Alias', 'actor:admin')) === SiteCreationRejected::KEY_TAKEN, 'another site holds the data scope');
+assert($refused(static fn () => $sites->create('site-main', 'Alias', 'actor:admin')) === SiteCreationRejected::KEY_TAKEN, 'another site holds the data scope');
 assert($refused(static fn () => $sites->create('blank', '  ', 'actor:admin')) === SiteCreationRejected::NAME_INVALID);
 assert($refused(static fn () => $sites->create('long', str_repeat('n', 121), 'actor:admin')) === SiteCreationRejected::NAME_INVALID);
 assert(count($scopes->list(ScopeKind::Site)) === $before);

@@ -14,7 +14,7 @@ use Larena\Core\Scope\ScopeRef;
 /**
  * Makes a new site (sites plan, step 2.9): the scope `site:<key>` and its data reference `scope:<key>`.
  *
- * A site has two names, as `site:main` and `scope:minimal-cms` have: `site:<key>` is the site (its role bindings,
+ * A site has two names, as `site:main` and `scope:main` have: `site:<key>` is the site (its role bindings,
  * publications, settings, domains, membership), `scope:<key>` is what its stored data carries (storages, files, layout
  * pages: ScopeRecord::dataRef()). Everything that holds a site's data today speaks `scope:<id>`, so a new site works
  * like the main one from its first request, and when the alias goes (owner decision 2026-10-12: once the data uses the

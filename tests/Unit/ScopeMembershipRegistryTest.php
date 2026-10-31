@@ -68,11 +68,11 @@ assert($fails(static fn () => $memberships->assign($blog, $person, 'actor:admin'
 assert($fails(static fn () => $memberships->assign($main, 'not a subject', 'actor:admin')));
 
 // Stored data keeps its older reference as an alias: it resolves to the site, and one alias names one site.
-$scopes->assignLegacyRef($main, 'scope:minimal-cms');
-assert($scopes->resolve('scope:minimal-cms')?->ref->equals($main) === true);
-assert($scopes->read($main)?->dataRef() === 'scope:minimal-cms');
+$scopes->assignLegacyRef($main, 'scope:main');
+assert($scopes->resolve('scope:main')?->ref->equals($main) === true);
+assert($scopes->read($main)?->dataRef() === 'scope:main');
 assert($scopes->read($shop)?->dataRef() === 'site:shop');
-assert($fails(static fn () => $scopes->assignLegacyRef($shop, 'scope:minimal-cms')));
+assert($fails(static fn () => $scopes->assignLegacyRef($shop, 'scope:main')));
 assert($scopes->resolve('scope:unknown') === null && $scopes->resolve('scope:') === null);
 
 // A logical file belongs to one site; binding it elsewhere fails, listing pages by reference.
@@ -89,7 +89,7 @@ assert($resources->listRefs($main, 'filesystem.logical_file', $first['next_curso
 assert($fails(static fn () => $resources->bind('Bad Type', 'x', $main)));
 
 // An older reference gets its site: the one given (an alias already held resolves to it), else one of its own.
-assert($scopes->siteForLegacyRef('scope:minimal-cms', 'actor:test', $shop)->ref->equals($main));
+assert($scopes->siteForLegacyRef('scope:main', 'actor:test', $shop)->ref->equals($main));
 $made = $scopes->siteForLegacyRef('scope:tenant.alpha', 'actor:test');
 assert($made->ref->toString() === 'site:tenant-alpha' && $made->dataRef() === 'scope:tenant.alpha');
 assert($scopes->siteForLegacyRef('scope:tenant.alpha', 'actor:test')->ref->equals($made->ref));
