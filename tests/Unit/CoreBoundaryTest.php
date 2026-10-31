@@ -15,4 +15,4 @@ foreach ($iterator as $file) {
     }
 }
 
-echo "MinimalCmsCoreBoundaryTest passed.\n";
+echo "CoreBoundaryTest passed.\n";

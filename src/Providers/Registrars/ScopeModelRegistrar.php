@@ -53,7 +53,7 @@ final class ScopeModelRegistrar
         ));
         $app->alias(DatabaseMembershipResolver::class, MembershipResolver::class);
 
-        // The product declares its root scope (larena-core.first_run.root_scope); the default is the Minimal CMS site:main.
+        // The product declares its root scope (larena-core.first_run.root_scope); the default is the Larena CMS site:main.
         $app->singleton(ScopeBaselineInstaller::class, static function (Application $app): ScopeBaselineInstaller {
             $config = $app->make('config');
             $rootScope = $config->get('larena-core.first_run.root_scope', 'site:main');

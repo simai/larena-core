@@ -10,7 +10,7 @@ use Larena\Core\Enums\ScopeKind;
 /**
  * Stable reference to a core scope: "<kind>:<identifier>".
  *
- * The grammar is frozen by the Minimal CMS v1.1 Batch 1 pre-codegen freeze and
+ * The grammar is frozen by the Larena CMS v1.1 Batch 1 pre-codegen freeze and
  * is the binding every package uses for records, settings, files, grants and
  * entitlements.
  */

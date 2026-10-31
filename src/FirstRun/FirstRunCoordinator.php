@@ -13,7 +13,7 @@ final readonly class FirstRunCoordinator
     private const STATE_KEY = 'first_run_site';
 
     /**
-     * The Minimal CMS first run: the first administrator, the settings and the
+     * The Larena CMS first run: the first administrator, the settings and the
      * starter site (Storage writes it). A product that declares no steps of its
      * own gets these (larena-core.first_run.steps).
      */

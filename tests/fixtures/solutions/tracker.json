@@ -5,7 +5,7 @@
   "title": "Tracker",
   "author": "SIMAI",
   "distribution": "simai_product",
-  "base_solution": { "solution_id": "minimal_cms", "min_version": "1.1.0", "max_version": "1.9.9" },
+  "base_solution": { "solution_id": "cms", "min_version": "1.1.0", "max_version": "1.9.9" },
   "packages": ["larena/core", "larena/access", "larena/storage", "larena/tracker"],
   "scopes": ["site", "organization"],
   "planes": ["org_chart"],

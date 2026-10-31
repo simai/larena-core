@@ -113,7 +113,7 @@ try {
 }
 
 // The product declares its steps (owner decision 2026-10-29). The default is the
-// Minimal CMS composition, which still needs the starter site.
+// Larena CMS composition, which still needs the starter site.
 assert((new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200), $make('site', 300)]))->steps() === ['auth', 'setting', 'site']);
 try {
     new FirstRunCoordinator($connection, [$make('auth', 100), $make('setting', 200)], FirstRunCoordinator::DEFAULT_STEPS);

@@ -89,12 +89,12 @@ solution_assert(
 $derived = $validator->validate(solution_manifest([
     'solution_id' => 'derived_solution',
     'version' => '1.1.0',
-    'base_solution' => ['solution_id' => 'minimal_cms', 'min_version' => '1.1.0', 'max_version' => '1.9.9'],
+    'base_solution' => ['solution_id' => 'cms', 'min_version' => '1.1.0', 'max_version' => '1.9.9'],
 ]));
 
 $within = $planner->planUpgrade($derived, [
     'derived_solution' => ['version' => '1.0.0'],
-    'minimal_cms' => ['version' => '1.2.0'],
+    'cms' => ['version' => '1.2.0'],
 ]);
 solution_assert($within->isActionable(), 'a base inside the range upgrades');
 
@@ -102,7 +102,7 @@ foreach (['1.0.0', '2.0.0'] as $outside) {
     solution_assert(
         $planner->planUpgrade($derived, [
             'derived_solution' => ['version' => '1.0.0'],
-            'minimal_cms' => ['version' => $outside],
+            'cms' => ['version' => $outside],
         ])->reasonCode === 'base_compatibility_broken',
         'a base at ' . $outside . ' is outside the declared range',
     );
@@ -120,7 +120,7 @@ solution_assert($planner->planInstall($docara)->isActionable(), 'the docara fixt
 $tracker = $validator->validate(solution_fixture('tracker'));
 $trackerPlan = $planner->planUpgrade($tracker, [
     'tracker' => ['version' => '2.0.0'],
-    'minimal_cms' => ['version' => '1.1.0'],
+    'cms' => ['version' => '1.1.0'],
 ]);
 solution_assert($trackerPlan->isActionable(), 'the tracker fixture upgrades on a compatible base');
 

@@ -17,7 +17,7 @@ use Larena\Core\Scope\ScopeRef;
  * Creates the product's root scope with its Groups plane and Administrators node.
  *
  * The product declares the root scope (larena-core.first_run.root_scope, owner
- * decision 2026-10-29); the default is the Minimal CMS site:main. This is an
+ * decision 2026-10-29); the default is the Larena CMS site:main. This is an
  * idempotent install step, not a first-run contributor: FirstRunCoordinator
  * accepts exactly the steps the product declares, so the baseline is created on
  * the install/starter path instead.
@@ -109,7 +109,7 @@ final class ScopeBaselineInstaller
         ];
     }
 
-    /** The product's root scope (site:main for the Minimal CMS). */
+    /** The product's root scope (site:main for the Larena CMS). */
     public function defaultSiteRef(): ScopeRef
     {
         return $this->rootScope;

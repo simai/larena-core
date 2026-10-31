@@ -159,7 +159,16 @@
     "src/Site/ResolveSiteLanguage.php",
     "src/Site/SiteLanguageFolders.php",
     "src/Contracts/SiteLanguageStructure.php",
-    "src/Contracts/SiteFavicon.php"
+    "src/Contracts/SiteFavicon.php",
+    "src/Scope/ScopeRef.php",
+    "tests/Unit/CoreBoundaryTest.php",
+    "tests/Unit/DependencyContractTest.php",
+    "tests/Unit/MinimalCmsCoreBoundaryTest.php",
+    "tests/Unit/MinimalCmsDependencyContractTest.php",
+    "tests/Unit/PlaneRegistryTest.php",
+    "tests/Unit/ScopeRegistryTest.php",
+    "tests/Unit/SolutionPlannerConflictTest.php",
+    "tests/fixtures/solutions/tracker.json"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

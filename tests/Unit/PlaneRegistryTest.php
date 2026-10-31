@@ -21,7 +21,7 @@ $planes = new DatabasePlaneRegistry($connection, $scopes);
 $site = ScopeRef::of(ScopeKind::Site, 'main');
 $scopes->create($site, 'Main site', 'actor:installer');
 
-// Minimal CMS creates one flat plane; a product adds a tree plane later.
+// Larena CMS creates one flat plane; a product adds a tree plane later.
 $groups = $planes->createPlane($site, 'groups', PlaneKind::Flat, 'Groups', 'actor:installer');
 assert($groups->planeId === PlaneRecord::identity($site, 'groups'));
 $staff = $planes->createPlane($site, 'staff', PlaneKind::Tree, 'Staff structure', 'actor:admin');

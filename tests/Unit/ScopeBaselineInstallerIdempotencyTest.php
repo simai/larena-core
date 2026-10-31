@@ -49,7 +49,7 @@ $bareInstaller = new ScopeBaselineInstaller($bareConnection, $bareScopes, new Da
 assert(!$bareInstaller->isApplied());
 assert($bareInstaller->apply()['status'] === 'schema_missing');
 
-// The product declares its root scope (owner decision 2026-10-29); the Minimal CMS
+// The product declares its root scope (owner decision 2026-10-29); the Larena CMS
 // default above is site:main. Another product's baseline sits under its own scope.
 $productConnection = larena_core_scope_plane_connection();
 $productScopes = new DatabaseScopeRegistry($productConnection);

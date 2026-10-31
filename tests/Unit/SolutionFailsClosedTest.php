@@ -31,9 +31,9 @@ $refusals = [
     'unknown_package_in_node' => ['topology' => [$node(['packages' => ['larena/absent']])]],
     'invalid_headless_marker' => ['topology' => [$node(['headless' => 'yes'])]],
     'duplicate_node_id' => ['topology' => [$node(), $node()]],
-    'invalid_base_solution' => ['base_solution' => ['solution_id' => 'minimal_cms', 'min_version' => '2.0.0', 'max_version' => '1.0.0']],
+    'invalid_base_solution' => ['base_solution' => ['solution_id' => 'cms', 'min_version' => '2.0.0', 'max_version' => '1.0.0']],
     'unknown_base_solution_key' => ['base_solution' => [
-        'solution_id' => 'minimal_cms',
+        'solution_id' => 'cms',
         'min_version' => '1.0.0',
         'max_version' => '2.0.0',
         'branch' => 'main',

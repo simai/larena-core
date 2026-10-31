@@ -21,4 +21,4 @@ if ($actualRequireDev !== ['larena/access', 'larena/audit', 'larena/licensing'])
     throw new RuntimeException('Unexpected Core compatibility dependencies: '.json_encode($actualRequireDev, JSON_THROW_ON_ERROR));
 }
 
-echo "MinimalCmsDependencyContractTest passed.\n";
+echo "DependencyContractTest passed.\n";

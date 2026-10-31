@@ -120,8 +120,8 @@
             "@php tests/Unit/FirstRunPreflightServiceTest.php",
             "@php tests/Unit/WebInstallStateStoreTest.php",
             "@php tests/Unit/WebInstallCoordinatorRecoveryTest.php",
-            "@php tests/Unit/MinimalCmsDependencyContractTest.php",
-            "@php tests/Unit/MinimalCmsCoreBoundaryTest.php",
+            "@php tests/Unit/DependencyContractTest.php",
+            "@php tests/Unit/CoreBoundaryTest.php",
             "@php tests/Unit/ScopeRefTest.php",
             "@php tests/Unit/SchemaNameTest.php",
             "@php tests/Unit/ScopeRegistryTest.php",
@@ -191,8 +191,8 @@
             "@php tests/Unit/FirstRunPreflightServiceTest.php",
             "@php tests/Unit/WebInstallStateStoreTest.php",
             "@php tests/Unit/WebInstallCoordinatorRecoveryTest.php",
-            "@php tests/Unit/MinimalCmsDependencyContractTest.php",
-            "@php tests/Unit/MinimalCmsCoreBoundaryTest.php"
+            "@php tests/Unit/DependencyContractTest.php",
+            "@php tests/Unit/CoreBoundaryTest.php"
         ],
         "lint": "@php scripts/lint.php",
         "analyse": "@php scripts/analyse.php",

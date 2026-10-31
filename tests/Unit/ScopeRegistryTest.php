@@ -13,7 +13,7 @@ use Larena\Core\Scope\ScopeRef;
 $connection = larena_core_scope_plane_connection();
 $scopes = new DatabaseScopeRegistry($connection);
 
-// A site exists without an organization parent: Minimal CMS installs without
+// A site exists without an organization parent: Larena CMS installs without
 // the notion of a company.
 $site = ScopeRef::of(ScopeKind::Site, 'main');
 $record = $scopes->create($site, 'Main site', 'actor:installer', null, 'corr-1');
