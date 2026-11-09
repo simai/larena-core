@@ -259,6 +259,32 @@ $reusedArtifactPublication = $publisher->publishArtifactDirectory(
 );
 assertTrue($reusedArtifactPublication['bundle_action'] === 'reused', 'verified artifact bundle was not reused');
 
+// A set accepted through a pair range carries sources/pair-range-<set>.json, named by its manifest source with the
+// file's sha256 (SIMAI Framework decision 2026-11-09); an unnamed file or other bytes still fail the shape check.
+$pairArtifact = $root . '/artifact-v1-pair';
+$publisher->buildArtifactDirectory($artifactContract, $pairArtifact);
+$pairBytes = "{\"set\":\"ui\"}\n";
+file_put_contents($pairArtifact . '/sources/pair-range-ui.json', $pairBytes);
+$pairManifest = json_decode((string) file_get_contents($pairArtifact . '/manifest.json'), true, 512, JSON_THROW_ON_ERROR);
+$unnamedManifest = $pairManifest;
+assertFailsWith(
+    static fn () => $publisher->publishArtifactDirectory($publicationContract, $pairArtifact, $root . '/pair-public-0', $root . '/pair-state-0/active.json'),
+    'core_assets_artifact_sources_shape_invalid',
+    'an unnamed pair file was accepted beside the archives',
+);
+$pairManifest['sources'][0]['pair_range'] = ['checked_over' => 'ui-000000000000', 'path' => 'sources/pair-range-ui.json',
+    'sha256' => str_repeat('0', 64), 'interface_sha256' => str_repeat('1', 64)];
+file_put_contents($pairArtifact . '/manifest.json', json_encode($pairManifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+assertFailsWith(
+    static fn () => $publisher->publishArtifactDirectory($publicationContract, $pairArtifact, $root . '/pair-public-1', $root . '/pair-state-1/active.json'),
+    'core_assets_artifact_pair_file_mismatch:pair-range-ui.json',
+    'a pair file with other bytes was accepted',
+);
+$pairManifest['sources'][0]['pair_range']['sha256'] = hash('sha256', $pairBytes);
+file_put_contents($pairArtifact . '/manifest.json', json_encode($pairManifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+$pairPublication = $publisher->publishArtifactDirectory($publicationContract, $pairArtifact, $root . '/pair-public-2', $root . '/pair-state-2/active.json');
+assertTrue($pairPublication['bundle_action'] === 'created', 'an artifact with a named pair range was not published');
+
 $inspector = new VerifiedAssetBundleInspector();
 $requestedFiles = ['ui/distr/nested/runtime.css', 'ui/distr/runtime.js'];
 $inspection = $inspector->inspect($publicationContract, $requestedFiles, $artifactPublic, $artifactState);

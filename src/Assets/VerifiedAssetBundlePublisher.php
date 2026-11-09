@@ -552,6 +552,13 @@ final class VerifiedAssetBundlePublisher
             static fn (array $source): string => $source['mount'] . '.tar.gz',
             $contract['sources'],
         );
+        // A component set the lock accepts through a pair receipt or a pair range (SIMAI Framework decisions
+        // 2026-11-07 and 2026-11-09) carries that file beside its archive: sources/pair-receipt-<set>-….json or
+        // sources/pair-range-<set>.json, named by its manifest source with the file's sha256. Only such a named
+        // file with matching bytes may sit beside the archives.
+        foreach ($this->artifactPairFiles($artifactDirectory) as $file) {
+            $expectedArchives[] = $file;
+        }
         sort($expectedArchives, SORT_STRING);
         $sourceEntries = array_values(array_filter(
             scandir($artifactDirectory . DIRECTORY_SEPARATOR . 'sources') ?: [],
@@ -567,6 +574,48 @@ final class VerifiedAssetBundlePublisher
      * @param array{schema:string,publication_profile:string,bundle_id:string,sources:list<array<string,mixed>>} $contract
      * @return list<array<string, string|int>>
      */
+    /**
+     * The pair receipt and pair range files the artifact manifest names (sources[*].pair_receipt.path,
+     * sources[*].pair_range.path), each checked to be a plain file under sources/ with the named sha256.
+     *
+     * @return list<string> file names inside sources/
+     */
+    private function artifactPairFiles(string $artifactDirectory): array
+    {
+        $manifestPath = $artifactDirectory . DIRECTORY_SEPARATOR . 'manifest.json';
+        $manifest = AssetContractFields::readJson($manifestPath);
+        $files = [];
+        foreach (is_array($manifest['sources'] ?? null) ? $manifest['sources'] : [] as $source) {
+            if (!is_array($source)) {
+                continue;
+            }
+            foreach (['pair_receipt', 'pair_range'] as $key) {
+                if (!array_key_exists($key, $source)) {
+                    continue;
+                }
+                $entry = $source[$key];
+                $path = is_array($entry) ? ($entry['path'] ?? null) : null;
+                $sha256 = is_array($entry) ? ($entry['sha256'] ?? null) : null;
+                if (!is_string($path)
+                    || preg_match('#\Asources/(pair-(?:receipt|range)-[a-z0-9][a-z0-9._-]*\.json)\z#', $path, $match) !== 1
+                    || str_contains($path, '..')
+                    || !is_string($sha256)
+                    || preg_match('/\A[a-f0-9]{64}\z/', $sha256) !== 1
+                ) {
+                    throw new RuntimeException('core_assets_artifact_pair_file_invalid');
+                }
+                $file = $artifactDirectory . DIRECTORY_SEPARATOR . 'sources' . DIRECTORY_SEPARATOR . $match[1];
+                if (!is_file($file) || is_link($file) || !hash_equals($sha256, (string) hash_file('sha256', $file))
+                    || in_array($match[1], $files, true)
+                ) {
+                    throw new RuntimeException('core_assets_artifact_pair_file_mismatch:' . $match[1]);
+                }
+                $files[] = $match[1];
+            }
+        }
+        return $files;
+    }
+
     private function validateExistingArtifactBundle(
         string $bundlePath,
         array $contract,
