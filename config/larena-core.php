@@ -17,8 +17,10 @@ return [
     'environment' => env('LARENA_ENVIRONMENT'),
     // Finding a request's site by its domain (sites plan, stage 2).
     'sites' => [
-        // ResolveSite joins the `web` middleware group; false leaves adding it to the application.
-        'middleware' => true,
+        // On (the default, for the CMS and the panel): ResolveSite and ResolveSiteLanguage run as global HTTP
+        // middleware on every request. An application assembled without sites turns it off here or with
+        // LARENA_SITES_MIDDLEWARE=false and adds the two middleware itself where it wants them, or not at all.
+        'middleware' => (bool) env('LARENA_SITES_MIDDLEWARE', true),
         // The cache store of the compiled domain map; empty is the default store.
         'cache_store' => env('LARENA_SITES_CACHE_STORE'),
         // The scheme of redirect targets (http or https); empty follows the request.

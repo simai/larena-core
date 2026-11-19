@@ -170,7 +170,9 @@
     "tests/Unit/SolutionPlannerConflictTest.php",
     "tests/fixtures/solutions/tracker.json",
     "src/Features/FeatureSet.php",
-    "tests/Unit/FeatureSetTest.php"
+    "tests/Unit/FeatureSetTest.php",
+    "tests/Unit/GitTreeArchiveProcessTest.php",
+    "tests/Unit/SiteMiddlewareChoiceTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

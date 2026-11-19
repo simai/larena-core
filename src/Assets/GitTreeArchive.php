@@ -5,14 +5,40 @@ declare(strict_types=1);
 namespace Larena\Core\Assets;
 
 use InvalidArgumentException;
+use Larena\Core\Process\ProcessExecutor;
+use Larena\Core\Process\ProcessResult;
+use Larena\Core\Process\ProcessSpecification;
+use Larena\Core\Process\ProcOpenProcessExecutor;
 use RuntimeException;
 
 /**
  * Git trees as verified archives: archiving a pinned tree, checking that an archive is safe to extract,
  * extracting it, and proving that the extracted files are exactly the tree's blobs.
+ *
+ * git, tar and gzip run through the shared ProcessExecutor: an argv list and never a shell string, a bounded run
+ * time, bounded output, and only the few environment variables these tools need instead of the whole parent
+ * environment (so a hook's GIT_DIR or GIT_INDEX_FILE cannot redirect them).
  */
 final class GitTreeArchive
 {
+    /** Archiving, extracting and compressing a whole tree. */
+    public const float LONG_TIMEOUT_SECONDS = 600.0;
+    /** Reading a tree or listing an archive. */
+    public const float SHORT_TIMEOUT_SECONDS = 120.0;
+    /** Captured output of a listing; more is refused, not cut. */
+    public const int LISTING_LIMIT_BYTES = 64 * 1024 * 1024;
+    /** Bytes a command may write to its target file; more is refused, not cut. */
+    public const int FILE_LIMIT_BYTES = 8 * 1024 * 1024 * 1024;
+    /** Stderr kept for the error message. */
+    public const int STDERR_LIMIT_BYTES = 65_536;
+    /** Parent variables passed on to git, tar and gzip; nothing else of the parent environment reaches them. */
+    private const array PASSED_ENVIRONMENT = ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL'];
+    private const string DEFAULT_PATH = '/usr/local/bin:/usr/bin:/bin';
+
+    public function __construct(private readonly ProcessExecutor $processes = new ProcOpenProcessExecutor())
+    {
+    }
+
     /**
      * @param array{repository:string,commit:string,tree:string,mount:string,sha256:string} $source
      * @return array<string, string|int>
@@ -59,21 +85,12 @@ final class GitTreeArchive
 
     public function extractArchive(string $tar, string $destination): void
     {
-        $process = proc_open(
-            ['tar', '-xf', $tar, '-C', $destination],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-        );
-        if (!is_resource($process)) {
+        $result = $this->run(['tar', '-xf', $tar, '-C', $destination], self::LONG_TIMEOUT_SECONDS, self::LISTING_LIMIT_BYTES);
+        if (!$result->started) {
             throw new RuntimeException('core_assets_archive_extract_start_failed');
         }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0) {
-            throw new RuntimeException('core_assets_archive_extract_failed:' . trim((string) ($stderr ?: $stdout)));
+        if (!$this->completed($result)) {
+            throw new RuntimeException('core_assets_archive_extract_failed:' . $this->failureDetail($result));
         }
     }
 
@@ -231,19 +248,15 @@ final class GitTreeArchive
     /** @param list<string> $command */
     private function gitOutput(array $command, string $error): string
     {
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-        if (!is_resource($process)) {
+        $result = $this->run($command, self::SHORT_TIMEOUT_SECONDS, self::LISTING_LIMIT_BYTES);
+        if (!$result->started) {
             throw new RuntimeException($error);
         }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        if (proc_close($process) !== 0) {
-            throw new RuntimeException($error . ':' . trim((string) $stderr));
+        if (!$this->completed($result)) {
+            throw new RuntimeException($error . ':' . $this->failureDetail($result, false));
         }
 
-        return (string) $stdout;
+        return $result->stdout;
     }
 
     private function safeArchivePath(string $path): bool
@@ -291,21 +304,16 @@ final class GitTreeArchive
 
     public function runGitArchive(string $repository, string $commit, string $tree, string $target): void
     {
-        $process = proc_open(
+        $result = $this->run(
             ['git', '-C', $repository, 'archive', '--format=tar', '--output=' . $target, $commit, $tree],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
+            self::LONG_TIMEOUT_SECONDS,
+            self::LISTING_LIMIT_BYTES,
         );
-        if (!is_resource($process)) {
+        if (!$result->started) {
             throw new RuntimeException('core_assets_git_archive_start_failed');
         }
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0 || !is_file($target)) {
-            throw new RuntimeException('core_assets_git_archive_failed:' . trim((string) ($stderr ?: $stdout)));
+        if (!$this->completed($result) || !is_file($target)) {
+            throw new RuntimeException('core_assets_git_archive_failed:' . $this->failureDetail($result));
         }
     }
 
@@ -330,20 +338,22 @@ final class GitTreeArchive
     /** @param list<string> $command */
     private function runCommandToFile(array $command, string $target, string $error): void
     {
-        $process = proc_open(
-            $command,
-            [1 => ['file', $target, 'wb'], 2 => ['pipe', 'w']],
-            $pipes,
-        );
-        if (!is_resource($process)) {
+        $sink = @fopen($target, 'wb');
+        if ($sink === false) {
             throw new RuntimeException($error);
         }
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0 || !is_file($target)) {
+        try {
+            $result = $this->run($command, self::LONG_TIMEOUT_SECONDS, self::FILE_LIMIT_BYTES, $sink);
+        } finally {
+            fclose($sink);
+        }
+        if (!$result->started) {
             @unlink($target);
-            throw new RuntimeException($error . ':' . trim((string) $stderr));
+            throw new RuntimeException($error);
+        }
+        if (!$this->completed($result) || !is_file($target)) {
+            @unlink($target);
+            throw new RuntimeException($error . ':' . $this->failureDetail($result, false));
         }
     }
 
@@ -376,6 +386,67 @@ final class GitTreeArchive
             }
             $seen[$normalized] = true;
         }
+    }
+
+    /**
+     * @param list<string> $command
+     * @param resource|null $stdoutSink
+     */
+    private function run(array $command, float $timeoutSeconds, int $stdoutLimitBytes, mixed $stdoutSink = null): ProcessResult
+    {
+        return $this->processes->run(new ProcessSpecification(
+            argv: $command,
+            workingDirectory: self::workingDirectory(),
+            environment: self::environment(),
+            stdoutSink: $stdoutSink,
+            stdoutLimitBytes: $stdoutLimitBytes,
+            stderrLimitBytes: self::STDERR_LIMIT_BYTES,
+            timeoutSeconds: $timeoutSeconds,
+            captureStdout: $stdoutSink === null,
+        ));
+    }
+
+    /** The child ran to its own end with exit 0 and nothing it wrote was cut. */
+    private function completed(ProcessResult $result): bool
+    {
+        return $result->successful() && !$result->stdoutTruncated && !$result->stderrTruncated;
+    }
+
+    /** Why a command failed: the reason the executor stopped it, else what it wrote (stderr first). */
+    private function failureDetail(ProcessResult $result, bool $stdoutFallback = true): string
+    {
+        if ($result->stopReason !== null) {
+            return $result->stopReason->value;
+        }
+        $detail = trim($result->stderr);
+        if ($detail === '' && $stdoutFallback) {
+            $detail = trim($result->stdout);
+        }
+
+        return $detail;
+    }
+
+    /** Relative paths keep meaning what they meant to the caller: the child starts in the caller's directory. */
+    private static function workingDirectory(): string
+    {
+        $cwd = getcwd();
+
+        return is_string($cwd) && str_starts_with($cwd, '/') ? $cwd : '/';
+    }
+
+    /** @return array<string, string> */
+    private static function environment(): array
+    {
+        $environment = [];
+        foreach (self::PASSED_ENVIRONMENT as $name) {
+            $value = getenv($name);
+            if (is_string($value) && $value !== '' && !str_contains($value, "\0")) {
+                $environment[$name] = $value;
+            }
+        }
+        $environment['PATH'] ??= self::DEFAULT_PATH;
+
+        return $environment;
     }
 
     /** @return list<string> */

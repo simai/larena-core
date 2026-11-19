@@ -104,17 +104,33 @@ final class SiteRegistrar
      * Every request finds its site before routing: ResolveSite is global HTTP middleware, so an old domain is sent to
      * the main one for any path, not only for paths a route answers (the router answers 404 before a group runs). Its
      * language follows, before the redirects, which the application adds later.
+     *
+     * This is the application's assembly choice `larena-core.sites.middleware` (LARENA_SITES_MIDDLEWARE): on by default,
+     * which the CMS and the panel rely on; an application that does not serve sites turns it off.
      */
     public static function boot(Application $app): void
     {
-        if ($app->make('config')->get('larena-core.sites.middleware', true) !== true) {
+        $middleware = self::globalMiddleware($app->make('config')->get('larena-core.sites.middleware', true));
+        if ($middleware === []) {
             return;
         }
         $kernel = $app->bound(\Illuminate\Contracts\Http\Kernel::class) ? $app->make(\Illuminate\Contracts\Http\Kernel::class) : null;
         if (is_object($kernel) && method_exists($kernel, 'pushMiddleware')) {
-            $kernel->pushMiddleware(ResolveSite::class);
-            $kernel->pushMiddleware(ResolveSiteLanguage::class);
+            foreach ($middleware as $class) {
+                $kernel->pushMiddleware($class);
+            }
         }
+    }
+
+    /**
+     * The global middleware the `larena-core.sites.middleware` choice adds, in order: the site, then its language.
+     * Only an explicit true turns them on; anything else leaves them to the application.
+     *
+     * @return list<class-string>
+     */
+    public static function globalMiddleware(mixed $configured): array
+    {
+        return $configured === true ? [ResolveSite::class, ResolveSiteLanguage::class] : [];
     }
 
     /**
