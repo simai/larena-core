@@ -9,6 +9,7 @@ use Larena\Core\Console\Commands\ClusterSmokeCommand;
 use Larena\Core\Console\Commands\DataContentSmokeCommand;
 use Larena\Core\Console\Commands\DoctorCommand;
 use Larena\Core\Console\Commands\InstallCommand;
+use Larena\Core\Console\Commands\InstallSealCommand;
 use Larena\Core\Console\Commands\OperationCoverageCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
@@ -68,6 +69,7 @@ final class CoreServiceProvider extends ServiceProvider
             DataContentSmokeCommand::class,
             DoctorCommand::class,
             InstallCommand::class,
+            InstallSealCommand::class,
             OperationCoverageCommand::class,
             PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,

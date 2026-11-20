@@ -172,7 +172,11 @@
     "src/Features/FeatureSet.php",
     "tests/Unit/FeatureSetTest.php",
     "tests/Unit/GitTreeArchiveProcessTest.php",
-    "tests/Unit/SiteMiddlewareChoiceTest.php"
+    "tests/Unit/SiteMiddlewareChoiceTest.php",
+    "src/Contracts/InstalledReleaseSeal.php",
+    "src/Install/NullInstalledReleaseSeal.php",
+    "src/Console/Commands/InstallSealCommand.php",
+    "tests/Unit/InstalledReleaseSealTest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",

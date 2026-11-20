@@ -8,7 +8,9 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Larena\Core\Contracts\FirstRunContributor;
 use Larena\Core\FirstRun\FirstRunCoordinator;
+use Larena\Core\Contracts\InstalledReleaseSeal;
 use Larena\Core\FirstRun\FirstRunPreflightService;
+use Larena\Core\Install\NullInstalledReleaseSeal;
 use Larena\Core\WebInstall\LaravelWebInstallDatabaseLifecycle;
 use Larena\Core\WebInstall\NullWebInstallPostMigrationHook;
 use Larena\Core\WebInstall\WebInstallCoordinator;
@@ -52,6 +54,8 @@ final class InstallationRegistrar
         ));
 
         $app->bindIf(WebInstallPostMigrationHook::class, NullWebInstallPostMigrationHook::class);
+        // The installer's seal of a release from a signed archive; the update client provides the real check.
+        $app->bindIf(InstalledReleaseSeal::class, NullInstalledReleaseSeal::class);
 
         $app->bind(WebInstallDatabaseLifecycle::class, static fn (Application $app): WebInstallDatabaseLifecycle => new LaravelWebInstallDatabaseLifecycle(
             $app,
