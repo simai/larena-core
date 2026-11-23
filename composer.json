@@ -135,6 +135,7 @@
             "@php tests/Unit/PlaneNodeMoveFailsClosedTest.php",
             "@php tests/Unit/MembershipResolverTest.php",
             "@php tests/Unit/MembershipResolverDescendantsTest.php",
+            "@php tests/Unit/NodeMemberRemovedAndBoundedMembersTest.php",
             "@php tests/Unit/ScopeBaselineInstallerIdempotencyTest.php",
             "@php tests/Unit/ScopePlaneAuditEventTest.php",
             "@php tests/Unit/OperationDescriptorRiskClassDefaultTest.php",

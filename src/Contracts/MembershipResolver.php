@@ -11,6 +11,9 @@ namespace Larena\Core\Contracts;
  */
 interface MembershipResolver
 {
+    /** The most subjects one membersOf() answer holds. */
+    public const MEMBERS_MAX = 1000;
+
     public function assign(
         string $nodeId,
         string $subjectRef,
@@ -19,9 +22,21 @@ interface MembershipResolver
         ?string $correlationId = null,
     ): MembershipRecord;
 
+    /**
+     * Revoking an active membership dispatches Larena\Core\Events\NodeMemberRemoved once, after commit.
+     */
     public function revoke(string $nodeId, string $subjectRef, string $actorId, ?string $correlationId = null): MembershipRecord;
 
-    public function membersOf(string $nodeId, bool $includeDescendants = false): ResolvedMemberSet;
+    /**
+     * Active members sorted by subject reference, at most $limit (clamped to 1..MEMBERS_MAX), after the subject $after.
+     * The answer's `complete` is false when more members follow; read on with nextAfter() as $after.
+     */
+    public function membersOf(
+        string $nodeId,
+        bool $includeDescendants = false,
+        int $limit = self::MEMBERS_MAX,
+        ?string $after = null,
+    ): ResolvedMemberSet;
 
     /**
      * @return list<PlaneNodeRecord>

@@ -966,6 +966,14 @@ operations:
           maxLength: 120
         include_descendants:
           type: 'boolean'
+        limit:
+          type: 'integer'
+          minimum: 1
+          maximum: 1000
+        after:
+          type: 'string'
+          minLength: 1
+          maxLength: 190
       required:
         - 'node_id'
     output:
@@ -990,11 +998,14 @@ operations:
             type: 'string'
             minLength: 1
             maxLength: 120
+        complete:
+          type: 'boolean'
       required:
         - 'node_id'
         - 'include_descendants'
         - 'subject_refs'
         - 'node_ids'
+        - 'complete'
   - name: 'core.plane.resolve_ancestry'
     execution_mode: 'sync'
     risk: 'read'

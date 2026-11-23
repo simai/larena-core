@@ -283,9 +283,15 @@ final class PlaneOperationHandlers implements OperationHandler, OperationProposa
     /** @return array<string, mixed> */
     private function resolveMembers(OperationContext $context): array
     {
+        $limit = $context->metadata['limit'] ?? DatabaseMembershipResolver::MEMBERS_MAX;
+        if (!is_int($limit) || $limit < 1 || $limit > DatabaseMembershipResolver::MEMBERS_MAX) {
+            throw new ScopeBoundaryViolation('invalid_input', sprintf('Plane operation "limit" must be 1 to %d.', DatabaseMembershipResolver::MEMBERS_MAX));
+        }
         $set = $this->memberships->membersOf(
             $this->string($context, 'node_id'),
             (bool) ($context->metadata['include_descendants'] ?? false),
+            $limit,
+            $this->optionalString($context, 'after'),
         );
 
         return [
@@ -293,6 +299,7 @@ final class PlaneOperationHandlers implements OperationHandler, OperationProposa
             'include_descendants' => $set->includeDescendants,
             'subject_refs' => $set->subjectRefs,
             'node_ids' => $set->nodeIds,
+            'complete' => $set->complete,
         ];
     }
 

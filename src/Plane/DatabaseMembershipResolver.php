@@ -10,6 +10,9 @@ use Larena\Core\Contracts\MembershipResolver;
 use Larena\Core\Contracts\PlaneNodeRecord;
 use Larena\Core\Contracts\ResolvedMemberSet;
 use Larena\Core\Enums\MembershipStatus;
+use Larena\Core\Enums\NodeStatus;
+use Larena\Core\Events\CommittedEvents;
+use Larena\Core\Events\NodeMemberRemoved;
 use Larena\Core\Exceptions\ScopeBoundaryViolation;
 
 /**
@@ -73,11 +76,17 @@ final class DatabaseMembershipResolver implements MembershipResolver
         return $this->require($membershipId);
     }
 
-    /** @phpstan-impure */
+    /**
+     * Revoking an active membership tells NodeMemberRemoved after commit; revoking one already revoked changes nothing
+     * and tells nothing.
+     *
+     * @phpstan-impure
+     */
     public function revoke(string $nodeId, string $subjectRef, string $actorId, ?string $correlationId = null): MembershipRecord
     {
         $membershipId = MembershipRecord::identity($nodeId, $subjectRef);
-        if ($this->row($membershipId) === null) {
+        $existing = $this->row($membershipId);
+        if ($existing === null) {
             throw new ScopeBoundaryViolation('unknown_membership', sprintf('Membership "%s" does not exist.', $membershipId));
         }
 
@@ -88,42 +97,66 @@ final class DatabaseMembershipResolver implements MembershipResolver
                 'updated_at' => $this->now(),
             ]);
 
+        if ((string) $existing->status === MembershipStatus::Active->value) {
+            CommittedEvents::dispatch($this->connection, new NodeMemberRemoved(
+                (string) $existing->node_id,
+                (string) $existing->subject_ref,
+                'revoked',
+            ));
+        }
+
         return $this->require($membershipId);
     }
 
-    /** @phpstan-impure */
-    public function membersOf(string $nodeId, bool $includeDescendants = false): ResolvedMemberSet
-    {
+    /**
+     * Active members of the node, sorted by subject reference and bounded: at most $limit subjects (never more than
+     * MEMBERS_MAX), starting after the subject $after. `complete` is false when more members follow; pass the last
+     * subject as $after to read the next page.
+     *
+     * @phpstan-impure
+     */
+    public function membersOf(
+        string $nodeId,
+        bool $includeDescendants = false,
+        int $limit = self::MEMBERS_MAX,
+        ?string $after = null,
+    ): ResolvedMemberSet {
+        $limit = max(1, min(self::MEMBERS_MAX, $limit));
         $node = $this->planes->requireNode($nodeId);
         $nodeIds = [$node->nodeId];
 
         if ($includeDescendants) {
-            foreach ($this->planes->listNodes($node->planeId) as $candidate) {
-                if ($candidate->path->isDescendantOf($node->path)) {
-                    $nodeIds[] = $candidate->nodeId;
+            // Only the node's subtree is read, not every node of the plane; the LIKE prefix may match a little more
+            // (its wildcards are not escaped), so the path is checked again here.
+            $prefix = $node->path->toString() . NodePath::SEPARATOR;
+            $candidates = $this->connection->table(DatabasePlaneRegistry::NODE_TABLE)
+                ->where('plane_id', $node->planeId)
+                ->where('status', NodeStatus::Active->value)
+                ->where('path', 'like', $prefix . '%')
+                ->get(['node_id', 'path']);
+            foreach ($this->rows($candidates) as $candidate) {
+                if (str_starts_with((string) $candidate->path, $prefix) && (string) $candidate->node_id !== $node->nodeId) {
+                    $nodeIds[] = (string) $candidate->node_id;
                 }
             }
         }
 
         sort($nodeIds);
 
-        $rows = $this->rows(
-            $this->connection->table(self::TABLE)
-                ->whereIn('node_id', $nodeIds)
-                ->where('status', MembershipStatus::Active->value)
-                ->orderBy('subject_ref')
-                ->get()
-        );
-
-        $subjects = [];
-        foreach ($rows as $row) {
-            $subject = (string) $row->subject_ref;
-            if (!in_array($subject, $subjects, true)) {
-                $subjects[] = $subject;
-            }
+        $query = $this->connection->table(self::TABLE)
+            ->whereIn('node_id', $nodeIds)
+            ->where('status', MembershipStatus::Active->value);
+        if ($after !== null) {
+            $query->where('subject_ref', '>', $after);
         }
 
-        return new ResolvedMemberSet($nodeId, $includeDescendants, $subjects, $nodeIds);
+        $subjects = [];
+        foreach ($this->rows($query->distinct()->orderBy('subject_ref')->limit($limit + 1)->get(['subject_ref'])) as $row) {
+            $subjects[] = (string) $row->subject_ref;
+        }
+        $complete = count($subjects) <= $limit;
+
+        return new ResolvedMemberSet($nodeId, $includeDescendants, array_slice($subjects, 0, $limit), $nodeIds, $complete);
     }
 
     /**

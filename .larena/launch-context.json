@@ -176,7 +176,15 @@
     "src/Contracts/InstalledReleaseSeal.php",
     "src/Install/NullInstalledReleaseSeal.php",
     "src/Console/Commands/InstallSealCommand.php",
-    "tests/Unit/InstalledReleaseSealTest.php"
+    "tests/Unit/InstalledReleaseSealTest.php",
+    "operations.yaml",
+    "src/Contracts/MembershipResolver.php",
+    "src/Contracts/ResolvedMemberSet.php",
+    "src/Plane/DatabaseMembershipResolver.php",
+    "src/Events/CommittedEvents.php",
+    "src/Events/NodeMemberRemoved.php",
+    "tests/Unit/NodeMemberRemovedAndBoundedMembersTest.php",
+    "docs/developer/node-membership-events.md"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
