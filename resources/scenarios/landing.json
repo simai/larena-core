@@ -11,6 +11,6 @@
   "settings": {
     "site.purpose": "landing"
   },
-  "sitepack": null,
+  "sitepack": "demo/landing.zip",
   "position": 40
 }

@@ -76,6 +76,11 @@ foreach ($catalog->all() as $scenario) {
         }
     }
     scenario_assert($scenario->settings === ['site.purpose' => $scenario->id] && $scenario->source === 'larena/core', 'starter settings of ' . $scenario->id);
+    // Each ships its demo pages: a SitePack (larena/storage's format of the site pages; its tests import each one).
+    scenario_assert(realpath((string) $scenario->sitePack) === realpath(dirname(__DIR__, 2) . '/resources/scenarios/demo/' . $scenario->id . '.zip'), 'the demo pack of ' . $scenario->id);
+    $reader = Larena\Core\SitePack\SitePackArchiveReader::open($scenario->sitePack);
+    scenario_assert(($reader->envelope->annotations['adapter'] ?? null) === 'larena/storage', 'the demo pack of ' . $scenario->id . ' is a storage SitePack');
+    $reader->close();
 }
 // Every capability is one the registry declares (larena-specs, read when the checkout is beside the workspace).
 $registry = getenv('LARENA_SPECS_ROOT') ?: dirname(__DIR__, 5) . '/larena-specs';
@@ -255,10 +260,12 @@ $state->update(static function (array $current): array {
 scenario_assert($state->on('larena.capability.search.base') && $state->switchedOff() === [] && $applier->apply('blog', 'user:1')->switchedOff === [],
     'switched on by hand again, the function is no longer marked');
 
-// Demo content comes in once.
+// Demo content comes in once (the shipped scenarios above imported theirs already).
+scenario_assert($demo->imports === 3 && $first->demo === SiteScenarioDemoContent::IMPORTED && $again->demo === SiteScenarioOutcome::DEMO_KEPT,
+    'company_site, blog and staff_portal brought their demo pages once each');
 $club = $applier->apply('club', 'user:2');
 $clubAgain = $applier->apply('club', 'user:2');
-scenario_assert($club->demo === SiteScenarioDemoContent::IMPORTED && $clubAgain->demo === SiteScenarioOutcome::DEMO_KEPT && $demo->imports === 1, 'the demo SitePack is imported once');
+scenario_assert($club->demo === SiteScenarioDemoContent::IMPORTED && $clubAgain->demo === SiteScenarioOutcome::DEMO_KEPT && $demo->imports === 4, 'the demo SitePack is imported once');
 // No importer composed: reported unavailable, never pretended.
 $bare = new SiteScenarioApplier($catalog, $state, $licence, $settings, new Larena\Core\Scenario\UnavailableSiteScenarioDemoContent(), $audit);
 scenario_assert($bare->apply('club', 'user:2')->demo === SiteScenarioOutcome::DEMO_KEPT, 'already imported stays kept');

@@ -15,6 +15,6 @@
   "settings": {
     "site.purpose": "online_store"
   },
-  "sitepack": null,
+  "sitepack": "demo/online_store.zip",
   "position": 20
 }

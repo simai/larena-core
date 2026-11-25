@@ -16,6 +16,6 @@
   "settings": {
     "site.purpose": "staff_portal"
   },
-  "sitepack": null,
+  "sitepack": "demo/staff_portal.zip",
   "position": 50
 }

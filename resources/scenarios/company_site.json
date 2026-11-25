@@ -14,6 +14,6 @@
   "settings": {
     "site.purpose": "company_site"
   },
-  "sitepack": null,
+  "sitepack": "demo/company_site.zip",
   "position": 10
 }
