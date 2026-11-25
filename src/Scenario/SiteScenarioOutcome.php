@@ -16,6 +16,7 @@ final readonly class SiteScenarioOutcome
      * @param list<string> $needsLicence capabilities left off: the licence does not allow them
      * @param list<string> $settingsWritten starter settings written (the site had none of them)
      * @param list<string> $settingsKept starter settings the site already had, left as they are
+     * @param list<string> $switchedOff capabilities left off because the person switched them off by hand
      * @param string $demo none, kept (imported before), or SiteScenarioDemoContent::IMPORTED|UNAVAILABLE|FAILED
      */
     public function __construct(
@@ -28,6 +29,7 @@ final readonly class SiteScenarioOutcome
         public bool $settingsUnavailable = false,
         public string $demo = self::DEMO_NONE,
         public bool $firstTime = false,
+        public array $switchedOff = [],
     ) {
     }
 
@@ -57,6 +59,7 @@ final readonly class SiteScenarioOutcome
             'switched_on' => $this->switchedOn,
             'already_on' => $this->alreadyOn,
             'needs_licence' => $this->needsLicence,
+            'switched_off' => $this->switchedOff,
             'settings_written' => $this->settingsWritten,
             'settings_kept' => $this->settingsKept,
             'settings_unavailable' => $this->settingsUnavailable,

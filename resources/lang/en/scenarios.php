@@ -24,6 +24,8 @@ return [
         'title' => 'Staff portal',
         'description' => 'Sign-in for staff, permissions, news, search and notifications. Chat and workflows are paid functions.',
     ],
+    // A function the person switched off on «Возможности сайта»: no scenario switches it back on.
+    'switched_off' => 'Switched off by hand',
     // Functions in plain words: how the wizard names what a scenario needs.
     'capabilities' => [
         'access' => ['base' => 'Permissions'],

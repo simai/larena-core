@@ -40,7 +40,7 @@ final class ScenarioCommand extends Command
                 ];
             }
             if ($this->option('json') === true) {
-                $this->line((string) json_encode(['scenarios' => $rows, 'capabilities_on' => $state->enabled()], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                $this->line((string) json_encode(['scenarios' => $rows, 'capabilities_on' => $state->enabled(), 'capabilities_switched_off' => $state->switchedOff()], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
                 return self::SUCCESS;
             }

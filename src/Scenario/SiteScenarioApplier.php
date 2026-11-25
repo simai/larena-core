@@ -20,6 +20,9 @@ use Larena\Core\Exceptions\SiteScenarioRejected;
  *   as they are, so applying twice changes nothing the second time.
  * - A second scenario merges with the first: it adds its capabilities and the settings the site does not have; it
  *   never switches anything off or overwrites a value.
+ * - A capability the person switched off by hand («Возможности сайта») stays off (coordinator decision 2026-11-26):
+ *   reapplying a scenario or adding another one skips it and reports it as switched off by hand («выключено
+ *   вручную»), even when the licence allows it. Only the person switches it on again.
  * - «Пустой сайт» (SiteScenarioCatalog::EMPTY) applies nothing and writes nothing.
  * - Audited: every apply that changed something is recorded with ids and keys, never setting values.
  */
@@ -57,11 +60,13 @@ final readonly class SiteScenarioApplier
         $scenario = $this->catalog->get($scenarioId);
 
         // 1. The capabilities, under the state's lock: on when the licence allows, otherwise reported.
-        $switchedOn = $alreadyOn = $needsLicence = [];
-        $before = $this->state->update(function (array $state) use ($scenario, &$switchedOn, &$alreadyOn, &$needsLicence): array {
+        $switchedOn = $alreadyOn = $needsLicence = $switchedOff = [];
+        $before = $this->state->update(function (array $state) use ($scenario, &$switchedOn, &$alreadyOn, &$needsLicence, &$switchedOff): array {
             foreach ($scenario->capabilities as $capability) {
                 if (isset($state['capabilities'][$capability])) {
                     $alreadyOn[] = $capability;
+                } elseif (isset($state['switched_off'][$capability])) {
+                    $switchedOff[] = $capability;
                 } elseif ($this->licence->allows($capability)) {
                     $state['capabilities'][$capability] = $scenario->id;
                     $switchedOn[] = $capability;
@@ -103,6 +108,7 @@ final readonly class SiteScenarioApplier
             settingsUnavailable: $settingsUnavailable,
             demo: $demo,
             firstTime: !is_array($known),
+            switchedOff: $switchedOff,
         );
 
         // 4. The scenario's record: kept from the first apply, refreshed when something changed.
@@ -127,6 +133,7 @@ final readonly class SiteScenarioApplier
                 'source' => $scenario->source,
                 'switched_on' => $outcome->switchedOn,
                 'needs_licence' => $outcome->needsLicence,
+                'switched_off' => $outcome->switchedOff,
                 'settings_written' => $outcome->settingsWritten,
                 'settings_kept_count' => count($outcome->settingsKept),
                 'demo' => $outcome->demo,

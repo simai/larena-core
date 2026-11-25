@@ -231,6 +231,30 @@ $licensed = $applier->apply('staff_portal', 'user:1');
 scenario_assert($licensed->switchedOn === ['larena.capability.chat.base'] && $licensed->needsLicence === ['larena.capability.workflow.base']
     && $state->on('larena.capability.chat.base') && $audit->records[count($audit->records) - 1][0] === 'reapplied', 'a licence switches the paid capability on');
 
+// Switched off by hand («Возможности сайта» removes the switch): remembered, and no scenario switches it back on.
+$state->update(static function (array $current): array {
+    unset($current['capabilities']['larena.capability.search.base']);
+
+    return $current;
+});
+scenario_assert(!$state->on('larena.capability.search.base') && $state->switchedOff() === ['larena.capability.search.base'], 'a function switched off by hand is remembered');
+$reapplied = $applier->apply('company_site', 'user:1');
+scenario_assert($reapplied->switchedOff === ['larena.capability.search.base'] && !in_array('larena.capability.search.base', $reapplied->switchedOn, true)
+    && !$state->on('larena.capability.search.base') && $reapplied->toArray()['switched_off'] === ['larena.capability.search.base'],
+    'reapplying a scenario leaves a function switched off by hand off');
+$auditsBefore = count($audit->records);
+$secondAgain = $applier->apply('blog', 'user:1');
+scenario_assert($secondAgain->switchedOff === ['larena.capability.search.base'] && !$state->on('larena.capability.search.base') && count($audit->records) === $auditsBefore,
+    'another scenario does not switch it back on either, and changes nothing');
+// The person switches it on again: the mark goes.
+$state->update(static function (array $current): array {
+    $current['capabilities']['larena.capability.search.base'] = 'larena.admin.capabilities';
+
+    return $current;
+});
+scenario_assert($state->on('larena.capability.search.base') && $state->switchedOff() === [] && $applier->apply('blog', 'user:1')->switchedOff === [],
+    'switched on by hand again, the function is no longer marked');
+
 // Demo content comes in once.
 $club = $applier->apply('club', 'user:2');
 $clubAgain = $applier->apply('club', 'user:2');
