@@ -71,3 +71,17 @@ runtime:
   laravel: "^13.0"
 evidence:
   path: docs/project-management/evidence/minimal-cms-v1-1-batch-7-admin-headless
+delivery:
+  publisher: simai
+  distribution: open
+  license: Apache-2.0
+  requires:
+    larena: dev-main
+    packages: {}
+  capabilities:
+    - larena.capability.core.base
+    - larena.capability.core.distributed_cluster
+    - larena.capability.core.distributed_remote_operations
+  requires_capabilities: []
+  data_on_removal: kept_read_only
+  migrations_reversible: true

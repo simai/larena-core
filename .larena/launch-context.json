@@ -184,7 +184,8 @@
     "src/Events/CommittedEvents.php",
     "src/Events/NodeMemberRemoved.php",
     "tests/Unit/NodeMemberRemovedAndBoundedMembersTest.php",
-    "docs/developer/node-membership-events.md"
+    "docs/developer/node-membership-events.md",
+    "scripts/check-delivery-manifest.php"
   ],
   "forbidden_files": [
     "src/Contracts/OperationDescriptor.php",
