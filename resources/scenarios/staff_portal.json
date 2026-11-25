@@ -1,0 +1,21 @@
+{
+  "schema": "larena.site_scenario",
+  "schema_version": 1,
+  "scenario_id": "staff_portal",
+  "title": "larena-core::scenarios.staff_portal.title",
+  "description": "larena-core::scenarios.staff_portal.description",
+  "capabilities": [
+    "larena.capability.auth.base",
+    "larena.capability.access.base",
+    "larena.capability.content.base",
+    "larena.capability.search.base",
+    "larena.capability.notification.base",
+    "larena.capability.chat.base",
+    "larena.capability.workflow.base"
+  ],
+  "settings": {
+    "site.purpose": "staff_portal"
+  },
+  "sitepack": null,
+  "position": 50
+}

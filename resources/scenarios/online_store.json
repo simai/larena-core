@@ -1,0 +1,20 @@
+{
+  "schema": "larena.site_scenario",
+  "schema_version": 1,
+  "scenario_id": "online_store",
+  "title": "larena-core::scenarios.online_store.title",
+  "description": "larena-core::scenarios.online_store.description",
+  "capabilities": [
+    "larena.capability.content.base",
+    "larena.capability.storage.base",
+    "larena.capability.dataview.base",
+    "larena.capability.search.base",
+    "larena.capability.layout.base",
+    "larena.capability.automation.base"
+  ],
+  "settings": {
+    "site.purpose": "online_store"
+  },
+  "sitepack": null,
+  "position": 20
+}

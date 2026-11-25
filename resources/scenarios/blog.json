@@ -1,0 +1,19 @@
+{
+  "schema": "larena.site_scenario",
+  "schema_version": 1,
+  "scenario_id": "blog",
+  "title": "larena-core::scenarios.blog.title",
+  "description": "larena-core::scenarios.blog.description",
+  "capabilities": [
+    "larena.capability.content.base",
+    "larena.capability.search.base",
+    "larena.capability.link.base",
+    "larena.capability.layout.base",
+    "larena.capability.notification.base"
+  ],
+  "settings": {
+    "site.purpose": "blog"
+  },
+  "sitepack": null,
+  "position": 30
+}

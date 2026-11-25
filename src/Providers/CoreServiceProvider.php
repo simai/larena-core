@@ -13,6 +13,7 @@ use Larena\Core\Console\Commands\InstallSealCommand;
 use Larena\Core\Console\Commands\OperationCoverageCommand;
 use Larena\Core\Console\Commands\PackageRegistryCommand;
 use Larena\Core\Console\Commands\RuntimeSecuritySmokeCommand;
+use Larena\Core\Console\Commands\ScenarioCommand;
 use Larena\Core\Console\Commands\SitesCacheCommand;
 use Larena\Core\Console\Commands\ValidatePackagesCommand;
 use Larena\Core\Features\FeatureSet;
@@ -21,6 +22,7 @@ use Larena\Core\Process\ProcOpenProcessExecutor;
 use Larena\Core\Providers\Registrars\EnvironmentRegistrar;
 use Larena\Core\Providers\Registrars\InstallationRegistrar;
 use Larena\Core\Providers\Registrars\OperationRegistrar;
+use Larena\Core\Providers\Registrars\ScenarioRegistrar;
 use Larena\Core\Providers\Registrars\ScopeModelRegistrar;
 use Larena\Core\Providers\Registrars\SiteRegistrar;
 use Larena\Core\SitePack\SitePackLimits;
@@ -34,6 +36,7 @@ final class CoreServiceProvider extends ServiceProvider
         OperationRegistrar::register($this->app);
         EnvironmentRegistrar::register($this->app);
         InstallationRegistrar::register($this->app);
+        ScenarioRegistrar::register($this->app);
         SiteRegistrar::register($this->app);
         // Config only: SitePack limits touch no database.
         $this->app->singleton(SitePackLimits::class, static fn ($app): SitePackLimits => SitePackLimits::fromConfig(
@@ -55,6 +58,8 @@ final class CoreServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations/platform');
         SiteRegistrar::boot($this->app);
+        // The words of the site scenarios: their titles and descriptions, and the functions in plain words.
+        $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'larena-core');
         // Once every package has declared its features, the product's choice is checked against them.
         $this->app->booted(static function ($app): void {
             $app->make(FeatureSet::class)->validate();
@@ -73,6 +78,7 @@ final class CoreServiceProvider extends ServiceProvider
             OperationCoverageCommand::class,
             PackageRegistryCommand::class,
             RuntimeSecuritySmokeCommand::class,
+            ScenarioCommand::class,
             SitesCacheCommand::class,
             ValidatePackagesCommand::class,
         ]);

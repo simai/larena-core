@@ -1,0 +1,16 @@
+{
+  "schema": "larena.site_scenario",
+  "schema_version": 1,
+  "scenario_id": "landing",
+  "title": "larena-core::scenarios.landing.title",
+  "description": "larena-core::scenarios.landing.description",
+  "capabilities": [
+    "larena.capability.content.base",
+    "larena.capability.layout.base"
+  ],
+  "settings": {
+    "site.purpose": "landing"
+  },
+  "sitepack": null,
+  "position": 40
+}

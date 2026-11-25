@@ -1,0 +1,19 @@
+{
+  "schema": "larena.site_scenario",
+  "schema_version": 1,
+  "scenario_id": "company_site",
+  "title": "larena-core::scenarios.company_site.title",
+  "description": "larena-core::scenarios.company_site.description",
+  "capabilities": [
+    "larena.capability.content.base",
+    "larena.capability.layout.base",
+    "larena.capability.search.base",
+    "larena.capability.link.base",
+    "larena.capability.file_manager.base"
+  ],
+  "settings": {
+    "site.purpose": "company_site"
+  },
+  "sitepack": null,
+  "position": 10
+}

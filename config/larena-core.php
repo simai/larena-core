@@ -30,6 +30,12 @@ return [
         // A site's languages when no site setting answers for them (Contracts\SiteLanguages).
         'languages' => [],
     ],
+    // Site scenarios (owner decision 2026-11-25): core ships «Сайт компании», «Интернет-магазин», «Блог», «Лендинг» and
+    // «Портал для сотрудников» in resources/scenarios. A package offers its own as a folder of scenario documents:
+    // package name => folder.
+    'scenarios' => [
+        'paths' => [],
+    ],
     'web_install' => [
         'test_faults_enabled' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULTS_ENABLED', false),
         'test_fault_checkpoint' => env('LARENA_CORE_WEB_INSTALL_TEST_FAULT_CHECKPOINT'),

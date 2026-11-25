@@ -167,7 +167,8 @@
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteCreationAndAddedDomainsTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteResolverTest.php",
             "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/ResolveSiteMiddlewareTest.php",
-            "@php tests/Unit/SiteMiddlewareChoiceTest.php"
+            "@php tests/Unit/SiteMiddlewareChoiceTest.php",
+            "@php -d zend.assertions=1 -d assert.exception=1 tests/Unit/SiteScenarioTest.php"
         ],
         "test:unit": [
             "@php tests/Unit/OperationRuntimeContractTest.php",
